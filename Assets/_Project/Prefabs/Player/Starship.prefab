@@ -10,6 +10,8 @@ GameObject:
   m_Component:
   - component: {fileID: 1652408890130234172}
   - component: {fileID: 8960474601825328866}
+  - component: {fileID: 1521632703336279003}
+  - component: {fileID: 7824331124592242299}
   - component: {fileID: 2193367181686824509}
   m_Layer: 0
   m_Name: Starship
@@ -85,6 +87,33 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!114 &1521632703336279003
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7610032930363860603}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a38faf37c92dfe54db6408d93ac29be3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  config: {fileID: 11400000, guid: 12b4e3ccc97355e428d693d6c42e0fd4, type: 2}
+--- !u!114 &7824331124592242299
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7610032930363860603}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fc97ce13e07c1ba4eb343649bfda5c1c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  maxSpeed: 40
+  damping: 0
 --- !u!58 &2193367181686824509
 CircleCollider2D:
   m_ObjectHideFlags: 0

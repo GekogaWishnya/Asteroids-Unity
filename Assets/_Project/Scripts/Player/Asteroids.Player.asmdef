@@ -2,7 +2,10 @@
     "name": "Asteroids.Player",
     "rootNamespace": "Asteroids.Player",
     "references": [
-        "GUID:b6151fc1b773b514581357cc20484cc5"
+        "GUID:b6151fc1b773b514581357cc20484cc5",
+        "GUID:75469ad4d38634e559750d17036d5f7c",
+        "GUID:89dc650553a3d904da1b60beaaebc577",
+        "GUID:c7a9a74e50cfb9943950f484566316d1"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
