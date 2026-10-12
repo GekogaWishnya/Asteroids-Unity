@@ -7,7 +7,7 @@ namespace Asteroids.Data
     public sealed class WorldConfig : ScriptableObject, IWorldConfig
     {
         [Tooltip("Gameplay space size in pixels")]
-        [SerializeField, Min(0f)] private Vector2Int size = new(256, 256);
+        [SerializeField, Min(0)] private Vector2Int size = new(256, 256);
 
         [Tooltip("Background color of the gameplay space")]
         [SerializeField] private Color backgroundColor = new(0.0854174f, 0.01811143f, 0.1037736f, 1f);

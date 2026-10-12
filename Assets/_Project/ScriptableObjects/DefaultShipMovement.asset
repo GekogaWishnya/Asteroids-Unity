@@ -13,9 +13,6 @@ MonoBehaviour:
   m_Name: DefaultShipMovement
   m_EditorClassIdentifier: 
   thrust: 25
-  maxSpeed: 25
+  maxSpeed: 16.5
   turnSpeed: 220
   linearDamping: 1.5
-  maxHealth: 3
-  bounceImpulse: 30
-  invulnerabilityDuration: 3
