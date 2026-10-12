@@ -1,48 +1,33 @@
 using Asteroids.Core;
 using Asteroids.Data;
+using Asteroids.Input;
 using UnityEngine;
 using Zenject;
 
 namespace Asteroids.Player
 {
     [RequireComponent(typeof(InertialBody))]
-    public class PlayerController : MonoBehaviour
+    public sealed class PlayerController : MonoBehaviour
     {
-        [SerializeField] private ShipConfig config;
-        
         private IMovementInput _input;
-        private IMotion _motion;
-        private float _angle;
-        
-        public bool ControlEnabled { get; set; } = true;
-        public float Angle => Mathf.Repeat(_angle, 360f);
-        public Vector2 Forward => new(-Mathf.Sin(_angle * Mathf.Deg2Rad), Mathf.Cos(_angle * Mathf.Deg2Rad));
+        private IShipMovementConfig _config;
+        private IMotionDriver _motion;
 
         [Inject]
-        public void Construct(IMovementInput input)
+        public void Construct(IMovementInput input, IShipMovementConfig config)
         {
             _input = input;
-        }
+            _config = config;
 
-        private void Awake()
-        {
             var body = GetComponent<InertialBody>();
-            body.MaxSpeed = config.MaxSpeed;
-            body.Damping = config.LinearDamping;
+            body.Configure(new MotionSettings(config.MaxSpeed, config.LinearDamping));
             _motion = body;
         }
 
         private void Update()
         {
-            if (!ControlEnabled) return;
-            _angle -= _input.Turn * config.TurnSpeed * Time.deltaTime;
-            transform.rotation = Quaternion.Euler(0f, 0f, _angle);
-        }
-
-        private void FixedUpdate()
-        {
-            if (!ControlEnabled) return;
-            _motion.AddVelocity(Forward * (_input.Thrust * config.Thrust * Time.fixedDeltaTime));
+            transform.Rotate(0f, 0f, -_input.Turn * _config.TurnSpeed * Time.deltaTime);
+            _motion.Accelerate(transform.up * (_input.Thrust * _config.Thrust));
         }
     }
 }

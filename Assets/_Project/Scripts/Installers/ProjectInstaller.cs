@@ -6,18 +6,18 @@ namespace Asteroids.Installers
     {
         public override void InstallBindings()
         {
-            InstallSignals();
-            InstallServices();
+            // InstallSignals();
+            // InstallServices();
         }
         
-        private void InstallSignals()
-        {
-            
-        }
-        
-        private void InstallServices()
-        {
-            
-        }
+        // private void InstallSignals()
+        // {
+        //     
+        // }
+        //
+        // private void InstallServices()
+        // {
+        //     
+        // }
     }
 }

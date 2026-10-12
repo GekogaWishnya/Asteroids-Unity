@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e1f474237f3dc8049a593aac2554966a, type: 3}
-  m_Name: DefaultShip
+  m_Name: DefaultShipMovement
   m_EditorClassIdentifier: 
   thrust: 25
   maxSpeed: 25

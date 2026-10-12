@@ -185,7 +185,7 @@ Camera:
   far clip plane: 1000
   field of view: 60
   orthographic: 1
-  orthographic size: 1.5
+  orthographic size: 7
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -289,6 +289,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 67ae67c970536344da89cb477f07b8b8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  shipMovement: {fileID: 11400000, guid: 12b4e3ccc97355e428d693d6c42e0fd4, type: 2}
 --- !u!4 &271118439
 Transform:
   m_ObjectHideFlags: 0
@@ -378,6 +379,18 @@ PrefabInstance:
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 1652408890130234172, guid: 2d2e7d12a9563b346a89e446a5eba146, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1652408890130234172, guid: 2d2e7d12a9563b346a89e446a5eba146, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1652408890130234172, guid: 2d2e7d12a9563b346a89e446a5eba146, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1652408890130234172, guid: 2d2e7d12a9563b346a89e446a5eba146, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
       objectReference: {fileID: 0}
@@ -416,6 +429,14 @@ PrefabInstance:
     - target: {fileID: 1652408890130234172, guid: 2d2e7d12a9563b346a89e446a5eba146, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1652408890130234172, guid: 2d2e7d12a9563b346a89e446a5eba146, type: 3}
+      propertyPath: m_ConstrainProportionsScale
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2193367181686824509, guid: 2d2e7d12a9563b346a89e446a5eba146, type: 3}
+      propertyPath: m_Radius
+      value: 0.425
       objectReference: {fileID: 0}
     - target: {fileID: 7610032930363860603, guid: 2d2e7d12a9563b346a89e446a5eba146, type: 3}
       propertyPath: m_Name

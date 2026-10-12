@@ -1,24 +1,18 @@
-using Asteroids.Player;
+using Asteroids.Data;
+using Asteroids.Input;
+using UnityEngine;
 using Zenject;
 
 namespace Asteroids.Installers
 {
-    public class GameplayInstaller : MonoInstaller
+    public sealed class GameplayInstaller : MonoInstaller
     {
+        [SerializeField] private ShipMovementConfig shipMovement;
+
         public override void InstallBindings()
         {
-            InstallSignals();
-            InstallServices();
-        }
-        
-        private void InstallSignals()
-        {
-            
-        }
-
-        private void InstallServices()
-        {
-            Container.BindInterfacesAndSelfTo<ShipInput>().AsSingle();
+            Container.BindInterfacesTo<ShipInput>().AsSingle();
+            Container.Bind<IShipMovementConfig>().FromInstance(shipMovement);
         }
     }
 }

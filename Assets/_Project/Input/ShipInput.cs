@@ -1,8 +1,7 @@
 using System;
-using Asteroids.Core;
 using Zenject;
 
-namespace Asteroids.Player
+namespace Asteroids.Input
 {
     public class ShipInput : IMovementInput, IInitializable, IDisposable
     {
@@ -21,4 +20,6 @@ namespace Asteroids.Player
             _input.Dispose();
         }
     }
+    
+    public interface IMovementInput { float Turn { get; } float Thrust { get; } }
 }

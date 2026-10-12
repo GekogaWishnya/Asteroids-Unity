@@ -2,30 +2,44 @@ using UnityEngine;
 
 namespace Asteroids.Core
 {
-    public class InertialBody : MonoBehaviour, IMotion
+    public sealed class InertialBody : MonoBehaviour, IMotionState, IMotionDriver
     {
-        [SerializeField, Min(0.1f)] private float maxSpeed = 40f;
-        [Tooltip("Velocity decay per second. 0 = pure inertia")]
-        [SerializeField, Min(0f)] private float damping = 0f;
+        private MotionSettings _settings = new(40f, 0f);
+        private Vector2 _pendingAcceleration;
 
-        public Vector2 Velocity { get; set; }
+        public Vector2 Velocity { get; private set; }
         public float Speed => Velocity.magnitude;
-        public float MaxSpeed { get => maxSpeed; set => maxSpeed = Mathf.Max(0.1f, value); }
-        public float Damping  { get => damping;  set => damping  = Mathf.Max(0f, value); }
 
-        public void AddVelocity(Vector2 value) => Velocity += value;
+        public void Configure(in MotionSettings settings) => _settings = settings;
+        public void Accelerate(Vector2 acceleration) => _pendingAcceleration += acceleration;
+        public void ApplyImpulse(Vector2 impulse) => Velocity += impulse;
 
-        private void FixedUpdate()
+        private void LateUpdate()
         {
-            float dt = Time.fixedDeltaTime;
+            float dt = Time.deltaTime;
+            Velocity += _pendingAcceleration * dt;
+            _pendingAcceleration = default;
 
-            if (damping > 0f)
-                Velocity *= Mathf.Exp(-damping * dt);
+            if (_settings.Damping > 0f)
+                Velocity *= Mathf.Exp(-_settings.Damping * dt);
 
-            Velocity = Vector2.ClampMagnitude(Velocity, maxSpeed);
-
-            Vector3 p = transform.position;
-            transform.position = new Vector3(p.x + Velocity.x * dt, p.y + Velocity.y * dt, p.z);
+            Velocity = Vector2.ClampMagnitude(Velocity, _settings.MaxSpeed);
+            transform.position += (Vector3)(Velocity * dt);
         }
+    }
+    
+    public interface IMotionState { Vector2 Velocity { get; } float Speed { get; } }
+
+    public interface IMotionDriver
+    {
+        void Accelerate(Vector2 acceleration); 
+        void ApplyImpulse(Vector2 impulse);
+    }
+
+    public readonly struct MotionSettings
+    {
+        public readonly float MaxSpeed, Damping;
+        public MotionSettings(float maxSpeed, float damping)
+        { MaxSpeed = Mathf.Max(0.1f, maxSpeed); Damping = Mathf.Max(0f, damping); }
     }
 }
