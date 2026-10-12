@@ -15,12 +15,14 @@ using System.Collections.Generic;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Utilities;
 
-public partial class @GameInput: IInputActionCollection2, IDisposable
+namespace Asteroids.Input
 {
-    public InputActionAsset asset { get; }
-    public @GameInput()
+    public partial class @GameInput: IInputActionCollection2, IDisposable
     {
-        asset = InputActionAsset.FromJson(@"{
+        public InputActionAsset asset { get; }
+        public @GameInput()
+        {
+            asset = InputActionAsset.FromJson(@"{
     ""name"": ""GameInput"",
     ""maps"": [
         {
@@ -223,167 +225,168 @@ public partial class @GameInput: IInputActionCollection2, IDisposable
     ],
     ""controlSchemes"": []
 }");
+            // Gameplay
+            m_Gameplay = asset.FindActionMap("Gameplay", throwIfNotFound: true);
+            m_Gameplay_Turn = m_Gameplay.FindAction("Turn", throwIfNotFound: true);
+            m_Gameplay_Thrust = m_Gameplay.FindAction("Thrust", throwIfNotFound: true);
+            // UI
+            m_UI = asset.FindActionMap("UI", throwIfNotFound: true);
+        }
+
+        public void Dispose()
+        {
+            UnityEngine.Object.Destroy(asset);
+        }
+
+        public InputBinding? bindingMask
+        {
+            get => asset.bindingMask;
+            set => asset.bindingMask = value;
+        }
+
+        public ReadOnlyArray<InputDevice>? devices
+        {
+            get => asset.devices;
+            set => asset.devices = value;
+        }
+
+        public ReadOnlyArray<InputControlScheme> controlSchemes => asset.controlSchemes;
+
+        public bool Contains(InputAction action)
+        {
+            return asset.Contains(action);
+        }
+
+        public IEnumerator<InputAction> GetEnumerator()
+        {
+            return asset.GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
+
+        public void Enable()
+        {
+            asset.Enable();
+        }
+
+        public void Disable()
+        {
+            asset.Disable();
+        }
+
+        public IEnumerable<InputBinding> bindings => asset.bindings;
+
+        public InputAction FindAction(string actionNameOrId, bool throwIfNotFound = false)
+        {
+            return asset.FindAction(actionNameOrId, throwIfNotFound);
+        }
+
+        public int FindBinding(InputBinding bindingMask, out InputAction action)
+        {
+            return asset.FindBinding(bindingMask, out action);
+        }
+
         // Gameplay
-        m_Gameplay = asset.FindActionMap("Gameplay", throwIfNotFound: true);
-        m_Gameplay_Turn = m_Gameplay.FindAction("Turn", throwIfNotFound: true);
-        m_Gameplay_Thrust = m_Gameplay.FindAction("Thrust", throwIfNotFound: true);
+        private readonly InputActionMap m_Gameplay;
+        private List<IGameplayActions> m_GameplayActionsCallbackInterfaces = new List<IGameplayActions>();
+        private readonly InputAction m_Gameplay_Turn;
+        private readonly InputAction m_Gameplay_Thrust;
+        public struct GameplayActions
+        {
+            private @GameInput m_Wrapper;
+            public GameplayActions(@GameInput wrapper) { m_Wrapper = wrapper; }
+            public InputAction @Turn => m_Wrapper.m_Gameplay_Turn;
+            public InputAction @Thrust => m_Wrapper.m_Gameplay_Thrust;
+            public InputActionMap Get() { return m_Wrapper.m_Gameplay; }
+            public void Enable() { Get().Enable(); }
+            public void Disable() { Get().Disable(); }
+            public bool enabled => Get().enabled;
+            public static implicit operator InputActionMap(GameplayActions set) { return set.Get(); }
+            public void AddCallbacks(IGameplayActions instance)
+            {
+                if (instance == null || m_Wrapper.m_GameplayActionsCallbackInterfaces.Contains(instance)) return;
+                m_Wrapper.m_GameplayActionsCallbackInterfaces.Add(instance);
+                @Turn.started += instance.OnTurn;
+                @Turn.performed += instance.OnTurn;
+                @Turn.canceled += instance.OnTurn;
+                @Thrust.started += instance.OnThrust;
+                @Thrust.performed += instance.OnThrust;
+                @Thrust.canceled += instance.OnThrust;
+            }
+
+            private void UnregisterCallbacks(IGameplayActions instance)
+            {
+                @Turn.started -= instance.OnTurn;
+                @Turn.performed -= instance.OnTurn;
+                @Turn.canceled -= instance.OnTurn;
+                @Thrust.started -= instance.OnThrust;
+                @Thrust.performed -= instance.OnThrust;
+                @Thrust.canceled -= instance.OnThrust;
+            }
+
+            public void RemoveCallbacks(IGameplayActions instance)
+            {
+                if (m_Wrapper.m_GameplayActionsCallbackInterfaces.Remove(instance))
+                    UnregisterCallbacks(instance);
+            }
+
+            public void SetCallbacks(IGameplayActions instance)
+            {
+                foreach (var item in m_Wrapper.m_GameplayActionsCallbackInterfaces)
+                    UnregisterCallbacks(item);
+                m_Wrapper.m_GameplayActionsCallbackInterfaces.Clear();
+                AddCallbacks(instance);
+            }
+        }
+        public GameplayActions @Gameplay => new GameplayActions(this);
+
         // UI
-        m_UI = asset.FindActionMap("UI", throwIfNotFound: true);
-    }
-
-    public void Dispose()
-    {
-        UnityEngine.Object.Destroy(asset);
-    }
-
-    public InputBinding? bindingMask
-    {
-        get => asset.bindingMask;
-        set => asset.bindingMask = value;
-    }
-
-    public ReadOnlyArray<InputDevice>? devices
-    {
-        get => asset.devices;
-        set => asset.devices = value;
-    }
-
-    public ReadOnlyArray<InputControlScheme> controlSchemes => asset.controlSchemes;
-
-    public bool Contains(InputAction action)
-    {
-        return asset.Contains(action);
-    }
-
-    public IEnumerator<InputAction> GetEnumerator()
-    {
-        return asset.GetEnumerator();
-    }
-
-    IEnumerator IEnumerable.GetEnumerator()
-    {
-        return GetEnumerator();
-    }
-
-    public void Enable()
-    {
-        asset.Enable();
-    }
-
-    public void Disable()
-    {
-        asset.Disable();
-    }
-
-    public IEnumerable<InputBinding> bindings => asset.bindings;
-
-    public InputAction FindAction(string actionNameOrId, bool throwIfNotFound = false)
-    {
-        return asset.FindAction(actionNameOrId, throwIfNotFound);
-    }
-
-    public int FindBinding(InputBinding bindingMask, out InputAction action)
-    {
-        return asset.FindBinding(bindingMask, out action);
-    }
-
-    // Gameplay
-    private readonly InputActionMap m_Gameplay;
-    private List<IGameplayActions> m_GameplayActionsCallbackInterfaces = new List<IGameplayActions>();
-    private readonly InputAction m_Gameplay_Turn;
-    private readonly InputAction m_Gameplay_Thrust;
-    public struct GameplayActions
-    {
-        private @GameInput m_Wrapper;
-        public GameplayActions(@GameInput wrapper) { m_Wrapper = wrapper; }
-        public InputAction @Turn => m_Wrapper.m_Gameplay_Turn;
-        public InputAction @Thrust => m_Wrapper.m_Gameplay_Thrust;
-        public InputActionMap Get() { return m_Wrapper.m_Gameplay; }
-        public void Enable() { Get().Enable(); }
-        public void Disable() { Get().Disable(); }
-        public bool enabled => Get().enabled;
-        public static implicit operator InputActionMap(GameplayActions set) { return set.Get(); }
-        public void AddCallbacks(IGameplayActions instance)
+        private readonly InputActionMap m_UI;
+        private List<IUIActions> m_UIActionsCallbackInterfaces = new List<IUIActions>();
+        public struct UIActions
         {
-            if (instance == null || m_Wrapper.m_GameplayActionsCallbackInterfaces.Contains(instance)) return;
-            m_Wrapper.m_GameplayActionsCallbackInterfaces.Add(instance);
-            @Turn.started += instance.OnTurn;
-            @Turn.performed += instance.OnTurn;
-            @Turn.canceled += instance.OnTurn;
-            @Thrust.started += instance.OnThrust;
-            @Thrust.performed += instance.OnThrust;
-            @Thrust.canceled += instance.OnThrust;
-        }
+            private @GameInput m_Wrapper;
+            public UIActions(@GameInput wrapper) { m_Wrapper = wrapper; }
+            public InputActionMap Get() { return m_Wrapper.m_UI; }
+            public void Enable() { Get().Enable(); }
+            public void Disable() { Get().Disable(); }
+            public bool enabled => Get().enabled;
+            public static implicit operator InputActionMap(UIActions set) { return set.Get(); }
+            public void AddCallbacks(IUIActions instance)
+            {
+                if (instance == null || m_Wrapper.m_UIActionsCallbackInterfaces.Contains(instance)) return;
+                m_Wrapper.m_UIActionsCallbackInterfaces.Add(instance);
+            }
 
-        private void UnregisterCallbacks(IGameplayActions instance)
+            private void UnregisterCallbacks(IUIActions instance)
+            {
+            }
+
+            public void RemoveCallbacks(IUIActions instance)
+            {
+                if (m_Wrapper.m_UIActionsCallbackInterfaces.Remove(instance))
+                    UnregisterCallbacks(instance);
+            }
+
+            public void SetCallbacks(IUIActions instance)
+            {
+                foreach (var item in m_Wrapper.m_UIActionsCallbackInterfaces)
+                    UnregisterCallbacks(item);
+                m_Wrapper.m_UIActionsCallbackInterfaces.Clear();
+                AddCallbacks(instance);
+            }
+        }
+        public UIActions @UI => new UIActions(this);
+        public interface IGameplayActions
         {
-            @Turn.started -= instance.OnTurn;
-            @Turn.performed -= instance.OnTurn;
-            @Turn.canceled -= instance.OnTurn;
-            @Thrust.started -= instance.OnThrust;
-            @Thrust.performed -= instance.OnThrust;
-            @Thrust.canceled -= instance.OnThrust;
+            void OnTurn(InputAction.CallbackContext context);
+            void OnThrust(InputAction.CallbackContext context);
         }
-
-        public void RemoveCallbacks(IGameplayActions instance)
-        {
-            if (m_Wrapper.m_GameplayActionsCallbackInterfaces.Remove(instance))
-                UnregisterCallbacks(instance);
-        }
-
-        public void SetCallbacks(IGameplayActions instance)
-        {
-            foreach (var item in m_Wrapper.m_GameplayActionsCallbackInterfaces)
-                UnregisterCallbacks(item);
-            m_Wrapper.m_GameplayActionsCallbackInterfaces.Clear();
-            AddCallbacks(instance);
-        }
-    }
-    public GameplayActions @Gameplay => new GameplayActions(this);
-
-    // UI
-    private readonly InputActionMap m_UI;
-    private List<IUIActions> m_UIActionsCallbackInterfaces = new List<IUIActions>();
-    public struct UIActions
-    {
-        private @GameInput m_Wrapper;
-        public UIActions(@GameInput wrapper) { m_Wrapper = wrapper; }
-        public InputActionMap Get() { return m_Wrapper.m_UI; }
-        public void Enable() { Get().Enable(); }
-        public void Disable() { Get().Disable(); }
-        public bool enabled => Get().enabled;
-        public static implicit operator InputActionMap(UIActions set) { return set.Get(); }
-        public void AddCallbacks(IUIActions instance)
-        {
-            if (instance == null || m_Wrapper.m_UIActionsCallbackInterfaces.Contains(instance)) return;
-            m_Wrapper.m_UIActionsCallbackInterfaces.Add(instance);
-        }
-
-        private void UnregisterCallbacks(IUIActions instance)
+        public interface IUIActions
         {
         }
-
-        public void RemoveCallbacks(IUIActions instance)
-        {
-            if (m_Wrapper.m_UIActionsCallbackInterfaces.Remove(instance))
-                UnregisterCallbacks(instance);
-        }
-
-        public void SetCallbacks(IUIActions instance)
-        {
-            foreach (var item in m_Wrapper.m_UIActionsCallbackInterfaces)
-                UnregisterCallbacks(item);
-            m_Wrapper.m_UIActionsCallbackInterfaces.Clear();
-            AddCallbacks(instance);
-        }
-    }
-    public UIActions @UI => new UIActions(this);
-    public interface IGameplayActions
-    {
-        void OnTurn(InputAction.CallbackContext context);
-        void OnThrust(InputAction.CallbackContext context);
-    }
-    public interface IUIActions
-    {
     }
 }
