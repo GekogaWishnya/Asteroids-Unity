@@ -1,6 +1,6 @@
 {
-    "name": "Asteroids.Input",
-    "rootNamespace": "Asteroids.Input",
+    "name": "Asteroids.Controls",
+    "rootNamespace": "Asteroids.Controls",
     "references": [
         "GUID:75469ad4d38634e559750d17036d5f7c",
         "GUID:b6151fc1b773b514581357cc20484cc5",

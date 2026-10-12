@@ -2,7 +2,7 @@ using Asteroids.Core;
 using System;
 using Zenject;
 
-namespace Asteroids.Input
+namespace Asteroids.Controls
 {
     public class ShipInput : IMovementInput, IInitializable, IDisposable
     {

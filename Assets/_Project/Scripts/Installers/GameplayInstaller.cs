@@ -1,6 +1,6 @@
 using Asteroids.Core;
 using Asteroids.Data;
-using Asteroids.Input;
+using Asteroids.Controls;
 using UnityEngine;
 using Zenject;
 
