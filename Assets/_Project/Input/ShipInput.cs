@@ -21,5 +21,6 @@ namespace Asteroids.Input
         }
     }
     
-    public interface IMovementInput { float Turn { get; } float Thrust { get; } }
+    public interface IMovementInput
+    { float Turn { get; } float Thrust { get; } }
 }
