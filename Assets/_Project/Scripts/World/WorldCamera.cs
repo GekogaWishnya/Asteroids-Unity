@@ -1,26 +1,23 @@
-using Asteroids.Data;
+using Asteroids.Core;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering.Universal;
 using Zenject;
 
 namespace Asteroids.World
 {
-    [RequireComponent(typeof(PixelPerfectCamera))]
-    public class WorldCamera : MonoBehaviour
+    [RequireComponent(typeof(Camera), typeof(PixelPerfectCamera))]
+    public sealed class WorldCamera : MonoBehaviour
     {
-        private WorldConfig _config;
-        
         [Inject]
-        public void Construct(WorldConfig config)
+        private void Construct(IWorldLayout layout, IWorldAppearance appearance)
         {
-            _config = config;
-            
-            var pixelCamera = GetComponent<PixelPerfectCamera>();
-            pixelCamera.refResolutionX = _config.Size.x;
-            pixelCamera.refResolutionY = _config.Size.y;
+            var ppc = GetComponent<PixelPerfectCamera>();
+            ppc.assetsPPU = layout.PixelsPerUnit;
+            ppc.refResolutionX = layout.ReferenceResolution.x;
+            ppc.refResolutionY = layout.ReferenceResolution.y;
             
             var mainCamera = GetComponent<Camera>();
-            mainCamera.backgroundColor = _config.BackgroundColor;
+            mainCamera.backgroundColor = appearance.BackgroundColor;
         }
     }
 }

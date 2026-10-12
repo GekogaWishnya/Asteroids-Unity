@@ -1,6 +1,7 @@
 using Asteroids.Core;
 using Asteroids.Data;
 using Asteroids.Controls;
+using Asteroids.World;
 using UnityEngine;
 using Zenject;
 
@@ -15,7 +16,9 @@ namespace Asteroids.Installers
         {
             Container.BindInterfacesTo<ShipInput>().AsSingle();
             Container.Bind<IShipMovementConfig>().FromInstance(shipMovement);
-            Container.Bind<WorldConfig>().FromInstance(worldConfig);
+            Container.Bind<IWorldLayout>().FromInstance(worldConfig);
+            Container.Bind<IWorldAppearance>().FromInstance(worldConfig);
+            Container.Bind<IWorldBounds>().To<WorldBounds>().AsSingle();
         }
     }
 }

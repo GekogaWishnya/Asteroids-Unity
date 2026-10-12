@@ -25,7 +25,7 @@ namespace Asteroids.Core
                 return;
             }
             
-            float dt = Time.deltaTime;
+            var dt = Time.deltaTime;
             Velocity += _pendingAcceleration * dt;
             _pendingAcceleration = default;
 
@@ -35,20 +35,5 @@ namespace Asteroids.Core
             Velocity = Vector2.ClampMagnitude(Velocity, _config.MaxSpeed);
             transform.position += (Vector3)(Velocity * dt);
         }
-    }
-    
-    public interface IMotionState
-    {Vector2 Velocity { get; } float Speed { get; } }
-
-    public interface IMotionDriver
-    {
-        void Accelerate(Vector2 acceleration); 
-        void ApplyImpulse(Vector2 impulse);
-    }
-
-    public interface IMotionConfig
-    {
-        float MaxSpeed { get; }
-        float LinearDamping { get; }
     }
 }
