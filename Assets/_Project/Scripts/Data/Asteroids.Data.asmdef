@@ -1,7 +1,9 @@
 {
     "name": "Asteroids.Data",
     "rootNamespace": "Asteroids.Data",
-    "references": [],
+    "references": [
+        "GUID:b6151fc1b773b514581357cc20484cc5"
+    ],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,

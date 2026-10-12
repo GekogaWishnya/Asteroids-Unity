@@ -1,3 +1,4 @@
+using Asteroids.Core;
 using UnityEngine;
 
 namespace Asteroids.Data
@@ -10,7 +11,4 @@ namespace Asteroids.Data
         
         public float Health => health;
     }
-    
-    public interface IShipDurabilityConfig
-    { float Health { get; } }
 }

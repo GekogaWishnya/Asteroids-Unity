@@ -1,3 +1,4 @@
+using Asteroids.Core;
 using UnityEngine;
 
 namespace Asteroids.Data
@@ -22,7 +23,4 @@ namespace Asteroids.Data
         public float TurnSpeed => turnSpeed;
         public float LinearDamping => linearDamping;
     }
-    
-    public interface IShipMovementConfig
-    { float Thrust { get; } float MaxSpeed { get; } float TurnSpeed { get; } float LinearDamping { get; } }
 }

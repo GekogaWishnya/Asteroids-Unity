@@ -1,3 +1,4 @@
+using Asteroids.Core;
 using System;
 using Zenject;
 
@@ -20,7 +21,4 @@ namespace Asteroids.Input
             _input.Dispose();
         }
     }
-    
-    public interface IMovementInput
-    { float Turn { get; } float Thrust { get; } }
 }
