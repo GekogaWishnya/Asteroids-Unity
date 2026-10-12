@@ -12,7 +12,6 @@ GameObject:
   - component: {fileID: 8960474601825328866}
   - component: {fileID: 1521632703336279003}
   - component: {fileID: 7824331124592242299}
-  - component: {fileID: 2193367181686824509}
   m_Layer: 0
   m_Name: Starship
   m_TagString: Untagged
@@ -111,38 +110,3 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fc97ce13e07c1ba4eb343649bfda5c1c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!58 &2193367181686824509
-CircleCollider2D:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7610032930363860603}
-  m_Enabled: 1
-  m_Density: 1
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_ForceSendLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_ForceReceiveLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_ContactCaptureLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_CallbackLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_IsTrigger: 0
-  m_UsedByEffector: 0
-  m_UsedByComposite: 0
-  m_Offset: {x: 0, y: 0}
-  serializedVersion: 2
-  m_Radius: 0.425

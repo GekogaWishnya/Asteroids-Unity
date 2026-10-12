@@ -12,5 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bb73d25a4709b56439bc49ee0d852fef, type: 3}
   m_Name: DefaultWorldConfig
   m_EditorClassIdentifier: 
-  size: {x: 256, y: 256}
+  referenceWidth: 256
+  referenceHeight: 256
+  pixelsPerUnit: 16
   backgroundColor: {r: 0.0854174, g: 0.01811143, b: 0.1037736, a: 1}

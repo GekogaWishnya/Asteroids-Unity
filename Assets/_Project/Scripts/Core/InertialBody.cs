@@ -2,38 +2,32 @@ using UnityEngine;
 
 namespace Asteroids.Core
 {
-    public sealed class InertialBody : MonoBehaviour, IMotionState, IMotionDriver
+    public sealed class InertialBody : MonoBehaviour
     {
-        private IMotionConfig _config;
-        private Vector2 _pendingAcceleration;
+        private InertialMotion _motion;
+        private IBoundaryPolicy _boundaryPolicy;
 
-        public Vector2 Velocity { get; private set; }
-        public float Speed => Velocity.magnitude;
-
-        public void Configure(IMotionConfig config) =>
-            _config = config ?? throw new System.ArgumentNullException(nameof(config));
+        public IMotionDriver Driver => _motion;
+        public IMotionState State => _motion;
         
-        public void Accelerate(Vector2 acceleration) => _pendingAcceleration += acceleration;
-        public void ApplyImpulse(Vector2 impulse) => Velocity += impulse;
+        public void Configure(IMotionConfig motionConfig, IBoundaryPolicy boundaryPolicy)
+        {
+            _motion = new InertialMotion(motionConfig);
+            _boundaryPolicy = boundaryPolicy;
+        }
 
         private void LateUpdate()
         {
-            if (_config == null)
+            if (_motion == null)
             {
                 Debug.LogError($"{nameof(InertialBody)} on '{name}' was never configured.", this);
                 enabled = false;
                 return;
             }
-            
-            var dt = Time.deltaTime;
-            Velocity += _pendingAcceleration * dt;
-            _pendingAcceleration = default;
 
-            if (_config.LinearDamping > 0f)
-                Velocity *= Mathf.Exp(-_config.LinearDamping * dt);
-
-            Velocity = Vector2.ClampMagnitude(Velocity, _config.MaxSpeed);
-            transform.position += (Vector3)(Velocity * dt);
+            var position = (Vector2)transform.position + _motion.Step(Time.deltaTime);
+            position = _boundaryPolicy.Apply(position, 0.0f);
+            transform.position = new Vector3(position.x, position.y, transform.position.z);
         }
     }
 }

@@ -11,6 +11,7 @@ namespace Asteroids.Installers
     {
         [SerializeField] private ShipMovementConfig shipMovement;
         [SerializeField] private WorldConfig worldConfig;
+        
 
         public override void InstallBindings()
         {
@@ -19,6 +20,7 @@ namespace Asteroids.Installers
             Container.Bind<IWorldLayout>().FromInstance(worldConfig);
             Container.Bind<IWorldAppearance>().FromInstance(worldConfig);
             Container.Bind<IWorldBounds>().To<WorldBounds>().AsSingle();
+            Container.Bind<IBoundaryPolicy>().To<WrapBoundaryPolicy>().AsSingle();
         }
     }
 }

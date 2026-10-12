@@ -9,23 +9,23 @@ namespace Asteroids.Player
     {
         private IMovementInput _input;
         private IShipMovementConfig _config;
-        private IMotionDriver _motion;
-
+        private InertialBody _ib;
+            
         [Inject]
-        public void Construct(IMovementInput input, IShipMovementConfig config)
+        public void Construct(IMovementInput input, IShipMovementConfig config, IBoundaryPolicy boundaryPolicy)
         {
             _input = input;
             _config = config;
 
             var body = GetComponent<InertialBody>();
-            body.Configure(config);
-            _motion = body;
+            body.Configure(config, boundaryPolicy);
+            _ib = body;
         }
 
         private void Update()
         {
             transform.Rotate(0f, 0f, -_input.Turn * _config.TurnSpeed * Time.deltaTime);
-            _motion.Accelerate(transform.up * (_input.Thrust * _config.Thrust));
+            _ib.Driver.Accelerate(transform.up * (_input.Thrust * _config.Thrust));
         }
     }
 }

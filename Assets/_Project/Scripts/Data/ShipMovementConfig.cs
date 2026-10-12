@@ -26,7 +26,7 @@ namespace Asteroids.Data
         private void OnValidate()
         {
             var maxPossibleSpeed = Thrust / LinearDamping;
-            if (Thrust / LinearDamping < MaxSpeed)
+            if (LinearDamping != 0 && maxPossibleSpeed < MaxSpeed)
             {
                 Debug.LogWarning($"{name} can't reach MaxSpeed with given configurations. Max possible speed is {maxPossibleSpeed}", this);
             }
