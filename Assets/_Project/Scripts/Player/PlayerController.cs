@@ -1,6 +1,4 @@
 using Asteroids.Core;
-using Asteroids.Data;
-using Asteroids.Input;
 using UnityEngine;
 using Zenject;
 
@@ -20,7 +18,7 @@ namespace Asteroids.Player
             _config = config;
 
             var body = GetComponent<InertialBody>();
-            body.Configure(new MotionSettings(config.MaxSpeed, config.LinearDamping));
+            body.Configure(config);
             _motion = body;
         }
 

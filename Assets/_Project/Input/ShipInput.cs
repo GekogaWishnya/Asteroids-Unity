@@ -11,13 +11,11 @@ namespace Asteroids.Input
         public float Turn   => _input.Gameplay.Turn.ReadValue<float>();
         public float Thrust => _input.Gameplay.Thrust.ReadValue<float>();
 
-        public void Initialize()
-        {
-            _input.Gameplay.Enable();
-        }
+        public void Initialize() => _input.Gameplay.Enable();
 
         public void Dispose()
         {
+            _input.Gameplay.Disable();
             _input.Dispose();
         }
     }
