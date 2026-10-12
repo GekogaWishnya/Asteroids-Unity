@@ -125,9 +125,9 @@
                     "isPartOfComposite": true
                 },
                 {
-                    "name": "Keyboard S/W",
+                    "name": "Keyboard W",
                     "id": "901b797a-e81d-434f-a148-b956cc053b88",
-                    "path": "1DAxis",
+                    "path": "1DAxis(minValue=0)",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
@@ -136,19 +136,8 @@
                     "isPartOfComposite": false
                 },
                 {
-                    "name": "negative",
-                    "id": "03dd5585-7e52-4289-8c02-f2da274d8af5",
-                    "path": "<Keyboard>/s",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Thrust",
-                    "isComposite": false,
-                    "isPartOfComposite": true
-                },
-                {
                     "name": "positive",
-                    "id": "e53e51c8-1be1-4b7b-905a-1cb0e0750272",
+                    "id": "03dd5585-7e52-4289-8c02-f2da274d8af5",
                     "path": "<Keyboard>/w",
                     "interactions": "",
                     "processors": "",
@@ -158,26 +147,15 @@
                     "isPartOfComposite": true
                 },
                 {
-                    "name": "Keyboard Down/Up",
+                    "name": "Keyboard Up",
                     "id": "c2d43725-24d0-43bb-8765-aad9ccb186e7",
-                    "path": "1DAxis",
+                    "path": "1DAxis(minValue=0)",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
                     "action": "Thrust",
                     "isComposite": true,
                     "isPartOfComposite": false
-                },
-                {
-                    "name": "negative",
-                    "id": "5eed92bf-fc66-4934-b034-6a75e826e571",
-                    "path": "<Keyboard>/downArrow",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Thrust",
-                    "isComposite": false,
-                    "isPartOfComposite": true
                 },
                 {
                     "name": "positive",
@@ -191,26 +169,15 @@
                     "isPartOfComposite": true
                 },
                 {
-                    "name": "Gamepad",
+                    "name": "Gamepad LS Up",
                     "id": "c734237d-6812-49a7-80bb-9b60d0f64c4b",
-                    "path": "1DAxis",
+                    "path": "1DAxis(minValue=0)",
                     "interactions": "",
                     "processors": "AxisDeadzone",
                     "groups": "",
                     "action": "Thrust",
                     "isComposite": true,
                     "isPartOfComposite": false
-                },
-                {
-                    "name": "negative",
-                    "id": "caefcfe6-a720-4584-bd84-0438165da2df",
-                    "path": "<Gamepad>/leftStick/down",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Thrust",
-                    "isComposite": false,
-                    "isPartOfComposite": true
                 },
                 {
                     "name": "positive",
