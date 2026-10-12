@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using Asteroids.Core;
 using UnityEngine;
 
@@ -7,8 +8,8 @@ namespace Asteroids.Data
     public class ShipDurabilityConfig : ScriptableObject, IShipDurabilityConfig
     {
         [Tooltip("Initial ship health")]
-        [SerializeField, Min(0)] private float health = 3;
+        [SerializeField, Min(1)] private int health = 3;
         
-        public float Health => health;
+        public int Health => health;
     }
 }
