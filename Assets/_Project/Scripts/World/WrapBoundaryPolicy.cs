@@ -1,6 +1,5 @@
 using Asteroids.Core;
 using UnityEngine;
-using Zenject;
 
 namespace Asteroids.World
 {
