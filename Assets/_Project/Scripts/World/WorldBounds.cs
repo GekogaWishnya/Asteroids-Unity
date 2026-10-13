@@ -6,7 +6,7 @@ namespace Asteroids.World
     public sealed class WorldBounds : IWorldBounds
     {
         public Rect Rect { get; }
-
+        
         public WorldBounds(IWorldLayout layout)
         {
             var size = (Vector2)layout.ReferenceResolution / layout.PixelsPerUnit;
