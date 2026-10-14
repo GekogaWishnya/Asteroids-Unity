@@ -1,6 +1,7 @@
+using Asteroids.Core;
 using UnityEngine;
 
-namespace Asteroids.Core
+namespace Asteroids.Physics
 {
     public sealed class InertialBody : MonoBehaviour
     {

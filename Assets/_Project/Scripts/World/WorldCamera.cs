@@ -1,4 +1,4 @@
-using Asteroids.Core;
+using Asteroids.Core.IConfigs;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering.Universal;
 using Zenject;

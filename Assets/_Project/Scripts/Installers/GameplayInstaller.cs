@@ -1,6 +1,8 @@
-using Asteroids.Core;
+using Asteroids.Collisions;
 using Asteroids.Data;
 using Asteroids.Controls;
+using Asteroids.Core.IConfigs;
+using Asteroids.Physics;
 using Asteroids.World;
 using UnityEngine;
 using Zenject;
@@ -12,9 +14,10 @@ namespace Asteroids.Installers
         [SerializeField] private ShipMovementConfig shipMovement;
         [SerializeField] private WorldConfig worldConfig;
         
-
         public override void InstallBindings()
         {
+            CollisionInstaller.Install(Container);
+            
             Container.BindInterfacesTo<ShipInput>().AsSingle();
             Container.Bind<IShipMovementConfig>().FromInstance(shipMovement);
             Container.Bind<IWorldLayout>().FromInstance(worldConfig);

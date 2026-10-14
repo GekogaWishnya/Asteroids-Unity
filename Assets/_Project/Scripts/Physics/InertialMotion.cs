@@ -1,7 +1,8 @@
 using System;
+using Asteroids.Core;
 using UnityEngine;
 
-namespace Asteroids.Core
+namespace Asteroids.Physics
 {
     public sealed class InertialMotion : IMotionState, IMotionDriver
     {

@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Asteroids.Core
+namespace Asteroids.Physics
 {
     public interface IMotionDriver
     {

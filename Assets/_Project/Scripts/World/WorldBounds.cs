@@ -1,4 +1,5 @@
-using Asteroids.Core;
+using Asteroids.Core.IConfigs;
+using Asteroids.Physics;
 using UnityEngine;
 
 namespace Asteroids.World

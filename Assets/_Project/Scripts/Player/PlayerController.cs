@@ -1,4 +1,6 @@
 using Asteroids.Core;
+using Asteroids.Core.IConfigs;
+using Asteroids.Physics;
 using UnityEngine;
 using Zenject;
 
