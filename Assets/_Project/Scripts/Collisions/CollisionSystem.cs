@@ -15,6 +15,8 @@ namespace Asteroids.Collisions
         private readonly List<ICommand> _pendingCommands = new();
         private int _stamp;
         private bool _isStepping;
+        
+        public event Action BeforeStep;
 
         public void Register(ICollider collider)
         {
@@ -42,6 +44,7 @@ namespace Asteroids.Collisions
             _isStepping = true;
             try
             {
+                BeforeStep?.Invoke();
                 unchecked { _stamp++; }
                 Detect();
                 Dispatch();
@@ -51,7 +54,6 @@ namespace Asteroids.Collisions
             finally
             {
                 _detected.Clear();
-                _pendingCommands.Clear();
                 _isStepping = false;
             }
         }
@@ -112,6 +114,7 @@ namespace Asteroids.Collisions
             // Index loop on purpose - handlers fired below may enqueue further changes.
             for (var i = 0; i < _pendingCommands.Count; i++)
                 _pendingCommands[i].Execute(this);
+            _pendingCommands.Clear();
         }
 
         private static bool CanInteract(ICollider a, ICollider b) =>

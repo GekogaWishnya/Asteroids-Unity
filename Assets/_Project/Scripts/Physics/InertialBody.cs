@@ -27,7 +27,7 @@ namespace Asteroids.Physics
             }
 
             var position = (Vector2)transform.position + _motion.Step(Time.deltaTime);
-            position = _boundaryPolicy.Apply(position, 0.0f);
+            //position = _boundaryPolicy.Apply(position, 0.0f);
             transform.position = new Vector3(position.x, position.y, transform.position.z);
         }
     }
