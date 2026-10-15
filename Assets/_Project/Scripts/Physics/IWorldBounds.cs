@@ -5,6 +5,11 @@ namespace Asteroids.Physics
     public interface IWorldBounds
     {
         Rect Rect { get; }
-        Vector2 Wrap(Vector2 position, float radius = 0f);
+
+        /// <summary>
+        /// Moves a point inside the <see cref="Rect"/>.
+        /// Points already inside <see cref="Rect"/> are returned unchanged, so calling this repeatedly is safe.
+        /// </summary>
+        Vector2 Wrap(Vector2 position);
     }
 }

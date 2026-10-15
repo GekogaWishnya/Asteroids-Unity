@@ -1,42 +1,37 @@
+using System;
+using Asteroids.Core;
 using UnityEngine;
 
 namespace Asteroids.Collisions.Components
 {
+    /// <summary>
+    /// Circle collider that follows the <see cref="IEntity"/>.
+    /// </summary>
     [AddComponentMenu("Asteroids/Collisions/Circle Collider")]
     public sealed class CircleColliderComponent : ColliderComponent
     {
-        [Tooltip("Centre offset in local space.")]
+        [Tooltip("Centre offset in the entity's local space.")]
         [SerializeField] private Vector2 offset;
-        [Tooltip("Radius in units. Scaled by the largest axis of the object's scale.")]
+        [Tooltip("Radius in world space units.")]
         [SerializeField, Min(0f)] private float radius = 1f;
-
-        private CircleCollider _circle;
 
         protected override Color GizmoColor => new(0.2f, 1f, 0.4f);
 
-        private Vector2 WorldCenter => transform.TransformPoint(offset);
-
-        private float WorldRadius
-        {
-            get
-            {
-                var scale = transform.lossyScale;
-                return radius * Mathf.Max(Mathf.Abs(scale.x), Mathf.Abs(scale.y));
-            }
-        }
-
         protected override BaseCollider CreateCollider(IColliderFactory factory, object owner)
         {
-            _circle = factory.CreateCircle(owner, WorldRadius, Layer, Mask);
-            return _circle;
-        }
+            if (owner is not IEntity entity)
+                throw new InvalidOperationException(
+                    $"{nameof(CircleColliderComponent)} on '{name}' needs a sibling component implementing " +
+                    $"{nameof(IEntityProvider)} (add EntityComponent).");
 
-        protected override void Synchronize()
+            return factory.CreateCircle(entity, entity.Pose, offset, radius, Layer, Mask);
+        }
+        
+        protected override void DrawShape()
         {
-            _circle.Position = WorldCenter;
-            _circle.Radius = WorldRadius;
+            var current = transform;
+            Vector2 center = current.position + current.rotation * (Vector3)offset;
+            GizmoShapes.Circle(center, radius);
         }
-
-        protected override void DrawShape() => GizmoShapes.Circle(WorldCenter, WorldRadius);
     }
 }

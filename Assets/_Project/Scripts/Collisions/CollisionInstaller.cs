@@ -2,6 +2,9 @@ using Zenject;
 
 namespace Asteroids.Collisions
 {
+    /// <summary>
+    /// Requires <see cref="Asteroids.Core.ISimulationLoop"/> to be bound (see SimulationInstaller).
+    /// </summary>
     public sealed class CollisionInstaller : Installer<CollisionInstaller>
     {
         public override void InstallBindings()
@@ -12,7 +15,7 @@ namespace Asteroids.Collisions
 
             Container.Bind<ICollisionSystem>().To<CollisionSystem>().AsSingle();
             Container.Bind<IColliderFactory>().To<ColliderFactory>().AsSingle();
-            Container.BindInterfacesTo<CollisionTicker>().AsSingle();
+            Container.BindInterfacesTo<CollisionStepRegistration>().AsSingle();
         }
     }
 }

@@ -1,0 +1,17 @@
+{
+    "name": "Asteroids.Physics.Components",
+    "rootNamespace": "Asteroids.Physics.Components",
+    "references": [
+        "GUID:b6151fc1b773b514581357cc20484cc5",
+        "GUID:26737f213102ae54bb017ee75277ff68"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

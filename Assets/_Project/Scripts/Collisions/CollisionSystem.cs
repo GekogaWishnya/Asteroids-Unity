@@ -2,21 +2,20 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using Asteroids.Common;
 
 namespace Asteroids.Collisions
 {
     public sealed class CollisionSystem : ICollisionSystem
     {
-        private readonly List<ICollider> _colliders = new();
         private readonly HashSet<ICollider> _registered = new();
+        private readonly DeferredList<ICollider> _colliders;
         private readonly List<DetectedContact> _detected = new();
         private readonly Dictionary<ColliderPair, int> _active = new();
         private readonly List<ColliderPair> _expired = new();
-        private readonly List<ICommand> _pendingCommands = new();
         private int _stamp;
-        private bool _isStepping;
-        
-        public event Action BeforeStep;
+
+        public CollisionSystem() => _colliders = new DeferredList<ICollider>(onRemoved: Detach);
 
         public void Register(ICollider collider)
         {
@@ -24,7 +23,7 @@ namespace Asteroids.Collisions
             if (!_registered.Add(collider))
                 throw new InvalidOperationException("Collider is already registered.");
 
-            Submit(new AddColliderCommand(collider));
+            _colliders.Add(collider);
         }
 
         public bool Unregister(ICollider collider)
@@ -32,41 +31,40 @@ namespace Asteroids.Collisions
             if (collider == null) throw new ArgumentNullException(nameof(collider));
             if (!_registered.Remove(collider)) return false;
 
-            Submit(new RemoveColliderCommand(collider));
+            _colliders.Remove(collider);
             return true;
         }
-
-        public void Step()
+        
+        public void Tick(float _)
         {
-            if (_isStepping)
-                throw new InvalidOperationException($"{nameof(Step)} can't be called during stepping.");
+            if (_colliders.IsLocked)
+                throw new InvalidOperationException($"{nameof(Tick)} can't be called during stepping.");
 
-            _isStepping = true;
+            _colliders.Lock();
             try
             {
-                BeforeStep?.Invoke();
                 unchecked { _stamp++; }
                 Detect();
                 Dispatch();
                 ExpireStalePairs();
-                ExecutePendingCommands();
             }
             finally
             {
                 _detected.Clear();
-                _isStepping = false;
+                _colliders.Unlock();
             }
         }
 
         private void Detect()
         {
             _detected.Clear();
-            for (var i = 0; i < _colliders.Count - 1; i++)
+            var colliders = _colliders.Items;
+            for (var i = 0; i < colliders.Count - 1; i++)
             {
-                var first = _colliders[i];
-                for (var j = i + 1; j < _colliders.Count; j++)
+                var first = colliders[i];
+                for (var j = i + 1; j < colliders.Count; j++)
                 {
-                    var second = _colliders[j];
+                    var second = colliders[j];
                     if (CanInteract(first, second) && first.TryGetContact(second, out var contact))
                         _detected.Add(new DetectedContact(first, second, contact));
                 }
@@ -109,16 +107,24 @@ namespace Asteroids.Collisions
             }
         }
 
-        private void ExecutePendingCommands()
-        {
-            // Index loop on purpose - handlers fired below may enqueue further changes.
-            for (var i = 0; i < _pendingCommands.Count; i++)
-                _pendingCommands[i].Execute(this);
-            _pendingCommands.Clear();
-        }
-
         private static bool CanInteract(ICollider a, ICollider b) =>
             (a.Mask & b.Layer) != 0 && (b.Mask & a.Layer) != 0;
+
+        /// <summary>Called by <see cref="_colliders"/> after a collider has been removed from the list.</summary>
+        private void Detach(ICollider collider)
+        {
+            List<ColliderPair> ended = null;
+            foreach (var pair in _active.Keys.Where(pair => pair.Contains(collider)))
+                (ended ??= new List<ColliderPair>()).Add(pair);
+
+            if (ended == null) return;
+
+            foreach (var pair in ended.Where(pair => _active.Remove(pair)))
+            {
+                pair.Partner(collider, out var partner);
+                partner.NotifyExited(collider);
+            }
+        }
 
         private readonly struct DetectedContact
         {
@@ -132,50 +138,6 @@ namespace Asteroids.Collisions
             public ICollider First { get; }
             public ICollider Second { get; }
             public Contact Contact { get; }
-        }
-        
-        private void Submit(ICommand command)
-        {
-            if (_isStepping) _pendingCommands.Add(command);
-            else command.Execute(this);
-        }
-
-        private interface ICommand
-        {
-            void Execute(CollisionSystem system);
-        }
-
-        private sealed class AddColliderCommand : ICommand
-        {
-            private readonly ICollider _collider;
-
-            public AddColliderCommand(ICollider collider) => _collider = collider;
-            public void Execute(CollisionSystem system) => system._colliders.Add(_collider);
-        }
-
-        private sealed class RemoveColliderCommand : ICommand
-        {
-            private readonly ICollider _collider;
-
-            public RemoveColliderCommand(ICollider collider) => _collider = collider;
-            public void Execute(CollisionSystem system) => system.Detach(_collider);
-        }
-        
-        private void Detach(ICollider collider)
-        {
-            _colliders.Remove(collider);
-
-            List<ColliderPair> ended = null;
-            foreach (var pair in _active.Keys.Where(pair => pair.Contains(collider)))
-                (ended ??= new List<ColliderPair>()).Add(pair);
-            
-            if (ended == null) return;
-
-            foreach (var pair in ended.Where(pair => _active.Remove(pair)))
-            {
-                pair.Partner(collider, out var partner);
-                partner.NotifyExited(collider);
-            }
         }
 
         /// <summary>Unordered pair of colliders.</summary>
@@ -205,13 +167,13 @@ namespace Asteroids.Collisions
                     partner = Second;
                     return true;
                 }
-                
+
                 if (ReferenceEquals(Second, other))
                 {
                     partner = First;
                     return true;
                 }
-                
+
                 partner = null;
                 return false;
             }

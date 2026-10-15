@@ -1,4 +1,5 @@
 using System;
+using Asteroids.Core;
 using UnityEngine;
 using Zenject;
 
@@ -7,17 +8,23 @@ namespace Asteroids.Collisions
     public sealed class CircleCollider : BaseCollider
     {
         private const float MinDistance = CollisionConstants.MinLength;
+        private readonly IPose _pose;
+        private readonly Vector2 _offset;
         private float _radius;
 
-        public CircleCollider(SignalBus signalBus, object owner, float radius,
+        /// <param name="pose">Source of the collider's position.</param>
+        /// <param name="offset">Center offset in the pose's local space (x along <see cref="IPose.Right"/>, y along <see cref="IPose.Up"/>).</param>
+        public CircleCollider(SignalBus signalBus, object owner, IPose pose, Vector2 offset, float radius,
             CollisionLayer layer, CollisionLayer mask)
             : base(signalBus, owner, layer, mask)
         {
+            _pose = pose ?? throw new ArgumentNullException(nameof(pose));
+            _offset = offset;
             Radius = radius;
         }
 
-        /// <summary>World-space center. The owner must update it before <see cref="ICollisionSystem.Step"/>.</summary>
-        public Vector2 Position { get; set; }
+        /// <summary>World-space center from the current pose.</summary>
+        public Vector2 Center => _pose.Position + _pose.Right * _offset.x + _pose.Up * _offset.y;
 
         public float Radius
         {
@@ -43,7 +50,7 @@ namespace Asteroids.Collisions
 
         private bool ContactWithCircle(CircleCollider other, out Contact contact)
         {
-            var delta = Position - other.Position;
+            var delta = Center - other.Center;
             var radii = Radius + other.Radius;
             var sqrDistance = delta.sqrMagnitude;
 
@@ -61,7 +68,7 @@ namespace Asteroids.Collisions
 
         private bool ContactWithBoundary(BoundaryCollider boundary, out Contact contact)
         {
-            var depth = Radius - boundary.Region.SignedDistance(Position);
+            var depth = Radius - boundary.Region.SignedDistance(Center);
             if (depth <= 0f)
             {
                 contact = default;

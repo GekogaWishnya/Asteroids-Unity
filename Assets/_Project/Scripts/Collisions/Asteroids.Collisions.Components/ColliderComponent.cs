@@ -1,3 +1,4 @@
+using Asteroids.Core;
 using UnityEngine;
 using Zenject;
 
@@ -5,7 +6,8 @@ namespace Asteroids.Collisions.Components
 {
     /// <summary>
     /// Scene adapter over a collider. Decides lifecycle of the collider and nothing else.
-    /// The collider's <see cref="ICollider.Owner"/> is this GameObject.
+    /// The collider's <see cref="ICollider.Owner"/> is the <see cref="IEntity"/> of a sibling
+    /// <see cref="IEntityProvider"/> when there is one, and this GameObject otherwise.
     /// Layer and mask are read when the collider is created, so changes at runtime apply after a re-enable.
     /// </summary>
     public abstract class ColliderComponent : MonoBehaviour
@@ -27,19 +29,17 @@ namespace Asteroids.Collisions.Components
 
         /// <summary>Null while the component is disabled.</summary>
         public ICollider Collider => _collider;
-        
+
         protected abstract Color GizmoColor { get; }
         protected abstract BaseCollider CreateCollider(IColliderFactory factory, object owner);
         protected abstract void DrawShape();
-        
-        protected virtual void Synchronize() { }
 
         [Inject]
         private void Construct(IColliderFactory factory, ICollisionSystem system)
         {
             _factory = factory;
             _system = system;
-            
+
             if (isActiveAndEnabled) Attach();
         }
 
@@ -54,20 +54,20 @@ namespace Asteroids.Collisions.Components
         {
             if (_collider != null) return;
 
-            _collider = CreateCollider(_factory, gameObject);
+            _collider = CreateCollider(_factory, ResolveOwner());
             _system.Register(_collider);
-            _system.BeforeStep += Synchronize;
-            Synchronize();
         }
 
         private void Detach()
         {
             if (_collider == null) return;
-            
-            _system.BeforeStep -= Synchronize;
+
             _system.Unregister(_collider);
             _collider = null;
         }
+
+        private object ResolveOwner() =>
+            TryGetComponent<IEntityProvider>(out var provider) ? (object)provider.Entity : gameObject;
 
 #if UNITY_EDITOR
         private void OnDrawGizmos()

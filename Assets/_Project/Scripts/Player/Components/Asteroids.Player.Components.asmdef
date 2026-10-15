@@ -1,0 +1,19 @@
+{
+    "name": "Asteroids.Player.Components",
+    "rootNamespace": "Asteroids.Player.Components",
+    "references": [
+        "GUID:b6151fc1b773b514581357cc20484cc5",
+        "GUID:59e492911dd02fe46a0ad550a64fbbdc",
+        "GUID:26737f213102ae54bb017ee75277ff68",
+        "GUID:83f8170aa39285547ba5c2a0a663ac76"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

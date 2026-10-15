@@ -1,3 +1,5 @@
+using Asteroids.Core;
+using UnityEngine;
 using Zenject;
 
 namespace Asteroids.Collisions
@@ -8,8 +10,9 @@ namespace Asteroids.Collisions
 
         public ColliderFactory(SignalBus signalBus) => _signalBus = signalBus;
 
-        public CircleCollider CreateCircle(object owner, float radius, CollisionLayer layer, CollisionLayer mask) =>
-            new(_signalBus, owner, radius, layer, mask);
+        public CircleCollider CreateCircle(object owner, IPose pose, Vector2 offset, float radius,
+            CollisionLayer layer, CollisionLayer mask) =>
+            new(_signalBus, owner, pose, offset, radius, layer, mask);
 
         public BoundaryCollider CreateBoundary(object owner, HalfPlane region, CollisionLayer layer, CollisionLayer mask) =>
             new(_signalBus, owner, region, layer, mask);
