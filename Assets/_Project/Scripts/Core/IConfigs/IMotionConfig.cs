@@ -1,4 +1,4 @@
-namespace Asteroids.Core
+namespace Asteroids.Core.IConfigs
 {
     public interface IMotionConfig
     {

@@ -1,5 +1,5 @@
 using System;
-using Asteroids.Core;
+using Asteroids.Core.IConfigs;
 using UnityEngine;
 
 namespace Asteroids.Physics
