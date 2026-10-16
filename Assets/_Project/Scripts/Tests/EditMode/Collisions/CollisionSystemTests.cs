@@ -376,7 +376,7 @@ namespace Asteroids.Collisions.Tests
         // ---- Unregister of an active pair ----
         
         [Test]
-        public void Unregister_ActivePair_PartnerGetsExited_UnregisteredDoesNot()
+        public void Unregister_ActivePair_BothSidesGetExited()
         {
             var a = CreateCollider("a", overlaps: true);
             var b = CreateCollider("b");
@@ -387,9 +387,97 @@ namespace Asteroids.Collisions.Tests
 
             _system.Unregister(a);
 
+            Assert.That(_journal.Count, Is.EqualTo(2));
+            Assert.That(_journal[0].Kind, Is.EqualTo(NotificationKind.Exited));
+            Assert.That(_journal[0].Self, Is.SameAs(a));
+            Assert.That(_journal[0].Other, Is.SameAs(b));
+            Assert.That(_journal[1].Kind, Is.EqualTo(NotificationKind.Exited));
+            Assert.That(_journal[1].Self, Is.SameAs(b));
+            Assert.That(_journal[1].Other, Is.SameAs(a));
+        }
+
+        [Test]
+        public void Unregister_SecondColliderOfActivePair_ExitedOrderFollowsPairOrder()
+        {
+            var a = CreateCollider("a", overlaps: true);
+            var b = CreateCollider("b");
+            _system.Register(a);
+            _system.Register(b);
+            _system.Tick(0f);
+            _journal.Clear();
+
+            _system.Unregister(b);
+
+            Assert.That(_journal.Count, Is.EqualTo(2));
+            Assert.That(_journal[0].Self, Is.SameAs(a));
+            Assert.That(_journal[1].Self, Is.SameAs(b));
+        }
+        
+        [Test]
+        public void Unregister_ColliderInManyActivePairs_EndsEveryPairExactlyOnce()
+        {
+            var hub = CreateCollider("hub", overlaps: true);
+            var others = new[] { CreateCollider("o1"), CreateCollider("o2"), CreateCollider("o3") };
+            _system.Register(hub);
+            foreach (var other in others) _system.Register(other);
+            _system.Tick(0f);
+            _journal.Clear();
+
+            _system.Unregister(hub);
+
+            Assert.That(Count(hub, NotificationKind.Exited), Is.EqualTo(others.Length));
+            foreach (var other in others)
+            {
+                Assert.That(Count(other, NotificationKind.Exited), Is.EqualTo(1), other.Name);
+                Assert.That(other.Notifications[^1].Other, Is.SameAs(hub), other.Name);
+            }
+
+            _journal.Clear();
+            _system.Tick(0f);
+            Assert.That(_journal, Is.Empty);
+        }
+        
+        [Test]
+        public void Unregister_DuringTickOfActivePair_BothSidesGetExitedAfterTick()
+        {
+            var a = CreateCollider("a", overlaps: true);
+            var b = CreateCollider("b");
+            _system.Register(a);
+            _system.Register(b);
+            _system.Tick(0f);
+            _journal.Clear();
+            a.OnNotified = n =>
+            {
+                if (n.Kind == NotificationKind.Stayed) _system.Unregister(b);
+            };
+
+            _system.Tick(0f);
+
+            Assert.That(Count(a, NotificationKind.Exited), Is.EqualTo(1));
             Assert.That(Count(b, NotificationKind.Exited), Is.EqualTo(1));
-            Assert.That(b.Notifications[^1].Other, Is.SameAs(a));
-            Assert.That(Count(a, NotificationKind.Exited), Is.EqualTo(0));
+            Assert.That(_journal[^1].Kind, Is.EqualTo(NotificationKind.Exited));
+        }
+        
+        [Test]
+        public void Unregister_FromExitedHandlerOfAnotherUnregister_EachPairEndsOnce()
+        {
+            var a = CreateCollider("a", overlaps: true);
+            var b = CreateCollider("b");
+            var c = CreateCollider("c");
+            _system.Register(a);
+            _system.Register(b);
+            _system.Register(c);
+            _system.Tick(0f);
+            b.OnNotified = n =>
+            {
+                if (n.Kind == NotificationKind.Exited) _system.Unregister(c);
+            };
+
+            _system.Unregister(a);
+
+            Assert.That(Count(a, NotificationKind.Exited), Is.EqualTo(2));
+            Assert.That(Count(b, NotificationKind.Exited), Is.EqualTo(1));
+            Assert.That(Count(c, NotificationKind.Exited), Is.EqualTo(1));
         }
 
         [Test]

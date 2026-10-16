@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using Asteroids.Common;
 
@@ -13,6 +12,8 @@ namespace Asteroids.Collisions
         private readonly List<DetectedContact> _detected = new();
         private readonly Dictionary<ColliderPair, int> _active = new();
         private readonly List<ColliderPair> _expired = new();
+        /// <summary>Pool of available lists of <see cref="ColliderPair"/> for allocation used in <see cref="Detach"/>.</summary>
+        private readonly Stack<List<ColliderPair>> _scratchLists = new();
         private int _stamp;
 
         public CollisionSystem() => _colliders = new DeferredList<ICollider>(onRemoved: Detach);
@@ -113,16 +114,25 @@ namespace Asteroids.Collisions
         /// <summary>Called by <see cref="_colliders"/> after a collider has been removed from the list.</summary>
         private void Detach(ICollider collider)
         {
-            List<ColliderPair> ended = null;
-            foreach (var pair in _active.Keys.Where(pair => pair.Contains(collider)))
-                (ended ??= new List<ColliderPair>()).Add(pair);
-
-            if (ended == null) return;
-
-            foreach (var pair in ended.Where(pair => _active.Remove(pair)))
+            var ended = _scratchLists.Count > 0 ? _scratchLists.Pop() : new List<ColliderPair>();
+            try
             {
-                pair.Partner(collider, out var partner);
-                partner.NotifyExited(collider);
+                foreach (var entry in _active)
+                    if (entry.Key.Contains(collider)) ended.Add(entry.Key);
+
+                for (var i = 0; i < ended.Count; i++) _active.Remove(ended[i]);
+
+                for (var i = 0; i < ended.Count; i++)
+                {
+                    var pair = ended[i];
+                    pair.First.NotifyExited(pair.Second);
+                    pair.Second.NotifyExited(pair.First);
+                }
+            }
+            finally
+            {
+                ended.Clear();
+                _scratchLists.Push(ended);
             }
         }
 
@@ -153,30 +163,6 @@ namespace Asteroids.Collisions
             public ICollider Second { get; }
 
             public bool Contains(ICollider other) => ReferenceEquals(First, other) || ReferenceEquals(Second, other);
-
-            /// <summary>
-            /// Get second collider of the pair based on the provided known collider.
-            /// </summary>
-            /// <param name="other">Known collider of the pair.</param>
-            /// <param name="partner">Outputs the second collider</param>
-            /// <returns>True if provided collider is a part of the pair. False otherwise.</returns>
-            public bool Partner(ICollider other, out ICollider partner)
-            {
-                if (ReferenceEquals(First, other))
-                {
-                    partner = Second;
-                    return true;
-                }
-
-                if (ReferenceEquals(Second, other))
-                {
-                    partner = First;
-                    return true;
-                }
-
-                partner = null;
-                return false;
-            }
 
             public bool Equals(ColliderPair other) =>
                 (ReferenceEquals(First, other.First) && ReferenceEquals(Second, other.Second)) ||
