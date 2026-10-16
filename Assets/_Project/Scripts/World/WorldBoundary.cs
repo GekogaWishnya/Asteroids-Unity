@@ -15,13 +15,11 @@ namespace Asteroids.World
         private const CollisionLayer WallMask = CollisionLayer.All & ~CollisionLayer.Boundary;
 
         private readonly IWorldBounds _bounds;
-        private readonly IColliderFactory _factory;
         private readonly ICollisionSystem _collisions;
 
-        public WorldBoundary(IWorldBounds bounds, IColliderFactory factory, ICollisionSystem collisions)
+        public WorldBoundary(IWorldBounds bounds, ICollisionSystem collisions)
         {
             _bounds = bounds ?? throw new ArgumentNullException(nameof(bounds));
-            _factory = factory ?? throw new ArgumentNullException(nameof(factory));
             _collisions = collisions ?? throw new ArgumentNullException(nameof(collisions));
         }
 
@@ -36,6 +34,6 @@ namespace Asteroids.World
 
         // The bounds object is the owner. WorldWrapHandler recognises its own walls by it.
         private void AddWall(HalfPlane region) =>
-            _collisions.Register(_factory.CreateBoundary(_bounds, region, WallLayer, WallMask));
+            _collisions.Register(new ShapeCollider(_bounds, WallLayer, WallMask, new BoundaryShape(region)));
     }
 }

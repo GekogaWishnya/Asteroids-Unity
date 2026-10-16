@@ -19,10 +19,9 @@ namespace Asteroids.Collisions.Components
 
         [Header("Debug")]
         [SerializeField] private bool drawGizmos = false;
-
-        private IColliderFactory _factory;
+        
         private ICollisionSystem _system;
-        private BaseCollider _collider;
+        private ICollider _collider;
 
         protected CollisionLayer Layer => layer;
         protected CollisionLayer Mask => mask;
@@ -31,13 +30,12 @@ namespace Asteroids.Collisions.Components
         public ICollider Collider => _collider;
 
         protected abstract Color GizmoColor { get; }
-        protected abstract BaseCollider CreateCollider(IColliderFactory factory, object owner);
+        protected abstract ICollider CreateCollider(object owner);
         protected abstract void DrawShape();
 
         [Inject]
-        private void Construct(IColliderFactory factory, ICollisionSystem system)
+        private void Construct(ICollisionSystem system)
         {
-            _factory = factory;
             _system = system;
 
             if (isActiveAndEnabled) Attach();
@@ -54,7 +52,7 @@ namespace Asteroids.Collisions.Components
         {
             if (_collider != null) return;
 
-            _collider = CreateCollider(_factory, ResolveOwner());
+            _collider = CreateCollider(ResolveOwner());
             _system.Register(_collider);
         }
 

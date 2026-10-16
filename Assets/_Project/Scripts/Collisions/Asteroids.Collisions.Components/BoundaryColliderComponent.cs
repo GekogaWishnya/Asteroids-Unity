@@ -30,10 +30,9 @@ namespace Asteroids.Collisions.Components
         }
         private Vector2 OffsetPosition => (Vector2)transform.position + pointOffset * WorldInward;
 
-        protected override BaseCollider CreateCollider(IColliderFactory factory, object owner) =>
-            factory.CreateBoundary(owner, 
-                HalfPlane.FromPoint(OffsetPosition, WorldInward),
-                Layer, Mask);
+        protected override ICollider CreateCollider(object owner) =>
+            new ShapeCollider(owner, Layer, Mask,
+                new BoundaryShape(HalfPlane.FromPoint(OffsetPosition, WorldInward)));
 
         protected override void DrawShape() =>
             GizmoShapes.Wall(OffsetPosition, WorldInward, gizmoHalfLength);

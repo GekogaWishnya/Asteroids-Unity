@@ -14,16 +14,31 @@ namespace Asteroids.Collisions
         private readonly List<ColliderPair> _expired = new();
         /// <summary>Pool of available lists of <see cref="ColliderPair"/> for allocation used in <see cref="Detach"/>.</summary>
         private readonly Stack<List<ColliderPair>> _scratchLists = new();
+        private readonly ICollisionEventSink _sink;
+        private readonly IShapeContactTester _contacts;
+        private readonly Dictionary<Type, int> _shapeTypeCounts = new();
         private int _stamp;
 
-        public CollisionSystem() => _colliders = new DeferredList<ICollider>(onRemoved: Detach);
+        public CollisionSystem(ICollisionEventSink sink, IShapeContactTester contacts)
+        {
+            _sink = sink ?? throw new ArgumentNullException(nameof(sink));
+            _contacts = contacts ?? throw new ArgumentNullException(nameof(contacts));
+            _colliders = new DeferredList<ICollider>(onRemoved: Detach);
+        }
 
         public void Register(ICollider collider)
         {
             if (collider == null) throw new ArgumentNullException(nameof(collider));
-            if (!_registered.Add(collider))
+            if (collider.Shape == null)
+                throw new ArgumentException("Collider has no shape.", nameof(collider));
+            if (_registered.Contains(collider))
                 throw new InvalidOperationException("Collider is already registered.");
 
+            var shapeType = collider.Shape.GetType();
+            EnsureSupported(shapeType);
+
+            _registered.Add(collider);
+            _shapeTypeCounts[shapeType] = _shapeTypeCounts.TryGetValue(shapeType, out var count) ? count + 1 : 1;
             _colliders.Add(collider);
         }
 
@@ -32,8 +47,27 @@ namespace Asteroids.Collisions
             if (collider == null) throw new ArgumentNullException(nameof(collider));
             if (!_registered.Remove(collider)) return false;
 
+            ReleaseShapeType(collider.Shape.GetType());
             _colliders.Remove(collider);
             return true;
+        }
+        
+        private void EnsureSupported(Type shapeType)
+        {
+            if (!_contacts.Supports(shapeType, shapeType))
+                throw new NotSupportedException($"No contact rule between {shapeType.Name} and {shapeType.Name}.");
+
+            foreach (var present in _shapeTypeCounts.Keys)
+                if (!_contacts.Supports(shapeType, present))
+                    throw new NotSupportedException(
+                        $"No contact rule between {shapeType.Name} and {present.Name}.");
+        }
+        
+        private void ReleaseShapeType(Type shapeType)
+        {
+            var left = _shapeTypeCounts[shapeType] - 1;
+            if (left > 0) _shapeTypeCounts[shapeType] = left;
+            else _shapeTypeCounts.Remove(shapeType);
         }
         
         public void Tick(float _)
@@ -66,7 +100,7 @@ namespace Asteroids.Collisions
                 for (var j = i + 1; j < colliders.Count; j++)
                 {
                     var second = colliders[j];
-                    if (CanInteract(first, second) && first.TryGetContact(second, out var contact))
+                    if (CanInteract(first, second) && _contacts.TryGetContact(first.Shape, second.Shape, out var contact))
                         _detected.Add(new DetectedContact(first, second, contact));
                 }
             }
@@ -83,13 +117,13 @@ namespace Asteroids.Collisions
                 var inverted = detected.Contact.Inverted;
                 if (isNew)
                 {
-                    detected.First.NotifyEntered(detected.Second, detected.Contact);
-                    detected.Second.NotifyEntered(detected.First, inverted);
+                    _sink.Entered(detected.First, detected.Second, detected.Contact);
+                    _sink.Entered(detected.Second, detected.First, inverted);
                 }
                 else
                 {
-                    detected.First.NotifyStayed(detected.Second, detected.Contact);
-                    detected.Second.NotifyStayed(detected.First, inverted);
+                    _sink.Stayed(detected.First, detected.Second, detected.Contact);
+                    _sink.Stayed(detected.Second, detected.First, inverted);
                 }
             }
         }
@@ -103,8 +137,8 @@ namespace Asteroids.Collisions
             foreach (var pair in _expired)
             {
                 _active.Remove(pair);
-                pair.First.NotifyExited(pair.Second);
-                pair.Second.NotifyExited(pair.First);
+                _sink.Exited(pair.First, pair.Second);
+                _sink.Exited(pair.Second, pair.First);
             }
         }
 
@@ -125,8 +159,8 @@ namespace Asteroids.Collisions
                 for (var i = 0; i < ended.Count; i++)
                 {
                     var pair = ended[i];
-                    pair.First.NotifyExited(pair.Second);
-                    pair.Second.NotifyExited(pair.First);
+                    _sink.Exited(pair.First, pair.Second);
+                    _sink.Exited(pair.Second, pair.First);
                 }
             }
             finally

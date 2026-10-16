@@ -1,84 +1,70 @@
-using System;
 using System.Collections.Generic;
 
 namespace Asteroids.Collisions.Tests
 {
-    internal enum NotificationKind
+    /// <summary>Shape of <see cref="FakeCollider"/>. Its pair rule is <see cref="FakeShape.CreateContacts"/>.</summary>
+    internal sealed class FakeShape : IShape
     {
-        Entered,
-        Stayed,
-        Exited
-    }
-    
-    internal readonly struct Notification
-    {
-        public Notification(NotificationKind kind, ICollider self, ICollider other, Contact contact)
-        {
-            Kind = kind;
-            Self = self;
-            Other = other;
-            Contact = contact;
-        }
+        public FakeShape(FakeCollider collider) => Collider = collider;
 
-        public NotificationKind Kind { get; }
-        public ICollider Self { get; }
-        public ICollider Other { get; }
-        public Contact Contact { get; }
+        public FakeCollider Collider { get; }
+        public bool Overlaps { get; set; }
+        public Contact ContactToReturn { get; set; } = new(UnityEngine.Vector2.up, 1f);
+
+        /// <summary>
+        /// Contact table that knows only <see cref="FakeShape"/> against itself. The first shape of the pair decides.
+        /// </summary>
+        public static ShapeContactTable CreateContacts() =>
+            new ShapeContactTable().Add<FakeShape, FakeShape>(Test);
+
+        private static bool Test(FakeShape first, FakeShape second, out Contact contact)
+        {
+            first.Collider.ContactQueries.Add(second.Collider);
+            contact = first.Overlaps ? first.ContactToReturn : default;
+            return first.Overlaps;
+        }
+    }
+
+    /// <summary>A shape the fake contact table has no rule for.</summary>
+    internal sealed class UnknownShape : IShape
+    {
     }
     
     internal sealed class FakeCollider : ICollider
     {
-        private readonly List<Notification> _journal;
-
+        private readonly FakeShape _shape;
+        
         /// <param name="name">Shown in assertion messages.</param>
-        /// <param name="journal">Optional list shared between fakes to check cross-collider ordering.</param>
-        public FakeCollider(string name, List<Notification> journal = null)
+        public FakeCollider(string name)
         {
             Name = name;
-            _journal = journal;
             Owner = name;
             Layer = CollisionLayer.All;
             Mask = CollisionLayer.All;
+            _shape = new FakeShape(this);
         }
 
         public string Name { get; }
         public object Owner { get; }
         public CollisionLayer Layer { get; set; }
         public CollisionLayer Mask { get; set; }
+        public IShape Shape => _shape;
 
-        /// <summary>When true, <see cref="TryGetContact"/> reports <see cref="ContactToReturn"/>.</summary>
-        public bool Overlaps { get; set; }
-        public Contact ContactToReturn { get; set; } = new(UnityEngine.Vector2.up, 1f);
+        /// <summary>When true, the pair rule reports <see cref="ContactToReturn"/> for pairs led by this collider.</summary>
+        public bool Overlaps
+        {
+            get => _shape.Overlaps;
+            set => _shape.Overlaps = value;
+        }
+
+        public Contact ContactToReturn
+        {
+            get => _shape.ContactToReturn;
+            set => _shape.ContactToReturn = value;
+        }
 
         /// <summary>Colliders this one was asked to test against, in call order.</summary>
         public List<ICollider> ContactQueries { get; } = new();
-        public List<Notification> Notifications { get; } = new();
-
-        /// <summary>Invoked after each notification is recorded.</summary>
-        public Action<Notification> OnNotified { get; set; }
-
-        public bool TryGetContact(ICollider other, out Contact contact)
-        {
-            ContactQueries.Add(other);
-            contact = Overlaps ? ContactToReturn : default;
-            return Overlaps;
-        }
-
-        public void NotifyEntered(ICollider other, in Contact contact) =>
-            Record(new Notification(NotificationKind.Entered, this, other, contact));
-
-        public void NotifyStayed(ICollider other, in Contact contact) =>
-            Record(new Notification(NotificationKind.Stayed, this, other, contact));
-
-        public void NotifyExited(ICollider other) =>
-            Record(new Notification(NotificationKind.Exited, this, other, default));
-
-        private void Record(Notification notification)
-        {
-            Notifications.Add(notification);
-            _journal?.Add(notification);
-            OnNotified?.Invoke(notification);
-        }
 
         public override string ToString() => Name;
     }

@@ -13,8 +13,9 @@ namespace Asteroids.Collisions
             Container.DeclareSignal<CollisionStayed>().OptionalSubscriber();
             Container.DeclareSignal<CollisionExited>().OptionalSubscriber();
 
+            Container.Bind<IShapeContactTester>().FromInstance(ShapeContacts.CreateTable());
+            Container.Bind<ICollisionEventSink>().To<SignalBusCollisionEventSink>().AsSingle();
             Container.Bind<ICollisionSystem>().To<CollisionSystem>().AsSingle();
-            Container.Bind<IColliderFactory>().To<ColliderFactory>().AsSingle();
             Container.BindInterfacesTo<CollisionStepRegistration>().AsSingle();
         }
     }

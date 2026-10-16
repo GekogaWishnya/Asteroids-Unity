@@ -17,14 +17,14 @@ namespace Asteroids.Collisions.Components
 
         protected override Color GizmoColor => new(0.2f, 1f, 0.4f);
 
-        protected override BaseCollider CreateCollider(IColliderFactory factory, object owner)
+        protected override ICollider CreateCollider(object owner)
         {
             if (owner is not IEntity entity)
                 throw new InvalidOperationException(
                     $"{nameof(CircleColliderComponent)} on '{name}' needs a sibling component implementing " +
                     $"{nameof(IEntityProvider)} (add EntityComponent).");
 
-            return factory.CreateCircle(entity, entity.Pose, offset, radius, Layer, Mask);
+            return new ShapeCollider(entity, Layer, Mask, new CircleShape(entity.Pose, offset, radius));
         }
         
         protected override void DrawShape()
