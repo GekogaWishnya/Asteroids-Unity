@@ -3,6 +3,7 @@ using Asteroids.Core.IConfigs;
 using Asteroids.Controls;
 using Asteroids.Collisions;
 using Asteroids.Data;
+using Asteroids.Player;
 using Asteroids.Simulation;
 using Asteroids.World;
 using UnityEngine;
@@ -20,6 +21,7 @@ namespace Asteroids.Installers
             SimulationInstaller.Install(Container);
             CollisionInstaller.Install(Container);
             WorldInstaller.Install(Container);
+            PlayerInstaller.Install(Container);
 
             Container.Bind<ISimulationTime>().To<UnityTimeSource>().AsSingle();
             Container.BindInterfacesTo<ShipInput>().AsSingle();

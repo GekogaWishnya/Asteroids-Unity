@@ -1,4 +1,3 @@
-using System;
 using Asteroids.Core;
 using UnityEngine;
 
@@ -19,14 +18,21 @@ namespace Asteroids.Collisions.Components
 
         protected override ICollider CreateCollider(object owner)
         {
-            if (owner is not IEntity entity)
-                throw new InvalidOperationException(
-                    $"{nameof(CircleColliderComponent)} on '{name}' needs a sibling component implementing " +
-                    $"{nameof(IEntityProvider)} (add EntityComponent).");
-
+            var entity = RequireEntity(owner);
             return new ShapeCollider(entity, Layer, Mask, new CircleShape(entity.Pose, offset, radius));
         }
-        
+
+        protected override void OnValidate()
+        {
+            base.OnValidate();
+
+            if (ColliderSetupRules.OffsetReachesRadius(offset, radius))
+                Debug.LogWarning(
+                    $"{nameof(CircleColliderComponent)} on '{name}': offset length {offset.magnitude:0.###} is not " +
+                    $"smaller than radius {radius:0.###}. An entity that wraps around the world needs the collider " +
+                    "centre offset to be smaller than the radius.", this);
+        }
+
         protected override void DrawShape()
         {
             var current = transform;

@@ -19,7 +19,7 @@ namespace Asteroids.Collisions.Tests
             _system = new CollisionSystem(_sink, FakeShape.CreateContacts());
         }
 
-        private FakeCollider CreateCollider(string name, bool overlaps = false)
+        private static FakeCollider CreateCollider(string name, bool overlaps = false)
         {
             var collider = new FakeCollider(name) { Overlaps = overlaps };
             return collider;
