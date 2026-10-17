@@ -5,6 +5,7 @@ using Asteroids.Collisions;
 using Asteroids.Damage;
 using Asteroids.Data;
 using Asteroids.Player;
+using Asteroids.Scoring;
 using Asteroids.Simulation;
 using Asteroids.World;
 using UnityEngine;
@@ -25,6 +26,7 @@ namespace Asteroids.Installers
             DamageInstaller.Install(Container);
             WorldInstaller.Install(Container);
             PlayerInstaller.Install(Container);
+            ScoringInstaller.Install(Container);
 
             Container.Bind<ISimulationTime>().To<UnityTimeSource>().AsSingle();
             Container.BindInterfacesTo<ShipInput>().AsSingle();
