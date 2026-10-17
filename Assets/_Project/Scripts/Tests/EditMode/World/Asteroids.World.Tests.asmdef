@@ -5,6 +5,7 @@
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",
         "Asteroids.World",
+        "Asteroids.Core",
         "Asteroids.Core.IConfigs"
     ],
     "includePlatforms": [
