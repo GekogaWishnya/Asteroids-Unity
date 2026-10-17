@@ -10,7 +10,7 @@ namespace Asteroids.World
 
         public WorldBounds(IWorldLayout layout)
         {
-            var size = (Vector2)layout.ReferenceResolution / layout.PixelsPerUnit;
+            var size = (Vector2)layout.GameplayAreaResolution / layout.PixelsPerUnit;
             Rect = new Rect(-size * 0.5f, size);
         }
 

@@ -18,7 +18,7 @@ namespace Asteroids.Data
         [Tooltip("Background color of the gameplay space")]
         [SerializeField, ColorUsage(false)] private Color backgroundColor = new(0.0854174f, 0.01811143f, 0.1037736f);
         
-        public Vector2Int ReferenceResolution => new(referenceWidth, referenceHeight);
+        public Vector2Int GameplayAreaResolution => new(referenceWidth, referenceHeight);
         public int PixelsPerUnit => pixelsPerUnit;
         public Color BackgroundColor => backgroundColor;
 

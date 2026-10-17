@@ -10,7 +10,7 @@ namespace Asteroids.World.Tests
         private const float Tolerance = 1e-4f;
 
         private static WorldBounds Create(int width = 256, int height = 256, int pixelsPerUnit = 16) =>
-            new(new TestLayout(width, height, pixelsPerUnit));
+            new(new TestWorldLayout(width, height, pixelsPerUnit));
 
         private static void AssertVector(Vector2 actual, float expectedX, float expectedY)
         {
@@ -107,18 +107,6 @@ namespace Asteroids.World.Tests
             var twice = bounds.Wrap(once);
 
             AssertVector(twice, once.x, once.y);
-        }
-
-        private sealed class TestLayout : IWorldLayout
-        {
-            public TestLayout(int width, int height, int pixelsPerUnit)
-            {
-                ReferenceResolution = new Vector2Int(width, height);
-                PixelsPerUnit = pixelsPerUnit;
-            }
-
-            public Vector2Int ReferenceResolution { get; }
-            public int PixelsPerUnit { get; }
         }
     }
 }

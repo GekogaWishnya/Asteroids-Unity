@@ -7,6 +7,7 @@ using Asteroids.Data;
 using Asteroids.Player;
 using Asteroids.Scoring;
 using Asteroids.Simulation;
+using Asteroids.UI;
 using Asteroids.World;
 using UnityEngine;
 using Zenject;
@@ -18,6 +19,7 @@ namespace Asteroids.Installers
         [SerializeField] private ShipMovementConfig shipMovement;
         [SerializeField] private ShipHealthConfig shipHealth;
         [SerializeField] private WorldConfig worldConfig;
+        [SerializeField] private HudConfig hudConfig;
 
         public override void InstallBindings()
         {
@@ -27,6 +29,7 @@ namespace Asteroids.Installers
             WorldInstaller.Install(Container);
             PlayerInstaller.Install(Container);
             ScoringInstaller.Install(Container);
+            UIInstaller.Install(Container);
 
             Container.Bind<ISimulationTime>().To<UnityTimeSource>().AsSingle();
             Container.BindInterfacesTo<ShipInput>().AsSingle();
@@ -34,6 +37,7 @@ namespace Asteroids.Installers
             Container.Bind<IShipHealthConfig>().FromInstance(shipHealth);
             Container.Bind<IWorldLayout>().FromInstance(worldConfig);
             Container.Bind<IWorldAppearance>().FromInstance(worldConfig);
+            Container.Bind<IHudLayout>().FromInstance(hudConfig);
         }
     }
 }

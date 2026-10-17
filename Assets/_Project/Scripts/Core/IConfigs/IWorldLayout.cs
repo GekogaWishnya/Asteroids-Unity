@@ -4,7 +4,7 @@ namespace Asteroids.Core.IConfigs
 {
     public interface IWorldLayout
     {
-        Vector2Int ReferenceResolution { get; }
+        Vector2Int GameplayAreaResolution { get; }
         int PixelsPerUnit { get; }
     }
 }
