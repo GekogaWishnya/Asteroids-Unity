@@ -1,0 +1,17 @@
+{
+    "name": "Asteroids.Health",
+    "rootNamespace": "Asteroids.Health",
+    "references": [
+        "GUID:b6151fc1b773b514581357cc20484cc5",
+        "GUID:b1f71dfdd58f5054383b5415c9007cf3"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": true
+}

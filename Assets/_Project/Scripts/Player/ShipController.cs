@@ -7,20 +7,44 @@ using Asteroids.Physics;
 namespace Asteroids.Player
 {
     /// <summary>
+    /// <para>
     /// Assembles the behavior of a ship.
     /// Creates and registers <see cref="ShipControlStep"/> in <see cref="SimulationPhase.Input"/> and
     /// <see cref="MotionStep"/> in <see cref="SimulationPhase.Motion"/>.
     /// Both are sharing one <see cref="InertialMotion"/>.
+    /// </para>
+    /// <para>
+    /// While enabled, the ship is also registered as a damageable and listens to the depletion of
+    /// the player's health. When health runs out, the controller disables itself first and then reports
+    /// <see cref="IShipEventSink.Destroyed"/>.
+    /// A dead ship cannot be enabled until its health is reset.
+    /// </para>
     /// </summary>
     public sealed class ShipController : IShipController
     {
         private readonly RegistrationScope _registrations;
+        private readonly PlayerHealth _health;
+        private readonly IShipEventSink _events;
+        private readonly IEntity _entity;
 
         /// <exception cref="ArgumentNullException">Any argument is null.</exception>
-        public ShipController(IMovementInput input, IShipMovementConfig config, ISimulationLoop loop, IPose pose)
+        public ShipController(
+            IMovementInput input,
+            IShipMovementConfig config,
+            ISimulationLoop loop,
+            IEntity entity,
+            PlayerHealth health,
+            IDamageRegistry damageRegistry,
+            IShipEventSink events)
         {
             if (loop == null) throw new ArgumentNullException(nameof(loop));
+            if (damageRegistry == null) throw new ArgumentNullException(nameof(damageRegistry));
 
+            _entity = entity ?? throw new ArgumentNullException(nameof(entity));
+            _health = health ?? throw new ArgumentNullException(nameof(health));
+            _events = events ?? throw new ArgumentNullException(nameof(events));
+
+            var pose = entity.Pose;
             var motion = new InertialMotion(config);
             var controlStep = new ShipControlStep(input, config, pose, motion);
             var motionStep = new MotionStep(pose, motion);
@@ -28,11 +52,46 @@ namespace Asteroids.Player
             _registrations = new RegistrationScope(new Func<IDisposable>[]
             {
                 () => loop.Register(SimulationPhase.Input, controlStep),
-                () => loop.Register(SimulationPhase.Motion, motionStep)
+                () => loop.Register(SimulationPhase.Motion, motionStep),
+                () => damageRegistry.RegisterDamageable(entity, health),
+                ListenForDepletion
             });
         }
 
-        public void Enable() => _registrations.Enable();
+        /// <summary>Does nothing while the player's health is depleted.</summary>
+        public void Enable()
+        {
+            if (_health.IsDead) return;
+
+            _registrations.Enable();
+        }
+
         public void Disable() => _registrations.Disable();
+
+        private IDisposable ListenForDepletion()
+        {
+            _health.Depleted += OnDepleted;
+            return new DepletionSubscription(_health, OnDepleted);
+        }
+
+        private void OnDepleted()
+        {
+            Disable();
+            _events.Destroyed(_entity);
+        }
+
+        private sealed class DepletionSubscription : IDisposable
+        {
+            private readonly PlayerHealth _health;
+            private readonly Action _handler;
+
+            public DepletionSubscription(PlayerHealth health, Action handler)
+            {
+                _health = health;
+                _handler = handler;
+            }
+
+            public void Dispose() => _health.Depleted -= _handler;
+        }
     }
 }

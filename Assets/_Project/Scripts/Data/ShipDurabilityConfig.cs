@@ -1,14 +1,16 @@
 using Asteroids.Core.IConfigs;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Asteroids.Data
 {
-    [CreateAssetMenu(fileName = "ShipDurability", menuName = "Asteroids/Configs/ShipDurability")]
-    public sealed class ShipDurabilityConfig : ScriptableObject, IShipDurabilityConfig
+    [CreateAssetMenu(fileName = "ShipHealth", menuName = "Asteroids/Configs/ShipHealth")]
+    public sealed class ShipHealthConfig : ScriptableObject, IShipHealthConfig
     {
-        [Tooltip("Initial ship health")]
-        [SerializeField, Min(1)] private int health = 3;
-        
-        public int Health => health;
+        [Tooltip("Initial and maximum ship health")]
+        [FormerlySerializedAs("health")]
+        [SerializeField, Min(1)] private int maxHealth = 3;
+
+        public int MaxHealth => maxHealth;
     }
 }

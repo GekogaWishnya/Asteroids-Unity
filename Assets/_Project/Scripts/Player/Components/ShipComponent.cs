@@ -23,7 +23,7 @@ namespace Asteroids.Player.Components
                     $"{nameof(ShipComponent)} on '{name}' needs a sibling component implementing " +
                     $"{nameof(IEntityProvider)} (add EntityComponent).");
 
-            _controller = factory.Create(provider.Entity.Pose);
+            _controller = factory.Create(provider.Entity);
 
             if (isActiveAndEnabled) _controller.Enable();
         }

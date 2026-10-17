@@ -10,6 +10,6 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8f664a3f27b99bc489d194748645ac26, type: 3}
-  m_Name: DefaultShipDurability
+  m_Name: DefaultShipHealth
   m_EditorClassIdentifier: 
   health: 3

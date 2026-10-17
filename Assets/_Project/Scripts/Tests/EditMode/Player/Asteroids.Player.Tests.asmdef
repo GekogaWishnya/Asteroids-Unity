@@ -7,6 +7,8 @@
         "Asteroids.Player",
         "Asteroids.Core",
         "Asteroids.Core.IConfigs",
+        "Asteroids.Common",
+        "Asteroids.Health",
         "Asteroids.Physics"
     ],
     "includePlatforms": [
