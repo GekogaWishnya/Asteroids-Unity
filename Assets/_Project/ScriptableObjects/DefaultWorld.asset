@@ -15,4 +15,4 @@ MonoBehaviour:
   referenceWidth: 256
   referenceHeight: 256
   pixelsPerUnit: 16
-  backgroundColor: {r: 0.09433961, g: 0.060697753, b: 0.010234959, a: 1}
+  backgroundColor: {r: 0.26666668, g: 0.15686275, b: 0.23137257, a: 1}
