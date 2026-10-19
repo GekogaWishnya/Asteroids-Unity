@@ -2,10 +2,10 @@
     "name": "Asteroids.Health.Tests",
     "rootNamespace": "Asteroids.Health.Tests",
     "references": [
-        "UnityEngine.TestRunner",
-        "UnityEditor.TestRunner",
-        "Asteroids.Health",
-        "Asteroids.Common"
+        "GUID:27619889b8ba8c24980f49ee34dbb44a",
+        "GUID:0acc523941302664db1f4e527237feb3",
+        "GUID:1d96f698173486741b3ccbeaed2c0c19",
+        "GUID:b1f71dfdd58f5054383b5415c9007cf3"
     ],
     "includePlatforms": [
         "Editor"

@@ -1,3 +1,4 @@
+using System;
 using Asteroids.Core;
 
 namespace Asteroids.Collisions
@@ -8,12 +9,12 @@ namespace Asteroids.Collisions
     /// </summary>
     public interface ICollisionSystem : ISimulationStep
     {
-        /// <summary>Throws if already registered. Deferred to the end of the tick if called during a tick.</summary>
+        /// <summary>Deferred to the end of the tick if called during a tick.</summary>
         /// <exception cref="System.ArgumentNullException">Collider is null.</exception>
         /// <exception cref="System.ArgumentException">Collider has no shape.</exception>
         /// <exception cref="System.InvalidOperationException">Already registered.</exception>
         /// <exception cref="System.NotSupportedException">Collision between given shapes is not supported</exception>
-        void Register(ICollider collider);
+        IDisposable Register(ICollider collider);
 
         /// <summary>
         /// Returns false if not registered. After being unregistered collider gets Exit signal.

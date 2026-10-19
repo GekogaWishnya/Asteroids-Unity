@@ -2,11 +2,11 @@
     "name": "Asteroids.Scoring.Tests",
     "rootNamespace": "Asteroids.Scoring.Tests",
     "references": [
-        "UnityEngine.TestRunner",
-        "UnityEditor.TestRunner",
-        "Asteroids.Scoring",
-        "Asteroids.Core",
-        "Asteroids.Common"
+        "GUID:27619889b8ba8c24980f49ee34dbb44a",
+        "GUID:0acc523941302664db1f4e527237feb3",
+        "GUID:e2e5b0c4326dfb644b539259496afa06",
+        "GUID:b6151fc1b773b514581357cc20484cc5",
+        "GUID:b1f71dfdd58f5054383b5415c9007cf3"
     ],
     "includePlatforms": [
         "Editor"

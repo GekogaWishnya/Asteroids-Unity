@@ -26,7 +26,7 @@ namespace Asteroids.Collisions
             _colliders = new DeferredList<ICollider>(onRemoved: Detach);
         }
 
-        public void Register(ICollider collider)
+        public IDisposable Register(ICollider collider)
         {
             if (collider == null) throw new ArgumentNullException(nameof(collider));
             if (collider.Shape == null)
@@ -40,6 +40,8 @@ namespace Asteroids.Collisions
             _registered.Add(collider);
             _shapeTypeCounts[shapeType] = _shapeTypeCounts.TryGetValue(shapeType, out var count) ? count + 1 : 1;
             _colliders.Add(collider);
+            
+            return new Registration(this, collider);
         }
 
         public bool Unregister(ICollider collider)
@@ -206,6 +208,26 @@ namespace Asteroids.Collisions
 
             public override int GetHashCode() =>
                 RuntimeHelpers.GetHashCode(First) ^ RuntimeHelpers.GetHashCode(Second);
+        }
+        
+        private sealed class Registration : IDisposable
+        {
+            private readonly CollisionSystem _owner;
+            private readonly ICollider _collider;
+            private bool _released;
+
+            public Registration(CollisionSystem owner, ICollider collider)
+            {
+                _owner = owner;
+                _collider = collider;
+            }
+
+            public void Dispose()
+            {
+                if (_released) return;
+                _released = true;
+                _owner.Unregister(_collider);
+            }
         }
     }
 }

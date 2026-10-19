@@ -1,7 +1,7 @@
 using Asteroids.Core;
 using UnityEngine;
 
-namespace Asteroids.Installers
+namespace Asteroids.Simulation
 {
     /// <summary>
     /// Unity-backed clock for the simulation loop using unscaled delta time.
