@@ -15,11 +15,16 @@ namespace Asteroids.Player.Tests
         private FakeSimulationLoop _loop;
         private TestInput _input;
         private TestConfig _config;
+        private TestCombatConfig _combat;
         private BodyPose _pose;
         private Entity _entity;
         private PlayerHealth _health;
         private FakeDamageRegistry _registry;
         private RecordingShipEvents _events;
+        private FakeCollisionIgnore _collider;
+        private FakeProtectionView _view;
+        private FakeProtectionTargets _targets;
+        private WaveStartProtection _waveProtection;
 
         [SetUp]
         public void SetUp()
@@ -27,24 +32,34 @@ namespace Asteroids.Player.Tests
             _loop = new FakeSimulationLoop();
             _input = new TestInput();
             _config = new TestConfig { Thrust = 10f, TurnSpeed = 100f, MaxSpeed = 100f, LinearDamping = 0f };
+            _combat = new TestCombatConfig { RamDamage = 1, InvulnerabilitySeconds = 1.5f };
             _pose = new BodyPose();
             _entity = new Entity(_pose);
             _health = new PlayerHealth(new TestHealthConfig { MaxHealth = 3 });
             _registry = new FakeDamageRegistry();
             _events = new RecordingShipEvents();
+            _collider = new FakeCollisionIgnore();
+            _view = new FakeProtectionView();
+            _targets = new FakeProtectionTargets(new[] { _collider }, new[] { _view });
+            _waveProtection = new WaveStartProtection(_combat);
         }
 
         private ShipController CreateController() =>
-            new(_input, _config, _loop, _entity, _health, _registry, _events);
+            new(_input, _config, _combat, _combat, _loop, _entity, _targets, _waveProtection,
+                _health, _registry, _events);
+
+        /// <summary>What the damage system sees when it hurts the ship.</summary>
+        private IDamageable RegisteredShip => _registry.Damageables[0].Item;
 
         [Test]
-        public void Enable_RegistersOneStepInInputAndOneInMotion()
+        public void Enable_RegistersOneStepInInputOneInMotionAndOneInLogic()
         {
             CreateController().Enable();
 
-            Assert.That(_loop.Entries.Count, Is.EqualTo(2));
+            Assert.That(_loop.Entries.Count, Is.EqualTo(3));
             Assert.That(_loop.LiveCount(SimulationPhase.Input), Is.EqualTo(1));
             Assert.That(_loop.LiveCount(SimulationPhase.Motion), Is.EqualTo(1));
+            Assert.That(_loop.LiveCount(SimulationPhase.Logic), Is.EqualTo(1));
             Assert.That(_loop.LiveCount(SimulationPhase.Collision), Is.EqualTo(0));
         }
 
@@ -57,14 +72,14 @@ namespace Asteroids.Player.Tests
         }
 
         [Test]
-        public void Disable_DisposesBothRegistrations()
+        public void Disable_DisposesAllStepRegistrations()
         {
             var controller = CreateController();
             controller.Enable();
 
             controller.Disable();
 
-            Assert.That(_loop.Entries.Count, Is.EqualTo(2));
+            Assert.That(_loop.Entries.Count, Is.EqualTo(3));
             Assert.That(_loop.Entries, Has.All.Matches<FakeSimulationLoop.Entry>(e => e.IsDisposed));
         }
 
@@ -76,7 +91,7 @@ namespace Asteroids.Player.Tests
             controller.Enable();
             controller.Enable();
 
-            Assert.That(_loop.Entries.Count, Is.EqualTo(2));
+            Assert.That(_loop.Entries.Count, Is.EqualTo(3));
         }
 
         [Test]
@@ -96,9 +111,10 @@ namespace Asteroids.Player.Tests
             controller.Disable();
             controller.Enable();
 
-            Assert.That(_loop.Entries.Count, Is.EqualTo(4));
+            Assert.That(_loop.Entries.Count, Is.EqualTo(6));
             Assert.That(_loop.LiveCount(SimulationPhase.Input), Is.EqualTo(1));
             Assert.That(_loop.LiveCount(SimulationPhase.Motion), Is.EqualTo(1));
+            Assert.That(_loop.LiveCount(SimulationPhase.Logic), Is.EqualTo(1));
         }
 
         [Test]
@@ -156,20 +172,28 @@ namespace Asteroids.Player.Tests
         [Test]
         public void Constructor_NullArguments_Throw()
         {
-            Assert.Throws<ArgumentNullException>(
-                () => new ShipController(null, _config, _loop, _entity, _health, _registry, _events));
-            Assert.Throws<ArgumentNullException>(
-                () => new ShipController(_input, null, _loop, _entity, _health, _registry, _events));
-            Assert.Throws<ArgumentNullException>(
-                () => new ShipController(_input, _config, null, _entity, _health, _registry, _events));
-            Assert.Throws<ArgumentNullException>(
-                () => new ShipController(_input, _config, _loop, null, _health, _registry, _events));
-            Assert.Throws<ArgumentNullException>(
-                () => new ShipController(_input, _config, _loop, _entity, null, _registry, _events));
-            Assert.Throws<ArgumentNullException>(
-                () => new ShipController(_input, _config, _loop, _entity, _health, null, _events));
-            Assert.Throws<ArgumentNullException>(
-                () => new ShipController(_input, _config, _loop, _entity, _health, _registry, null));
+            Assert.Throws<ArgumentNullException>(() => new ShipController(
+                null, _config, _combat, _combat, _loop, _entity, _targets, _waveProtection, _health, _registry, _events));
+            Assert.Throws<ArgumentNullException>(() => new ShipController(
+                _input, null, _combat, _combat, _loop, _entity, _targets, _waveProtection, _health, _registry, _events));
+            Assert.Throws<ArgumentNullException>(() => new ShipController(
+                _input, _config, null, _combat, _loop, _entity, _targets, _waveProtection, _health, _registry, _events));
+            Assert.Throws<ArgumentNullException>(() => new ShipController(
+                _input, _config, _combat, null, _loop, _entity, _targets, _waveProtection, _health, _registry, _events));
+            Assert.Throws<ArgumentNullException>(() => new ShipController(
+                _input, _config, _combat, _combat, null, _entity, _targets, _waveProtection, _health, _registry, _events));
+            Assert.Throws<ArgumentNullException>(() => new ShipController(
+                _input, _config, _combat, _combat, _loop, null, _targets, _waveProtection, _health, _registry, _events));
+            Assert.Throws<ArgumentNullException>(() => new ShipController(
+                _input, _config, _combat, _combat, _loop, _entity, null, _waveProtection, _health, _registry, _events));
+            Assert.Throws<ArgumentNullException>(() => new ShipController(
+                _input, _config, _combat, _combat, _loop, _entity, _targets, null, _health, _registry, _events));
+            Assert.Throws<ArgumentNullException>(() => new ShipController(
+                _input, _config, _combat, _combat, _loop, _entity, _targets, _waveProtection, null, _registry, _events));
+            Assert.Throws<ArgumentNullException>(() => new ShipController(
+                _input, _config, _combat, _combat, _loop, _entity, _targets, _waveProtection, _health, null, _events));
+            Assert.Throws<ArgumentNullException>(() => new ShipController(
+                _input, _config, _combat, _combat, _loop, _entity, _targets, _waveProtection, _health, _registry, null));
         }
 
         [Test]
@@ -179,7 +203,10 @@ namespace Asteroids.Player.Tests
 
             Assert.That(_registry.LiveDamageables, Is.EqualTo(1));
             Assert.That(_registry.Damageables[0].Entity, Is.SameAs(_entity));
-            Assert.That(_registry.Damageables[0].Item, Is.SameAs(_health));
+
+            RegisteredShip.TakeDamage(1);
+
+            Assert.That(_health.Current.Value, Is.EqualTo(2));
         }
 
         [Test]
@@ -213,6 +240,37 @@ namespace Asteroids.Player.Tests
         }
 
         [Test]
+        public void Enable_RegistersTheShipAsDamageSourceOfItsEntity()
+        {
+            _combat.RamDamage = 2;
+
+            CreateController().Enable();
+
+            Assert.That(_registry.LiveSources, Is.EqualTo(1));
+            Assert.That(_registry.Sources[0].Entity, Is.SameAs(_entity));
+            Assert.That(_registry.Sources[0].Item.Damage, Is.EqualTo(2));
+        }
+
+        [Test]
+        public void Construct_DoesNotRegisterAsDamageSourceUntilEnabled()
+        {
+            CreateController();
+
+            Assert.That(_registry.Sources, Is.Empty);
+        }
+
+        [Test]
+        public void Disable_RemovesTheDamageSourceRegistration()
+        {
+            var controller = CreateController();
+            controller.Enable();
+
+            controller.Disable();
+
+            Assert.That(_registry.LiveSources, Is.EqualTo(0));
+        }
+
+        [Test]
         public void Damage_NotLethal_DoesNotDestroyTheShip()
         {
             CreateController().Enable();
@@ -240,11 +298,14 @@ namespace Asteroids.Player.Tests
         {
             var liveStepsWhenReported = -1;
             var liveDamageablesWhenReported = -1;
+            var liveSourcesWhenReported = -1;
             _events.OnDestroyed = () =>
             {
                 liveStepsWhenReported = _loop.LiveCount(SimulationPhase.Input) +
-                                        _loop.LiveCount(SimulationPhase.Motion);
+                                        _loop.LiveCount(SimulationPhase.Motion) +
+                                        _loop.LiveCount(SimulationPhase.Logic);
                 liveDamageablesWhenReported = _registry.LiveDamageables;
+                liveSourcesWhenReported = _registry.LiveSources;
             };
             CreateController().Enable();
 
@@ -252,6 +313,7 @@ namespace Asteroids.Player.Tests
 
             Assert.That(liveStepsWhenReported, Is.EqualTo(0));
             Assert.That(liveDamageablesWhenReported, Is.EqualTo(0));
+            Assert.That(liveSourcesWhenReported, Is.EqualTo(0));
         }
 
         [Test]
@@ -277,6 +339,7 @@ namespace Asteroids.Player.Tests
 
             Assert.That(_loop.Entries, Is.Empty);
             Assert.That(_registry.Damageables, Is.Empty);
+            Assert.That(_registry.Sources, Is.Empty);
         }
 
         [Test]
@@ -291,6 +354,7 @@ namespace Asteroids.Player.Tests
 
             Assert.That(_loop.LiveCount(SimulationPhase.Input), Is.EqualTo(1));
             Assert.That(_registry.LiveDamageables, Is.EqualTo(1));
+            Assert.That(_registry.LiveSources, Is.EqualTo(1));
         }
 
         [Test]
@@ -316,6 +380,229 @@ namespace Asteroids.Player.Tests
             _health.TakeDamage(3);
 
             Assert.That(_events.DestroyedEntities.Count, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void Hit_ThroughTheDamageSystem_ProtectsTheShipFromTheNextHit()
+        {
+            CreateController().Enable();
+
+            RegisteredShip.TakeDamage(1);
+            RegisteredShip.TakeDamage(1);
+
+            Assert.That(_health.Current.Value, Is.EqualTo(2));
+        }
+
+        [Test]
+        public void Hit_AfterTheProtectionRanOut_HurtsAgain()
+        {
+            CreateController().Enable();
+            RegisteredShip.TakeDamage(1);
+
+            _loop.Tick(1.4f);
+            RegisteredShip.TakeDamage(1);
+            Assert.That(_health.Current.Value, Is.EqualTo(2));
+
+            _loop.Tick(0.2f);
+            RegisteredShip.TakeDamage(1);
+            Assert.That(_health.Current.Value, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void Hit_WithoutInvulnerability_EveryHitCounts()
+        {
+            _combat.InvulnerabilitySeconds = 0f;
+            CreateController().Enable();
+
+            RegisteredShip.TakeDamage(1);
+            RegisteredShip.TakeDamage(1);
+
+            Assert.That(_health.Current.Value, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void Enable_AfterDisable_StartsWithoutProtection()
+        {
+            var controller = CreateController();
+            controller.Enable();
+            RegisteredShip.TakeDamage(1);
+            controller.Disable();
+            controller.Enable();
+
+            _registry.Damageables[1].Item.TakeDamage(1);
+
+            Assert.That(_health.Current.Value, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void Hit_MakesTheCollidersIgnoreTheConfiguredLayersUntilTheWindowEnds()
+        {
+            _combat.IgnoredLayers = CollisionLayer.Enemy | CollisionLayer.Projectile;
+            CreateController().Enable();
+
+            RegisteredShip.TakeDamage(1);
+            Assert.That(_collider.Ignored, Is.EqualTo(CollisionLayer.Enemy | CollisionLayer.Projectile));
+
+            _loop.Tick(1.4f);
+            Assert.That(_collider.Ignored, Is.EqualTo(CollisionLayer.Enemy | CollisionLayer.Projectile));
+
+            _loop.Tick(0.2f);
+            Assert.That(_collider.Ignored, Is.EqualTo(CollisionLayer.None));
+        }
+
+        [Test]
+        public void Disable_DuringTheWindow_RestoresTheColliders()
+        {
+            var controller = CreateController();
+            controller.Enable();
+            RegisteredShip.TakeDamage(1);
+
+            controller.Disable();
+
+            Assert.That(_collider.Ignored, Is.EqualTo(CollisionLayer.None));
+        }
+
+        [Test]
+        public void Hit_Lethal_RestoresTheCollidersBeforeTheShipIsReportedDestroyed()
+        {
+            CollisionLayer? ignoredWhenReported = null;
+            _events.OnDestroyed = () => ignoredWhenReported = _collider.Ignored;
+            CreateController().Enable();
+
+            RegisteredShip.TakeDamage(3);
+
+            Assert.That(ignoredWhenReported, Is.EqualTo(CollisionLayer.None));
+        }
+
+        [Test]
+        public void Hit_WithoutInvulnerability_LeavesTheCollidersAlone()
+        {
+            _combat.InvulnerabilitySeconds = 0f;
+            CreateController().Enable();
+
+            RegisteredShip.TakeDamage(1);
+
+            Assert.That(_collider.Ignored, Is.EqualTo(CollisionLayer.None));
+        }
+
+        [Test]
+        public void Hit_TellsTheViewsForTheWholeWindow()
+        {
+            CreateController().Enable();
+
+            RegisteredShip.TakeDamage(1);
+            Assert.That(_view.Calls, Is.EqualTo(new[] { true }));
+
+            _loop.Tick(1.4f);
+            Assert.That(_view.Calls, Is.EqualTo(new[] { true }));
+
+            _loop.Tick(0.2f);
+            Assert.That(_view.Calls, Is.EqualTo(new[] { true, false }));
+        }
+
+        [Test]
+        public void Disable_DuringProtection_TellsTheViewsItEnded()
+        {
+            var controller = CreateController();
+            controller.Enable();
+            RegisteredShip.TakeDamage(1);
+
+            controller.Disable();
+
+            Assert.That(_view.Calls, Is.EqualTo(new[] { true, false }));
+        }
+
+        [Test]
+        public void Hit_Lethal_TellsTheViewsBeforeTheShipIsReportedDestroyed()
+        {
+            int? callsWhenReported = null;
+            _events.OnDestroyed = () => callsWhenReported = _view.Calls.Count;
+            CreateController().Enable();
+
+            RegisteredShip.TakeDamage(3);
+
+            Assert.That(callsWhenReported, Is.EqualTo(2));
+            Assert.That(_view.Calls, Is.EqualTo(new[] { true, false }));
+        }
+
+        [Test]
+        public void Hit_WithoutInvulnerability_NeverTellsTheViews()
+        {
+            _combat.InvulnerabilitySeconds = 0f;
+            CreateController().Enable();
+
+            RegisteredShip.TakeDamage(1);
+
+            Assert.That(_view.Calls, Is.Empty);
+        }
+
+        [Test]
+        public void WaveStart_ProtectsTheShipLikeAHitWould()
+        {
+            CreateController().Enable();
+
+            _waveProtection.OnWaveStarted(new WaveStarted(1, 3));
+            RegisteredShip.TakeDamage(1);
+
+            Assert.That(_health.Current.Value, Is.EqualTo(3));
+            Assert.That(_collider.Ignored, Is.EqualTo(CollisionLayer.Enemy));
+            Assert.That(_view.Calls, Is.EqualTo(new[] { true }));
+
+            _loop.Tick(2f);
+            RegisteredShip.TakeDamage(1);
+
+            Assert.That(_health.Current.Value, Is.EqualTo(2));
+        }
+
+        [Test]
+        public void WaveStart_WhileTheShipIsDisabled_ProtectsNothingLater()
+        {
+            var controller = CreateController();
+
+            _waveProtection.OnWaveStarted(new WaveStarted(1, 3));
+            controller.Enable();
+            RegisteredShip.TakeDamage(1);
+
+            Assert.That(_health.Current.Value, Is.EqualTo(2));
+        }
+
+        [Test]
+        public void WaveStart_AfterTheShipWasDisabled_DoesNotThrowOrProtect()
+        {
+            var controller = CreateController();
+            controller.Enable();
+            controller.Disable();
+
+            Assert.DoesNotThrow(() => _waveProtection.OnWaveStarted(new WaveStarted(1, 3)));
+            Assert.That(_collider.Ignored, Is.EqualTo(CollisionLayer.None));
+            Assert.That(_view.Calls, Is.Empty);
+        }
+
+        [Test]
+        public void WaveStart_ZeroSeconds_ProtectsNothing()
+        {
+            _combat.WaveStartProtectionSeconds = 0f;
+            CreateController().Enable();
+
+            _waveProtection.OnWaveStarted(new WaveStarted(1, 3));
+            RegisteredShip.TakeDamage(1);
+
+            Assert.That(_health.Current.Value, Is.EqualTo(2));
+        }
+
+        [Test]
+        public void WaveStart_DuringALongerHitWindow_DoesNotShortenIt()
+        {
+            _combat.InvulnerabilitySeconds = 5f;
+            _combat.WaveStartProtectionSeconds = 1f;
+            CreateController().Enable();
+            RegisteredShip.TakeDamage(1);
+
+            _waveProtection.OnWaveStarted(new WaveStarted(2, 3));
+            _loop.Tick(4.9f);
+            RegisteredShip.TakeDamage(1);
+
+            Assert.That(_health.Current.Value, Is.EqualTo(2));
         }
 
         private sealed class TestInput : IMovementInput

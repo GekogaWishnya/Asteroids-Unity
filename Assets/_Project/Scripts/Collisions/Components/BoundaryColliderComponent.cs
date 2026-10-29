@@ -3,7 +3,7 @@ using UnityEngine;
 namespace Asteroids.Collisions.Components
 {
     /// <summary>
-    /// Invisible wall. The edge passes through this object's position and <see cref="inwardDirection"/>
+    /// Invisible wall. The edge passes through this object's position and <see cref="inwardAngle"/>
     /// points into the allowed area.
     /// The region is captured when the component is enabled. To move this collider, disable and re-enable it.
     /// </summary>
@@ -30,7 +30,7 @@ namespace Asteroids.Collisions.Components
         }
         private Vector2 OffsetPosition => (Vector2)transform.position + pointOffset * WorldInward;
 
-        protected override ICollider CreateCollider(object owner) =>
+        protected override ShapeCollider CreateCollider(object owner) =>
             new ShapeCollider(owner, Layer, Mask,
                 new BoundaryShape(HalfPlane.FromPoint(OffsetPosition, WorldInward)));
 

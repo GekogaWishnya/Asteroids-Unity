@@ -23,6 +23,17 @@ namespace Asteroids.Player.Tests
             }
         }
 
+        public int LiveSources
+        {
+            get
+            {
+                var count = 0;
+                foreach (var registration in _sources)
+                    if (!registration.IsDisposed) count++;
+                return count;
+            }
+        }
+
         public IDisposable RegisterDamageable(IEntity entity, IDamageable damageable)
         {
             var registration = new Registration<IDamageable>(entity, damageable);

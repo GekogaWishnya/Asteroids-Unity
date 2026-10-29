@@ -2,6 +2,7 @@ using System;
 using Asteroids.Common;
 using Asteroids.Core;
 using Asteroids.Core.IConfigs;
+using Asteroids.Invulnerability;
 using Asteroids.Physics;
 
 namespace Asteroids.Player
@@ -10,13 +11,17 @@ namespace Asteroids.Player
     /// <para>
     /// Assembles the behavior of a ship.
     /// Creates and registers <see cref="ShipControlStep"/> in <see cref="SimulationPhase.Input"/> and
-    /// <see cref="MotionStep"/> in <see cref="SimulationPhase.Motion"/>.
-    /// Both are sharing one <see cref="InertialMotion"/>.
+    /// <see cref="MotionStep"/> in <see cref="SimulationPhase.Motion"/>, which share one <see cref="InertialMotion"/>.
     /// </para>
     /// <para>
-    /// While enabled, the ship is also registered as a damageable and listens to the depletion of
-    /// the player's health. When health runs out, the controller disables itself first and then reports
-    /// <see cref="IShipEventSink.Destroyed"/>.
+    /// While enabled, the ship is also registered as a damageable and as a damage source (it hurts what it
+    /// rams), and it listens to the depletion of the player's health. The damageable is an
+    /// <see cref="InvulnerabilityGuard"/> around the player's health, meaning each hit that gets through, and each wave
+    /// start (through <see cref="WaveStartProtection"/>) start an invulnerability window for the ship.
+    /// </para>
+    /// <para>
+    /// When health runs out, the controller disables itself first, which ends the protection, restores the
+    /// colliders and tells the views, and then reports <see cref="IShipEventSink.Destroyed"/>.
     /// A dead ship cannot be enabled until its health is reset.
     /// </para>
     /// </summary>
@@ -28,16 +33,23 @@ namespace Asteroids.Player
         private readonly IEntity _entity;
 
         /// <exception cref="ArgumentNullException">Any argument is null.</exception>
+        /// <exception cref="ArgumentException">A list of <paramref name="targets"/> contains null.</exception>
         public ShipController(
             IMovementInput input,
             IShipMovementConfig config,
+            IShipRamConfig ram,
+            IInvulnerabilityConfig invulnerability,
             ISimulationLoop loop,
             IEntity entity,
+            IProtectionTargets targets,
+            WaveStartProtection waveProtection,
             PlayerHealth health,
             IDamageRegistry damageRegistry,
             IShipEventSink events)
         {
+            if (ram == null) throw new ArgumentNullException(nameof(ram));
             if (loop == null) throw new ArgumentNullException(nameof(loop));
+            if (waveProtection == null) throw new ArgumentNullException(nameof(waveProtection));
             if (damageRegistry == null) throw new ArgumentNullException(nameof(damageRegistry));
 
             _entity = entity ?? throw new ArgumentNullException(nameof(entity));
@@ -48,12 +60,17 @@ namespace Asteroids.Player
             var motion = new InertialMotion(config);
             var controlStep = new ShipControlStep(input, config, pose, motion);
             var motionStep = new MotionStep(pose, motion);
+            var guard = new InvulnerabilityGuard(health, invulnerability, targets);
+            var source = new ShipRamSource(ram);
 
             _registrations = new RegistrationScope(new Func<IDisposable>[]
             {
                 () => loop.Register(SimulationPhase.Input, controlStep),
                 () => loop.Register(SimulationPhase.Motion, motionStep),
-                () => damageRegistry.RegisterDamageable(entity, health),
+                () => guard.Attach(loop),
+                () => waveProtection.Attach(guard),
+                () => damageRegistry.RegisterDamageable(entity, guard),
+                () => damageRegistry.RegisterSource(entity, source),
                 ListenForDepletion
             });
         }

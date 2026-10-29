@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Asteroids.Collisions;
 using Asteroids.Core;
+using Asteroids.Core.IConfigs;
 using UnityEngine;
 
 namespace Asteroids.Damage.Tests

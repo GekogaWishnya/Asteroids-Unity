@@ -8,6 +8,7 @@ namespace Asteroids.Core
     {
         Input = 0,
         Motion = 1,
-        Collision = 2
+        Collision = 2,
+        Logic = 3
     }
 }

@@ -2,7 +2,12 @@
     "name": "Asteroids.Enemies",
     "rootNamespace": "Asteroids.Enemies",
     "references": [
-        "GUID:b6151fc1b773b514581357cc20484cc5"
+        "GUID:0d8beb7f090555447a6cf5ce9e54dbb4",
+        "GUID:b1f71dfdd58f5054383b5415c9007cf3",
+        "GUID:b6151fc1b773b514581357cc20484cc5",
+        "GUID:59e492911dd02fe46a0ad550a64fbbdc",
+        "GUID:1d96f698173486741b3ccbeaed2c0c19",
+        "GUID:26737f213102ae54bb017ee75277ff68"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

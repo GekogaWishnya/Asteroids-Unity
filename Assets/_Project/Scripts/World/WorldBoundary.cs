@@ -1,6 +1,7 @@
 using System;
 using Asteroids.Common;
 using Asteroids.Collisions;
+using Asteroids.Core.IConfigs;
 using Asteroids.Physics;
 using Zenject;
 

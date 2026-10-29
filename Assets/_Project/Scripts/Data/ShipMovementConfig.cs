@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Asteroids.Data
 {
-    [CreateAssetMenu(fileName = "ShipMovementConfig", menuName = "Asteroids/Configs/ShipMovement")]
+    [CreateAssetMenu(fileName = "ShipMovementConfig", menuName = "Asteroids/Configs/Ship Movement")]
     public sealed class ShipMovementConfig : ScriptableObject, IShipMovementConfig
     {
         [Tooltip("Acceleration force applied along the ship's nose (units/s²)")]

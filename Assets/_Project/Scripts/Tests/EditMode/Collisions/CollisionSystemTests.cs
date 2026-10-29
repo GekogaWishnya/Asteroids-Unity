@@ -1,4 +1,5 @@
 using System;
+using Asteroids.Core.IConfigs;
 using NUnit.Framework;
 using UnityEngine;
 

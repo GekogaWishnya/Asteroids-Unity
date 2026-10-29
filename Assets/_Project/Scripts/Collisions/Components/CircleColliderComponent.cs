@@ -16,7 +16,7 @@ namespace Asteroids.Collisions.Components
 
         protected override Color GizmoColor => new(0.2f, 1f, 0.4f);
 
-        protected override ICollider CreateCollider(object owner)
+        protected override ShapeCollider CreateCollider(object owner)
         {
             var entity = RequireEntity(owner);
             return new ShapeCollider(entity, Layer, Mask, new CircleShape(entity.Pose, offset, radius));

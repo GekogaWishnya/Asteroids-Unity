@@ -1,6 +1,7 @@
 using System;
 using Asteroids.Common;
 using Asteroids.Core;
+using Asteroids.Core.IConfigs;
 using UnityEngine;
 using Zenject;
 
@@ -11,8 +12,10 @@ namespace Asteroids.Collisions.Components
     /// The collider's <see cref="ICollider.Owner"/> is the <see cref="IEntity"/> of a sibling
     /// <see cref="IEntityProvider"/> when there is one, and this GameObject otherwise.
     /// Layer and mask are read when the collider is created, so changes at runtime apply after a re-enable.
+    /// <see cref="Ignore"/> is the exception. It narrows the live collider's mask and is kept while collider is
+    /// disabled. <see cref="Restore"/> restores the original mask.
     /// </summary>
-    public abstract class ColliderComponent : MonoBehaviour
+    public abstract class ColliderComponent : MonoBehaviour, ICollisionIgnore
     {
         [Tooltip("Layers this collider belongs to.")]
         [SerializeField] private CollisionLayer layer = CollisionLayer.None;
@@ -21,20 +24,31 @@ namespace Asteroids.Collisions.Components
 
         [Header("Debug")]
         [SerializeField] private bool drawGizmos = false;
-        
+
         private ICollisionSystem _system;
         private RegistrationScope _registration;
-        private ICollider _collider;
+        private ShapeCollider _collider;
+        private CollisionLayer _ignored = CollisionLayer.None;
 
         protected CollisionLayer Layer => layer;
-        protected CollisionLayer Mask => mask;
+
+        /// <summary>The mask the collider should have at a given moment.</summary>
+        protected CollisionLayer Mask => mask & ~_ignored;
 
         /// <summary>Null while the component is disabled.</summary>
         public ICollider Collider => _collider;
 
         protected abstract Color GizmoColor { get; }
-        protected abstract ICollider CreateCollider(object owner);
+        protected abstract ShapeCollider CreateCollider(object owner);
         protected abstract void DrawShape();
+
+        public void Ignore(CollisionLayer layers)
+        {
+            _ignored = layers;
+            if (_collider != null) _collider.Mask = Mask;
+        }
+
+        public void Restore() => Ignore(CollisionLayer.None);
 
         [Inject]
         private void Construct(ICollisionSystem system)
@@ -47,14 +61,14 @@ namespace Asteroids.Collisions.Components
 
         private void OnEnable() => _registration?.Enable();
         private void OnDisable() => _registration?.Disable();
-        
+
         protected virtual void OnValidate()
         {
             if (ColliderSetupRules.HasNoLayer(layer))
                 Debug.LogWarning(
                     $"{GetType().Name} on '{name}' has layer None.", this);
         }
-        
+
         private IDisposable RegisterCollider()
         {
             var col = CreateCollider(ResolveOwner());
@@ -63,6 +77,7 @@ namespace Asteroids.Collisions.Components
 
             return new ColliderRegistration(_system, col, () => _collider = null);
         }
+
         /// <summary>The sibling entity if there is one, otherwise this GameObject.</summary>
         private object ResolveOwner() =>
             TryGetComponent<IEntityProvider>(out var provider) ? provider.Entity : gameObject;

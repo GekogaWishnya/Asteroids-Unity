@@ -1,0 +1,51 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: da2921437ecda144685f99e5e5224944, type: 3}
+  m_Name: DefaultAsteroid
+  m_EditorClassIdentifier: 
+  types:
+  - type: {fileID: 11400000, guid: 28c88a06058617c498a63e3e157cf9d3, type: 2}
+    maxHealth: 1
+    contactDamage: 1
+    scorePoints: 20
+    minSpeed: 0.8
+    maxSpeed: 1.6
+    minSpinSpeed: 15
+    maxSpinSpeed: 40
+    childType: {fileID: 11400000, guid: d76536cfcf48f22448cbac8454dc1345, type: 2}
+    childCount: 2
+    poolPrewarm: 8
+    poolMaxIdle: 16
+  - type: {fileID: 11400000, guid: d76536cfcf48f22448cbac8454dc1345, type: 2}
+    maxHealth: 1
+    contactDamage: 1
+    scorePoints: 50
+    minSpeed: 1.4
+    maxSpeed: 2.8
+    minSpinSpeed: 25
+    maxSpinSpeed: 70
+    childType: {fileID: 11400000, guid: 2c4808783e7e1db4e95bdafb877c3387, type: 2}
+    childCount: 2
+    poolPrewarm: 12
+    poolMaxIdle: 24
+  - type: {fileID: 11400000, guid: 2c4808783e7e1db4e95bdafb877c3387, type: 2}
+    maxHealth: 1
+    contactDamage: 1
+    scorePoints: 100
+    minSpeed: 2.4
+    maxSpeed: 4
+    minSpinSpeed: 40
+    maxSpinSpeed: 110
+    childType: {fileID: 0}
+    childCount: 0
+    poolPrewarm: 16
+    poolMaxIdle: 48

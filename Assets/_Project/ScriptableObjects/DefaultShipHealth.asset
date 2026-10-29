@@ -12,4 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8f664a3f27b99bc489d194748645ac26, type: 3}
   m_Name: DefaultShipHealth
   m_EditorClassIdentifier: 
-  health: 3
+  maxHealth: 3
+  ramDamage: 1
+  invulnerabilitySeconds: 1.5
+  ignoredLayers: 2
+  waveStartProtectionSeconds: 2

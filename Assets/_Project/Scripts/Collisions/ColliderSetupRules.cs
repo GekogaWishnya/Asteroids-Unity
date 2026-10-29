@@ -1,3 +1,4 @@
+using Asteroids.Core.IConfigs;
 using UnityEngine;
 
 namespace Asteroids.Collisions

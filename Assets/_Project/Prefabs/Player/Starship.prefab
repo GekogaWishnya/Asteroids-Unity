@@ -10,9 +10,11 @@ GameObject:
   m_Component:
   - component: {fileID: 1652408890130234172}
   - component: {fileID: 8960474601825328866}
+  - component: {fileID: 6177082385383187575}
   - component: {fileID: 4706195291334582047}
-  - component: {fileID: 7753564071823561746}
+  - component: {fileID: 8728962320925021002}
   - component: {fileID: 7899392362209414054}
+  - component: {fileID: 7753564071823561746}
   m_Layer: 0
   m_Name: Starship
   m_TagString: Untagged
@@ -87,6 +89,27 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!95 &6177082385383187575
+Animator:
+  serializedVersion: 5
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7610032930363860603}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: c4ad14a0f717b03418700399c14a0515, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!114 &4706195291334582047
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -104,7 +127,7 @@ MonoBehaviour:
   drawGizmos: 0
   offset: {x: 0, y: 0}
   radius: 0.45
---- !u!114 &7753564071823561746
+--- !u!114 &8728962320925021002
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -113,9 +136,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 7610032930363860603}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: dba82891c177470418a91f385a0ad4fc, type: 3}
+  m_Script: {fileID: 11500000, guid: 23892761a55239144b58cdc899ca3358, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  animator: {fileID: 6177082385383187575}
+  protectedParameter: Protected
 --- !u!114 &7899392362209414054
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -126,5 +151,17 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9c45b8218693e894d8d6d1f7141192cd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &7753564071823561746
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7610032930363860603}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dba82891c177470418a91f385a0ad4fc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Asteroids.Core.IConfigs;
 
 namespace Asteroids.Collisions.Tests
 {
