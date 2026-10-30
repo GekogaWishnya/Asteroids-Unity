@@ -9,15 +9,8 @@ namespace Asteroids.Common
     /// hands out <see cref="IObservableValue{T}"/>, so only the owner can write.
     /// </para>
     /// <para>
-    /// Subscribers are notified in subscription order. Subscribing and disposing from inside a callback is safe.
-    /// </para>
-    /// <para>
-    /// Setting the value from inside a callback does not notify recursively. Instead, the running pass finishes
-    /// and one more pass with the latest value follows.
-    /// </para>
-    /// <para>
-    /// If a callback throws, the exception reaches the caller of the setter, the remaining subscribers of
-    /// that pass are not notified, and the value stays changed. Not thread-safe.
+    /// Notifies as described in <see cref="IObservableValue{T}"/>. If a callback throws, the exception reaches
+    /// the caller of the setter and the value stays changed. Not thread-safe.
     /// </para>
     /// </summary>
     public sealed class ObservableValue<T> : IObservableValue<T>
@@ -43,7 +36,6 @@ namespace Asteroids.Common
             }
         }
 
-        /// <exception cref="ArgumentNullException"><paramref name="onChanged"/> is null.</exception>
         public IDisposable Subscribe(Action<T> onChanged)
         {
             if (onChanged == null) throw new ArgumentNullException(nameof(onChanged));

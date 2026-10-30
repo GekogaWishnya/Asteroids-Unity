@@ -54,6 +54,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 28c88a06058617c498a63e3e157cf9d3, type: 2}
   - {fileID: 11400000, guid: d76536cfcf48f22448cbac8454dc1345, type: 2}
   - {fileID: 11400000, guid: 2c4808783e7e1db4e95bdafb877c3387, type: 2}
+  shipWeapon: {fileID: 11400000, guid: 926a8a2636413f14d83a493c7b0e515f, type: 2}
 --- !u!1 &8898346544178330596
 GameObject:
   m_ObjectHideFlags: 0

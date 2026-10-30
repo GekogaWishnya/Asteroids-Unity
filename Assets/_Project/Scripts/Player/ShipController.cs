@@ -21,7 +21,7 @@ namespace Asteroids.Player
     /// </para>
     /// <para>
     /// When health runs out, the controller disables itself first, which ends the protection, restores the
-    /// colliders and tells the views, and then reports <see cref="IShipEventSink.Destroyed"/>.
+    /// colliders, tells the views and takes the weapon off, and then reports <see cref="IShipEventSink.Destroyed"/>.
     /// A dead ship cannot be enabled until its health is reset.
     /// </para>
     /// </summary>
@@ -36,6 +36,7 @@ namespace Asteroids.Player
         /// <exception cref="ArgumentException">A list of <paramref name="targets"/> contains null.</exception>
         public ShipController(
             IMovementInput input,
+            IFireInput fireInput,
             IShipMovementConfig config,
             IShipRamConfig ram,
             IInvulnerabilityConfig invulnerability,
@@ -45,12 +46,15 @@ namespace Asteroids.Player
             WaveStartProtection waveProtection,
             PlayerHealth health,
             IDamageRegistry damageRegistry,
+            IWeapon weapon,
             IShipEventSink events)
         {
+            if (fireInput == null) throw new ArgumentNullException(nameof(fireInput));
             if (ram == null) throw new ArgumentNullException(nameof(ram));
             if (loop == null) throw new ArgumentNullException(nameof(loop));
             if (waveProtection == null) throw new ArgumentNullException(nameof(waveProtection));
             if (damageRegistry == null) throw new ArgumentNullException(nameof(damageRegistry));
+            if (weapon == null) throw new ArgumentNullException(nameof(weapon));
 
             _entity = entity ?? throw new ArgumentNullException(nameof(entity));
             _health = health ?? throw new ArgumentNullException(nameof(health));
@@ -71,6 +75,7 @@ namespace Asteroids.Player
                 () => waveProtection.Attach(guard),
                 () => damageRegistry.RegisterDamageable(entity, guard),
                 () => damageRegistry.RegisterSource(entity, source),
+                () => weapon.Attach(entity, fireInput),
                 ListenForDepletion
             });
         }

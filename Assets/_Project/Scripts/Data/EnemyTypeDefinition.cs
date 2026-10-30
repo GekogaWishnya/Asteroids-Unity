@@ -20,7 +20,7 @@ namespace Asteroids.Data
 
         private void OnValidate()
         {
-            if (prefab == null)
+            if (!prefab)
                 Debug.LogWarning($"Enemy type '{name}' has no prefab.", this);
         }
     }

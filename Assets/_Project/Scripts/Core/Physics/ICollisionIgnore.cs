@@ -3,7 +3,7 @@ using Asteroids.Core.IConfigs;
 namespace Asteroids.Core
 {
     /// <summary>
-    /// Lets collider ignore a set of layers for a set amount of time.
+    /// Lets a collider ignore a set of layers until <see cref="Restore"/> is called.
     /// </summary>
     public interface ICollisionIgnore
     {

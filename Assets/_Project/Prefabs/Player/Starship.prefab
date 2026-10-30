@@ -123,7 +123,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   layer: 1
-  mask: 14
+  mask: 26
   drawGizmos: 0
   offset: {x: 0, y: 0}
   radius: 0.45

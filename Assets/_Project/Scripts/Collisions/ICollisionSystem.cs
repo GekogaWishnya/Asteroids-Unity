@@ -10,10 +10,10 @@ namespace Asteroids.Collisions
     public interface ICollisionSystem : ISimulationStep
     {
         /// <summary>Deferred to the end of the tick if called during a tick.</summary>
-        /// <exception cref="System.ArgumentNullException">Collider is null.</exception>
-        /// <exception cref="System.ArgumentException">Collider has no shape.</exception>
-        /// <exception cref="System.InvalidOperationException">Already registered.</exception>
-        /// <exception cref="System.NotSupportedException">Collision between given shapes is not supported</exception>
+        /// <exception cref="ArgumentNullException">Collider is null.</exception>
+        /// <exception cref="ArgumentException">Collider has no shape.</exception>
+        /// <exception cref="InvalidOperationException">Already registered.</exception>
+        /// <exception cref="NotSupportedException">Collision between given shapes is not supported.</exception>
         IDisposable Register(ICollider collider);
 
         /// <summary>

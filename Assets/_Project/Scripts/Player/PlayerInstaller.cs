@@ -4,7 +4,8 @@ using Zenject;
 namespace Asteroids.Player
 {
     /// <summary>
-    /// Requires <see cref="Asteroids.Core.IMovementInput"/>, <see cref="Asteroids.Core.IConfigs.IShipMovementConfig"/>,
+    /// Requires <see cref="Asteroids.Core.IMovementInput"/>, <see cref="Asteroids.Core.IFireInput"/>,
+    /// <see cref="Asteroids.Core.IWeapon"/>, <see cref="Asteroids.Core.IConfigs.IShipMovementConfig"/>,
     /// <see cref="Asteroids.Core.IConfigs.IShipHealthConfig"/>, <see cref="Asteroids.Core.IConfigs.IShipRamConfig"/>,
     /// <see cref="Asteroids.Core.IConfigs.IInvulnerabilityConfig"/> (bound once, for the ship),
     /// <see cref="Asteroids.Core.IConfigs.IWaveProtectionConfig"/>, <see cref="Asteroids.Core.ISimulationLoop"/>

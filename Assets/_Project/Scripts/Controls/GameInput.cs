@@ -46,6 +46,15 @@ namespace Asteroids.Controls
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": true
+                },
+                {
+                    ""name"": ""Fire"",
+                    ""type"": ""Button"",
+                    ""id"": ""e4ca7dac-cdbf-4fb7-8c84-941fa9ecd53c"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -213,6 +222,28 @@ namespace Asteroids.Controls
                     ""action"": ""Thrust"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""8c5d587c-a650-482d-9ae8-1850c489aa0f"",
+                    ""path"": ""<Mouse>/leftButton"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Fire"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""fb985327-1d9a-4a51-9d81-0ac1f4a2d118"",
+                    ""path"": ""<Gamepad>/rightTrigger"",
+                    ""interactions"": """",
+                    ""processors"": ""AxisDeadzone"",
+                    ""groups"": """",
+                    ""action"": ""Fire"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         },
@@ -229,6 +260,7 @@ namespace Asteroids.Controls
             m_Gameplay = asset.FindActionMap("Gameplay", throwIfNotFound: true);
             m_Gameplay_Turn = m_Gameplay.FindAction("Turn", throwIfNotFound: true);
             m_Gameplay_Thrust = m_Gameplay.FindAction("Thrust", throwIfNotFound: true);
+            m_Gameplay_Fire = m_Gameplay.FindAction("Fire", throwIfNotFound: true);
             // UI
             m_UI = asset.FindActionMap("UI", throwIfNotFound: true);
         }
@@ -294,12 +326,14 @@ namespace Asteroids.Controls
         private List<IGameplayActions> m_GameplayActionsCallbackInterfaces = new List<IGameplayActions>();
         private readonly InputAction m_Gameplay_Turn;
         private readonly InputAction m_Gameplay_Thrust;
+        private readonly InputAction m_Gameplay_Fire;
         public struct GameplayActions
         {
             private @GameInput m_Wrapper;
             public GameplayActions(@GameInput wrapper) { m_Wrapper = wrapper; }
             public InputAction @Turn => m_Wrapper.m_Gameplay_Turn;
             public InputAction @Thrust => m_Wrapper.m_Gameplay_Thrust;
+            public InputAction @Fire => m_Wrapper.m_Gameplay_Fire;
             public InputActionMap Get() { return m_Wrapper.m_Gameplay; }
             public void Enable() { Get().Enable(); }
             public void Disable() { Get().Disable(); }
@@ -315,6 +349,9 @@ namespace Asteroids.Controls
                 @Thrust.started += instance.OnThrust;
                 @Thrust.performed += instance.OnThrust;
                 @Thrust.canceled += instance.OnThrust;
+                @Fire.started += instance.OnFire;
+                @Fire.performed += instance.OnFire;
+                @Fire.canceled += instance.OnFire;
             }
 
             private void UnregisterCallbacks(IGameplayActions instance)
@@ -325,6 +362,9 @@ namespace Asteroids.Controls
                 @Thrust.started -= instance.OnThrust;
                 @Thrust.performed -= instance.OnThrust;
                 @Thrust.canceled -= instance.OnThrust;
+                @Fire.started -= instance.OnFire;
+                @Fire.performed -= instance.OnFire;
+                @Fire.canceled -= instance.OnFire;
             }
 
             public void RemoveCallbacks(IGameplayActions instance)
@@ -384,6 +424,7 @@ namespace Asteroids.Controls
         {
             void OnTurn(InputAction.CallbackContext context);
             void OnThrust(InputAction.CallbackContext context);
+            void OnFire(InputAction.CallbackContext context);
         }
         public interface IUIActions
         {

@@ -25,6 +25,7 @@ namespace Asteroids.Player.Tests
         private FakeProtectionView _view;
         private FakeProtectionTargets _targets;
         private WaveStartProtection _waveProtection;
+        private FakeWeapon _weapon;
 
         [SetUp]
         public void SetUp()
@@ -42,11 +43,12 @@ namespace Asteroids.Player.Tests
             _view = new FakeProtectionView();
             _targets = new FakeProtectionTargets(new[] { _collider }, new[] { _view });
             _waveProtection = new WaveStartProtection(_combat);
+            _weapon = new FakeWeapon();
         }
 
         private ShipController CreateController() =>
-            new(_input, _config, _combat, _combat, _loop, _entity, _targets, _waveProtection,
-                _health, _registry, _events);
+            new(_input, _input, _config, _combat, _combat, _loop, _entity, _targets, _waveProtection,
+                _health, _registry, _weapon, _events);
 
         /// <summary>What the damage system sees when it hurts the ship.</summary>
         private IDamageable RegisteredShip => _registry.Damageables[0].Item;
@@ -173,27 +175,44 @@ namespace Asteroids.Player.Tests
         public void Constructor_NullArguments_Throw()
         {
             Assert.Throws<ArgumentNullException>(() => new ShipController(
-                null, _config, _combat, _combat, _loop, _entity, _targets, _waveProtection, _health, _registry, _events));
+                null, _input, _config, _combat, _combat, _loop, _entity,
+                _targets, _waveProtection, _health, _registry, _weapon, _events));
             Assert.Throws<ArgumentNullException>(() => new ShipController(
-                _input, null, _combat, _combat, _loop, _entity, _targets, _waveProtection, _health, _registry, _events));
+                _input, null, _config, _combat, _combat, _loop, _entity,
+                _targets, _waveProtection, _health, _registry, _weapon, _events));
             Assert.Throws<ArgumentNullException>(() => new ShipController(
-                _input, _config, null, _combat, _loop, _entity, _targets, _waveProtection, _health, _registry, _events));
+                _input, _input, null, _combat, _combat, _loop, _entity,
+                _targets, _waveProtection, _health, _registry, _weapon, _events));
             Assert.Throws<ArgumentNullException>(() => new ShipController(
-                _input, _config, _combat, null, _loop, _entity, _targets, _waveProtection, _health, _registry, _events));
+                _input, _input, _config, null, _combat, _loop, _entity,
+                _targets, _waveProtection, _health, _registry, _weapon, _events));
             Assert.Throws<ArgumentNullException>(() => new ShipController(
-                _input, _config, _combat, _combat, null, _entity, _targets, _waveProtection, _health, _registry, _events));
+                _input, _input, _config, _combat, null, _loop, _entity,
+                _targets, _waveProtection, _health, _registry, _weapon, _events));
             Assert.Throws<ArgumentNullException>(() => new ShipController(
-                _input, _config, _combat, _combat, _loop, null, _targets, _waveProtection, _health, _registry, _events));
+                _input, _input, _config, _combat, _combat, null, _entity,
+                _targets, _waveProtection, _health, _registry, _weapon, _events));
             Assert.Throws<ArgumentNullException>(() => new ShipController(
-                _input, _config, _combat, _combat, _loop, _entity, null, _waveProtection, _health, _registry, _events));
+                _input, _input, _config, _combat, _combat, _loop, null,
+                _targets, _waveProtection, _health, _registry, _weapon, _events));
             Assert.Throws<ArgumentNullException>(() => new ShipController(
-                _input, _config, _combat, _combat, _loop, _entity, _targets, null, _health, _registry, _events));
+                _input, _input, _config, _combat, _combat, _loop, _entity,
+                null, _waveProtection, _health, _registry, _weapon, _events));
             Assert.Throws<ArgumentNullException>(() => new ShipController(
-                _input, _config, _combat, _combat, _loop, _entity, _targets, _waveProtection, null, _registry, _events));
+                _input, _input, _config, _combat, _combat, _loop, _entity,
+                _targets, null, _health, _registry, _weapon, _events));
             Assert.Throws<ArgumentNullException>(() => new ShipController(
-                _input, _config, _combat, _combat, _loop, _entity, _targets, _waveProtection, _health, null, _events));
+                _input, _input, _config, _combat, _combat, _loop, _entity,
+                _targets, _waveProtection, null, _registry, _weapon, _events));
             Assert.Throws<ArgumentNullException>(() => new ShipController(
-                _input, _config, _combat, _combat, _loop, _entity, _targets, _waveProtection, _health, _registry, null));
+                _input, _input, _config, _combat, _combat, _loop, _entity,
+                _targets, _waveProtection, _health, null, _weapon, _events));
+            Assert.Throws<ArgumentNullException>(() => new ShipController(
+                _input, _input, _config, _combat, _combat, _loop, _entity,
+                _targets, _waveProtection, _health, _registry, null, _events));
+            Assert.Throws<ArgumentNullException>(() => new ShipController(
+                _input, _input, _config, _combat, _combat, _loop, _entity,
+                _targets, _waveProtection, _health, _registry, _weapon, null));
         }
 
         [Test]
@@ -437,14 +456,14 @@ namespace Asteroids.Player.Tests
         [Test]
         public void Hit_MakesTheCollidersIgnoreTheConfiguredLayersUntilTheWindowEnds()
         {
-            _combat.IgnoredLayers = CollisionLayer.Enemy | CollisionLayer.Projectile;
+            _combat.IgnoredLayers = CollisionLayer.Enemy | CollisionLayer.PlayerProjectile;
             CreateController().Enable();
 
             RegisteredShip.TakeDamage(1);
-            Assert.That(_collider.Ignored, Is.EqualTo(CollisionLayer.Enemy | CollisionLayer.Projectile));
+            Assert.That(_collider.Ignored, Is.EqualTo(CollisionLayer.Enemy | CollisionLayer.PlayerProjectile));
 
             _loop.Tick(1.4f);
-            Assert.That(_collider.Ignored, Is.EqualTo(CollisionLayer.Enemy | CollisionLayer.Projectile));
+            Assert.That(_collider.Ignored, Is.EqualTo(CollisionLayer.Enemy | CollisionLayer.PlayerProjectile));
 
             _loop.Tick(0.2f);
             Assert.That(_collider.Ignored, Is.EqualTo(CollisionLayer.None));
@@ -605,10 +624,52 @@ namespace Asteroids.Player.Tests
             Assert.That(_health.Current.Value, Is.EqualTo(2));
         }
 
-        private sealed class TestInput : IMovementInput
+        [Test]
+        public void Construct_DoesNotAttachTheWeaponUntilEnabled()
+        {
+            CreateController();
+
+            Assert.That(_weapon.Attachments, Is.Empty);
+        }
+
+        [Test]
+        public void Enable_AttachesTheWeaponOnceToTheShipWithTheFireInput()
+        {
+            CreateController().Enable();
+
+            Assert.That(_weapon.Attachments.Count, Is.EqualTo(1));
+            Assert.That(_weapon.Attachments[0].Carrier, Is.SameAs(_entity));
+            Assert.That(_weapon.Attachments[0].Trigger, Is.SameAs(_input));
+        }
+
+        [Test]
+        public void Disable_DetachesTheWeapon()
+        {
+            var controller = CreateController();
+            controller.Enable();
+
+            controller.Disable();
+
+            Assert.That(_weapon.LiveCount, Is.EqualTo(0));
+        }
+
+        [Test]
+        public void Damage_Lethal_DetachesTheWeaponBeforeReportingIt()
+        {
+            var liveWeaponsWhenReported = -1;
+            _events.OnDestroyed = () => liveWeaponsWhenReported = _weapon.LiveCount;
+            CreateController().Enable();
+
+            _health.TakeDamage(3);
+
+            Assert.That(liveWeaponsWhenReported, Is.EqualTo(0));
+        }
+
+        private sealed class TestInput : IMovementInput, IFireInput
         {
             public float Turn { get; set; }
             public float Thrust { get; set; }
+            public bool IsFiring { get; set; }
         }
 
         private sealed class TestConfig : IShipMovementConfig

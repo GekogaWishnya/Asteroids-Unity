@@ -14,6 +14,8 @@ using Asteroids.Scoring;
 using Asteroids.Simulation;
 using Asteroids.UI;
 using Asteroids.Waves;
+using Asteroids.Weapons;
+using Asteroids.Weapons.Components;
 using Asteroids.World;
 using UnityEngine;
 using Zenject;
@@ -28,8 +30,8 @@ namespace Asteroids.Installers
         [SerializeField] private HudConfig hudConfig;
         [SerializeField] private AsteroidConfig asteroidConfig;
         [SerializeField] private LevelConfig levelConfig;
-        [Tooltip("Every kind of enemy this scene can spawn")]
         [SerializeField] private EnemyTypeDefinition[] enemyTypes;
+        [SerializeField] private WeaponDefinition shipWeapon;
 
         public override void InstallBindings()
         {
@@ -42,6 +44,7 @@ namespace Asteroids.Installers
             UIInstaller.Install(Container);
             EnemiesInstaller.Install(Container);
             WavesInstaller.Install(Container);
+            WeaponsInstaller.Install(Container);
 
             Container.Bind<ISimulationTime>().To<UnityTimeSource>().AsSingle();
             Container.BindInterfacesTo<ShipInput>().AsSingle();
@@ -59,6 +62,19 @@ namespace Asteroids.Installers
             Container.Bind<IRandom>().FromInstance(new SystemRandom());
             Container.Bind<EnemyPrefabCatalog>().FromInstance(CreatePrefabCatalog());
             Container.Bind<IEnemyViewFactory>().To<PrefabEnemyViewFactory>().AsSingle();
+
+            Container.Bind<IWeapon>()
+                .FromMethod(context => CreateShipWeapon(context.Container))
+                .AsSingle()
+                .WhenInjectedInto<ShipController>();
+        }
+
+        private IWeapon CreateShipWeapon(DiContainer container)
+        {
+            if (!shipWeapon)
+                throw new InvalidOperationException("The gameplay installer has no ship weapon assigned.");
+
+            return shipWeapon.Create(container);
         }
 
         private EnemyPrefabCatalog CreatePrefabCatalog()
