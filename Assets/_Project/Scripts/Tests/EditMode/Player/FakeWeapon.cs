@@ -10,6 +10,8 @@ namespace Asteroids.Player.Tests
         private readonly List<Attachment> _attachments = new();
         public IReadOnlyList<Attachment> Attachments => _attachments;
 
+        public Action OnAttach { get; set; }
+
         public int LiveCount
         {
             get
@@ -25,6 +27,7 @@ namespace Asteroids.Player.Tests
         {
             var attachment = new Attachment(carrier, trigger);
             _attachments.Add(attachment);
+            OnAttach?.Invoke();
             return attachment;
         }
 

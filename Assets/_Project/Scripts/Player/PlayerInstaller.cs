@@ -21,6 +21,7 @@ namespace Asteroids.Player
 
             Container.Bind<PlayerHealth>().AsSingle();
             Container.Bind<IPlayerHealth>().To<PlayerHealth>().FromResolve();
+            Container.Bind<IDamageable>().To<PlayerHealth>().FromResolve().WhenInjectedInto<ShipDefense>();
 
             Container.Bind<IShipEventSink>().To<SignalBusShipEventSink>().AsSingle();
 
@@ -29,8 +30,13 @@ namespace Asteroids.Player
                 .ToMethod<WaveStartProtection>(protection => protection.OnWaveStarted)
                 .FromResolve();
 
+            Container.BindFactory<ShipMovement, ShipMovement.Factory>();
+            Container.BindFactory<IProtectionTargets, ShipDefense, ShipDefense.Factory>();
+            Container.BindFactory<ShipRam, ShipRam.Factory>();
+            Container.BindFactory<ShipArmament, ShipArmament.Factory>();
+
             Container.BindFactory<IEntity, IProtectionTargets, IShipController, ShipControllerFactory>()
-                .To<ShipController>();
+                .FromFactory<ShipControllerAssembler>();
         }
     }
 }

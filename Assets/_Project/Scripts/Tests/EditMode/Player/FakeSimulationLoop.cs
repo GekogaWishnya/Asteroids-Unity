@@ -12,6 +12,8 @@ namespace Asteroids.Player.Tests
         
         public bool IsPaused { get; set; }
 
+        public Action<SimulationPhase> OnRegister { get; set; }
+
         public int LiveCount(SimulationPhase phase)
         {
             var count = 0;
@@ -24,6 +26,7 @@ namespace Asteroids.Player.Tests
         {
             var entry = new Entry(phase, step);
             _entries.Add(entry);
+            OnRegister?.Invoke(phase);
             return entry;
         }
 

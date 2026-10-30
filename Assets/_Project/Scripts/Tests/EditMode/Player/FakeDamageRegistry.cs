@@ -12,6 +12,9 @@ namespace Asteroids.Player.Tests
         public IReadOnlyList<Registration<IDamageable>> Damageables => _damageables;
         public IReadOnlyList<Registration<IDamageSource>> Sources => _sources;
 
+        /// <summary>Called with "Damageable" or "Source" on every registration.</summary>
+        public Action<string> OnRegister { get; set; }
+
         public int LiveDamageables
         {
             get
@@ -38,6 +41,7 @@ namespace Asteroids.Player.Tests
         {
             var registration = new Registration<IDamageable>(entity, damageable);
             _damageables.Add(registration);
+            OnRegister?.Invoke("Damageable");
             return registration;
         }
 
@@ -45,6 +49,7 @@ namespace Asteroids.Player.Tests
         {
             var registration = new Registration<IDamageSource>(entity, source);
             _sources.Add(registration);
+            OnRegister?.Invoke("Source");
             return registration;
         }
 

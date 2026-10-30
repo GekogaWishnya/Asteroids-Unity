@@ -66,7 +66,7 @@ namespace Asteroids.Installers
             Container.Bind<IWeapon>()
                 .FromMethod(context => CreateShipWeapon(context.Container))
                 .AsSingle()
-                .WhenInjectedInto<ShipController>();
+                .WhenInjectedInto<ShipArmament>();
         }
 
         private IWeapon CreateShipWeapon(DiContainer container)
