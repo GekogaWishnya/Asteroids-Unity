@@ -12,10 +12,13 @@ namespace Asteroids.Player
         private readonly PartAttachment _attachment = new("ship armament");
 
         /// <exception cref="ArgumentNullException">Any argument is null.</exception>
-        public ShipArmament(IWeapon weapon, IFireInput trigger)
+        public ShipArmament(IWeapon weapon, IFireInput trigger, IShipControlLock controlLock)
         {
             _weapon = weapon ?? throw new ArgumentNullException(nameof(weapon));
-            _trigger = trigger ?? throw new ArgumentNullException(nameof(trigger));
+            if (trigger == null) throw new ArgumentNullException(nameof(trigger));
+            if (controlLock == null) throw new ArgumentNullException(nameof(controlLock));
+
+            _trigger = new GatedFireInput(trigger, controlLock);
         }
 
         public IDisposable Attach(IEntity ship)

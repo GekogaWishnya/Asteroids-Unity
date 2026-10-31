@@ -19,7 +19,7 @@ namespace Asteroids.Core.IConfigs
 
         /// <summary>
         /// Range of the rotation speed, in degrees per second. Chosen randomly on spawn.
-        /// Sperate from movement direction.
+        /// Separate from movement direction.
         /// </summary>
         float MinSpinSpeed { get; }
         float MaxSpinSpeed { get; }

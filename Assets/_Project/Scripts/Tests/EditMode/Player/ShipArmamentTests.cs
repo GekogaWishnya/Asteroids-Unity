@@ -9,6 +9,7 @@ namespace Asteroids.Player.Tests
     {
         private FakeWeapon _weapon;
         private TestShipInput _trigger;
+        private TestControlLock _lock;
         private Entity _ship;
 
         [SetUp]
@@ -16,10 +17,11 @@ namespace Asteroids.Player.Tests
         {
             _weapon = new FakeWeapon();
             _trigger = new TestShipInput();
+            _lock = new TestControlLock();
             _ship = new Entity(new BodyPose());
         }
 
-        private ShipArmament Create() => new(_weapon, _trigger);
+        private ShipArmament Create() => new(_weapon, _trigger, _lock);
 
         [Test]
         public void Construct_DoesNotAttachTheWeapon()
@@ -30,13 +32,29 @@ namespace Asteroids.Player.Tests
         }
 
         [Test]
-        public void Attach_MountsTheWeaponOnTheShipWithTheTrigger()
+        public void Attach_MountsTheWeaponOnTheShipWithATriggerThatFollowsTheInput()
         {
             Create().Attach(_ship);
 
             Assert.That(_weapon.Attachments.Count, Is.EqualTo(1));
             Assert.That(_weapon.Attachments[0].Carrier, Is.SameAs(_ship));
-            Assert.That(_weapon.Attachments[0].Trigger, Is.SameAs(_trigger));
+
+            var trigger = _weapon.Attachments[0].Trigger;
+            _trigger.IsFiring = true;
+            Assert.That(trigger.IsFiring, Is.True);
+            _trigger.IsFiring = false;
+            Assert.That(trigger.IsFiring, Is.False);
+        }
+
+        [Test]
+        public void Trigger_WhileLocked_DoesNotFire()
+        {
+            Create().Attach(_ship);
+            _trigger.IsFiring = true;
+
+            _lock.IsLocked = true;
+
+            Assert.That(_weapon.Attachments[0].Trigger.IsFiring, Is.False);
         }
 
         [Test]
@@ -65,8 +83,9 @@ namespace Asteroids.Player.Tests
         [Test]
         public void Construct_NullArguments_Throw()
         {
-            Assert.Throws<ArgumentNullException>(() => new ShipArmament(null, _trigger));
-            Assert.Throws<ArgumentNullException>(() => new ShipArmament(_weapon, null));
+            Assert.Throws<ArgumentNullException>(() => new ShipArmament(null, _trigger, _lock));
+            Assert.Throws<ArgumentNullException>(() => new ShipArmament(_weapon, null, _lock));
+            Assert.Throws<ArgumentNullException>(() => new ShipArmament(_weapon, _trigger, null));
         }
     }
 }

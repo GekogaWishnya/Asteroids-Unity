@@ -14,6 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   maxHealth: 3
   ramDamage: 1
-  invulnerabilitySeconds: 1.5
-  ignoredLayers: 2
-  waveStartProtectionSeconds: 2
+  invulnerabilitySeconds: 3
+  controlLossSeconds: 3
+  ignoredLayers: 10
+  waveStartProtectionSeconds: 1.2

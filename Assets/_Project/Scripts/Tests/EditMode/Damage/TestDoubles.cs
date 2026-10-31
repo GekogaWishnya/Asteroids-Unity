@@ -44,4 +44,20 @@ namespace Asteroids.Damage.Tests
 
         public int Damage { get; set; }
     }
+
+    /// <summary>Runs an action when hurt, after recording the hit.</summary>
+    internal sealed class CallbackDamageable : IDamageable
+    {
+        private readonly System.Action _onHit;
+
+        public CallbackDamageable(System.Action onHit) => _onHit = onHit;
+
+        public List<int> Hits { get; } = new();
+
+        public void TakeDamage(int amount)
+        {
+            Hits.Add(amount);
+            _onHit();
+        }
+    }
 }

@@ -15,4 +15,5 @@ MonoBehaviour:
   thrust: 25
   maxSpeed: 16.5
   turnSpeed: 220
+  mass: 1
   linearDamping: 1.5

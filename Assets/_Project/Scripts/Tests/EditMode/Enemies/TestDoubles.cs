@@ -244,6 +244,44 @@ namespace Asteroids.Enemies.Tests
         }
     }
 
+    internal sealed class FakeKineticBodyRegistry : IKineticBodyRegistry
+    {
+        public List<Registration> Registrations { get; } = new();
+
+        public int LiveCount
+        {
+            get
+            {
+                var count = 0;
+                foreach (var registration in Registrations)
+                    if (!registration.IsDisposed) count++;
+                return count;
+            }
+        }
+
+        public IDisposable Register(IEntity entity, IKineticBody body)
+        {
+            var registration = new Registration(entity, body);
+            Registrations.Add(registration);
+            return registration;
+        }
+
+        public sealed class Registration : IDisposable
+        {
+            public Registration(IEntity entity, IKineticBody body)
+            {
+                Entity = entity;
+                Body = body;
+            }
+
+            public IEntity Entity { get; }
+            public IKineticBody Body { get; }
+            public bool IsDisposed { get; private set; }
+
+            public void Dispose() => IsDisposed = true;
+        }
+    }
+
     internal sealed class TestAsteroidType : IAsteroidTypeConfig
     {
         public TestAsteroidType(string id) => Type = new EnemyTypeId(id);

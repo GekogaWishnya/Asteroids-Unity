@@ -19,9 +19,10 @@ namespace Asteroids.Player.Tests
         {
             public readonly DiContainer Container = new();
             public readonly TestShipInput Input = new();
-            public readonly TestCombatConfig Combat = new() { InvulnerabilitySeconds = 1.5f };
+            public readonly TestCombatConfig Combat = new() { InvulnerabilitySeconds = 3f, ControlLossSeconds = 3f };
             public readonly FakeSimulationLoop Loop = new();
             public readonly FakeDamageRegistry Registry = new();
+            public readonly FakeKineticBodyRegistry Bodies = new();
             public readonly FakeWeapon Weapon = new();
             public readonly FakeCollisionIgnore Collider = new();
             public readonly FakeProtectionView View = new();
@@ -40,8 +41,10 @@ namespace Asteroids.Player.Tests
                 Container.Bind<IShipRamConfig>().FromInstance(Combat);
                 Container.Bind<IInvulnerabilityConfig>().FromInstance(Combat);
                 Container.Bind<IWaveProtectionConfig>().FromInstance(Combat);
+                Container.Bind<IControlLossConfig>().FromInstance(Combat);
                 Container.Bind<ISimulationLoop>().FromInstance(Loop);
                 Container.Bind<IDamageRegistry>().FromInstance(Registry);
+                Container.Bind<IKineticBodyRegistry>().FromInstance(Bodies);
                 Container.Bind<IWeapon>().FromInstance(Weapon);
 
                 PlayerInstaller.Install(Container);
@@ -51,6 +54,8 @@ namespace Asteroids.Player.Tests
             }
 
             public PlayerHealth Health => Container.Resolve<PlayerHealth>();
+            public ShipControlLoss ControlLoss => Container.Resolve<ShipControlLoss>();
+            public IDamageable RegisteredShip => Registry.Damageables[Registry.Damageables.Count - 1].Item;
 
             public IShipController CreateShip() =>
                 Container.Resolve<ShipControllerFactory>()
@@ -66,26 +71,31 @@ namespace Asteroids.Player.Tests
 
             Assert.That(rig.Loop.LiveCount(SimulationPhase.Input), Is.EqualTo(1));
             Assert.That(rig.Loop.LiveCount(SimulationPhase.Motion), Is.EqualTo(1));
-            Assert.That(rig.Loop.LiveCount(SimulationPhase.Logic), Is.EqualTo(1));
+            Assert.That(rig.Loop.LiveCount(SimulationPhase.Logic), Is.EqualTo(2));
+            Assert.That(rig.Bodies.LiveCount, Is.EqualTo(1));
+            Assert.That(rig.Bodies.Registrations[0].Entity, Is.SameAs(rig.Entity));
             Assert.That(rig.Registry.LiveDamageables, Is.EqualTo(1));
             Assert.That(rig.Registry.LiveSources, Is.EqualTo(1));
             Assert.That(rig.Weapon.LiveCount, Is.EqualTo(1));
             Assert.That(rig.Weapon.Attachments[0].Carrier, Is.SameAs(rig.Entity));
-            Assert.That(rig.Weapon.Attachments[0].Trigger, Is.SameAs(rig.Input));
         }
 
         [Test]
-        public void Enable_AttachesMovementThenDefenseThenRamThenArmament()
+        public void Enable_AttachesMovementThenControlLossThenDefenseThenRamThenArmament()
         {
             var rig = new Rig();
             var order = new System.Collections.Generic.List<string>();
             rig.Registry.OnRegister = kind => order.Add(kind);
             rig.Loop.OnRegister = phase => order.Add(phase.ToString());
             rig.Weapon.OnAttach = () => order.Add("Weapon");
+            rig.Bodies.OnRegister = () => order.Add("Body");
 
             rig.CreateShip().Enable();
 
-            Assert.That(order, Is.EqualTo(new[] { "Input", "Motion", "Logic", "Damageable", "Source", "Weapon" }));
+            Assert.That(order, Is.EqualTo(new[]
+            {
+                "Input", "Motion", "Body", "Logic", "Logic", "Damageable", "Source", "Weapon"
+            }));
         }
 
         [Test]
@@ -106,14 +116,16 @@ namespace Asteroids.Player.Tests
             var liveWhenReported = -1;
             CollisionLayer? ignoredWhenReported = null;
             int? viewCallsWhenReported = null;
+            bool? lockedWhenReported = null;
             rig.Container.Resolve<SignalBus>().Subscribe<ShipDestroyed>(_ =>
             {
                 liveWhenReported = rig.Loop.LiveCount(SimulationPhase.Input) +
                                    rig.Loop.LiveCount(SimulationPhase.Motion) +
                                    rig.Loop.LiveCount(SimulationPhase.Logic) +
                                    rig.Registry.LiveDamageables + rig.Registry.LiveSources +
-                                   rig.Weapon.LiveCount;
+                                   rig.Bodies.LiveCount + rig.Weapon.LiveCount;
                 ignoredWhenReported = rig.Collider.Ignored;
+                lockedWhenReported = rig.ControlLoss.IsLocked;
                 viewCallsWhenReported = rig.View.Calls.Count;
             });
             rig.CreateShip().Enable();
@@ -123,6 +135,7 @@ namespace Asteroids.Player.Tests
             Assert.That(liveWhenReported, Is.EqualTo(0));
             Assert.That(ignoredWhenReported, Is.EqualTo(CollisionLayer.None));
             Assert.That(viewCallsWhenReported, Is.EqualTo(2));
+            Assert.That(lockedWhenReported, Is.False);
             Assert.That(rig.View.Calls, Is.EqualTo(new[] { true, false }));
         }
 
@@ -151,6 +164,78 @@ namespace Asteroids.Player.Tests
             rig.Registry.Damageables[0].Item.TakeDamage(1);
 
             Assert.That(rig.Health.Current.Value, Is.EqualTo(3));
+        }
+
+        [Test]
+        public void Hit_TakesTheControlsAwayForTheConfiguredDuration()
+        {
+            var rig = new Rig();
+            rig.Input.Turn = 1f;
+            rig.Input.Thrust = 1f;
+            rig.Input.IsFiring = true;
+            rig.CreateShip().Enable();
+            var trigger = rig.Weapon.Attachments[0].Trigger;
+
+            rig.RegisteredShip.TakeDamage(1);
+            rig.Loop.Tick(Dt);
+
+            Assert.That(rig.ControlLoss.IsLocked, Is.True);
+            Assert.That(trigger.IsFiring, Is.False);
+            Assert.That(rig.Pose.Angle, Is.EqualTo(0f));
+            Assert.That(rig.Pose.Position, Is.EqualTo(UnityEngine.Vector2.zero));
+        }
+
+        [Test]
+        public void Hit_ControlComesBackWhenTheLockRunsOut()
+        {
+            var rig = new Rig();
+            rig.Input.IsFiring = true;
+            rig.CreateShip().Enable();
+            var trigger = rig.Weapon.Attachments[0].Trigger;
+            rig.RegisteredShip.TakeDamage(1);
+
+            rig.Loop.Tick(1.5f);
+            rig.Loop.Tick(1.5f);
+
+            Assert.That(rig.ControlLoss.IsLocked, Is.False);
+            Assert.That(trigger.IsFiring, Is.True);
+        }
+
+        [Test]
+        public void Hit_BlockedByProtection_DoesNotTakeTheControls()
+        {
+            var rig = new Rig();
+            rig.CreateShip().Enable();
+            rig.Container.Resolve<SignalBus>().Fire(new WaveStarted(1, 3));
+
+            rig.RegisteredShip.TakeDamage(1);
+
+            Assert.That(rig.ControlLoss.IsLocked, Is.False);
+        }
+
+        [Test]
+        public void WaveStarted_DoesNotTakeTheControls()
+        {
+            var rig = new Rig();
+            rig.CreateShip().Enable();
+
+            rig.Container.Resolve<SignalBus>().Fire(new WaveStarted(1, 3));
+
+            Assert.That(rig.ControlLoss.IsLocked, Is.False);
+        }
+
+        [Test]
+        public void Disable_WhileLocked_ComesBackInControl()
+        {
+            var rig = new Rig();
+            var ship = rig.CreateShip();
+            ship.Enable();
+            rig.RegisteredShip.TakeDamage(1);
+
+            ship.Disable();
+            ship.Enable();
+
+            Assert.That(rig.ControlLoss.IsLocked, Is.False);
         }
     }
 }

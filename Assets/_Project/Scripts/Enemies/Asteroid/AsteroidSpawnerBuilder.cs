@@ -19,6 +19,7 @@ namespace Asteroids.Enemies
         private readonly IEnemyViewFactory _views;
         private readonly ISimulationLoop _loop;
         private readonly IDamageRegistry _damageRegistry;
+        private readonly IKineticBodyRegistry _bodyRegistry;
         private readonly IScoreSink _score;
         private readonly IWorldBounds _bounds;
         private readonly IRandom _random;
@@ -31,6 +32,7 @@ namespace Asteroids.Enemies
             IEnemyViewFactory views,
             ISimulationLoop loop,
             IDamageRegistry damageRegistry,
+            IKineticBodyRegistry bodyRegistry,
             IScoreSink score,
             IWorldBounds bounds,
             IRandom random)
@@ -39,6 +41,7 @@ namespace Asteroids.Enemies
             _views = views ?? throw new ArgumentNullException(nameof(views));
             _loop = loop ?? throw new ArgumentNullException(nameof(loop));
             _damageRegistry = damageRegistry ?? throw new ArgumentNullException(nameof(damageRegistry));
+            _bodyRegistry = bodyRegistry ?? throw new ArgumentNullException(nameof(bodyRegistry));
             _score = score ?? throw new ArgumentNullException(nameof(score));
             _bounds = bounds ?? throw new ArgumentNullException(nameof(bounds));
             _random = random ?? throw new ArgumentNullException(nameof(random));
@@ -72,7 +75,12 @@ namespace Asteroids.Enemies
         }
 
         private AsteroidController CreateController(IAsteroidTypeConfig type, IAsteroidLauncher launcher) =>
-            new(_views.Create(type.Type), type, _loop, _damageRegistry, CreateDeathHandler(type, launcher));
+            new(_views.Create(type.Type),
+                type,
+                _loop,
+                _damageRegistry,
+                _bodyRegistry,
+                CreateDeathHandler(type, launcher));
 
         private IEnemyDeathHandler CreateDeathHandler(IAsteroidTypeConfig type, IAsteroidLauncher launcher)
         {

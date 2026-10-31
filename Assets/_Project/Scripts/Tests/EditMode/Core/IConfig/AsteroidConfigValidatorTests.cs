@@ -96,6 +96,7 @@ namespace Asteroids.Core.IConfigs.Tests
             StringAssert.Contains("score points", problems[0]);
         }
 
+
         [Test]
         public void Validate_SpeedMaxBelowMin_Reports()
         {

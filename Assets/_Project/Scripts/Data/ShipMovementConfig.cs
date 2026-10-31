@@ -15,6 +15,9 @@ namespace Asteroids.Data
         [Tooltip("Rotation speed (degrees/s)")]
         [SerializeField, Min(0f)] private float turnSpeed = 220f;
 
+        [Tooltip("Slowest speed the ship is knocked away from an enemy with (units/s), even if it stood still")]
+        [SerializeField, Min(0f)] private float minKnockbackSpeed = 5f;
+
         [Tooltip("Slow decay of velocity. 0 is pure inertia like the original")]
         [SerializeField, Min(0f)] private float linearDamping = 0f;
         
@@ -22,9 +25,15 @@ namespace Asteroids.Data
         public float MaxSpeed => maxSpeed;
         public float TurnSpeed => turnSpeed;
         public float LinearDamping => linearDamping;
+        public float MinKnockbackSpeed => minKnockbackSpeed;
 
         private void OnValidate()
         {
+            if (minKnockbackSpeed > maxSpeed)
+                Debug.LogWarning(
+                    $"{name}: min knockback speed {minKnockbackSpeed} is above max speed {maxSpeed}, " +
+                    "so the knockback is cut to max speed.", this);
+
             var maxPossibleSpeed = Thrust / LinearDamping;
             if (LinearDamping != 0 && maxPossibleSpeed < MaxSpeed)
             {

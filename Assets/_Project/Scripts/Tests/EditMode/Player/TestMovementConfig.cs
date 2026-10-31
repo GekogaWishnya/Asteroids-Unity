@@ -8,5 +8,6 @@ namespace Asteroids.Player.Tests
         public float TurnSpeed { get; set; } = 100f;
         public float MaxSpeed { get; set; } = 100f;
         public float LinearDamping { get; set; }
+        public float MinKnockbackSpeed { get; set; }
     }
 }

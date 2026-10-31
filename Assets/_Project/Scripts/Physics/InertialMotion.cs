@@ -16,7 +16,7 @@ namespace Asteroids.Physics
         public float Speed => Velocity.magnitude;
 
         public void Accelerate(Vector2 acceleration) => _pendingAcceleration += acceleration;
-        public void ApplyImpulse(Vector2 impulse) => Velocity += impulse;
+        public void AddVelocity(Vector2 delta) => Velocity += delta;
 
         /// <summary>Advances the simulation.</summary>
         /// <returns>Positional displacement of the object for this step.</returns>

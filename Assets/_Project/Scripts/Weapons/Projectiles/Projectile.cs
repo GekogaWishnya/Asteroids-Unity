@@ -70,7 +70,7 @@ namespace Asteroids.Weapons.Projectiles
             try
             {
                 _view.Show(launch.Position, launch.Angle);
-                _motion.ApplyImpulse(launch.Velocity - _motion.Velocity);
+                _motion.AddVelocity(launch.Velocity - _motion.Velocity);
             }
             catch
             {

@@ -16,6 +16,7 @@ namespace Asteroids.Enemies.Tests
             public readonly List<string> Log = new();
             public readonly FakeSimulationLoop Loop = new();
             public readonly FakeDamageRegistry Damage = new();
+            public readonly FakeKineticBodyRegistry Bodies = new();
             public readonly RecordingDeathHandler Death;
             public readonly FakeEnemyView View = new();
             public readonly TestAsteroidType Config;
@@ -26,7 +27,7 @@ namespace Asteroids.Enemies.Tests
             {
                 Config = config ?? new TestAsteroidType("AsteroidBig");
                 Death = new RecordingDeathHandler(Log);
-                Controller = new AsteroidController(View, Config, Loop, Damage, Death);
+                Controller = new AsteroidController(View, Config, Loop, Damage, Bodies, Death);
                 Controller.Finished += _ =>
                 {
                     FinishedCount++;
@@ -53,15 +54,17 @@ namespace Asteroids.Enemies.Tests
             var rig = new Rig();
 
             Assert.Throws<ArgumentNullException>(() => new AsteroidController(
-                null, rig.Config, rig.Loop, rig.Damage, rig.Death));
+                null, rig.Config, rig.Loop, rig.Damage, rig.Bodies, rig.Death));
             Assert.Throws<ArgumentNullException>(() => new AsteroidController(
-                new FakeEnemyView(), null, rig.Loop, rig.Damage, rig.Death));
+                new FakeEnemyView(), null, rig.Loop, rig.Damage, rig.Bodies, rig.Death));
             Assert.Throws<ArgumentNullException>(() => new AsteroidController(
-                new FakeEnemyView(), rig.Config, null, rig.Damage, rig.Death));
+                new FakeEnemyView(), rig.Config, null, rig.Damage, rig.Bodies, rig.Death));
             Assert.Throws<ArgumentNullException>(() => new AsteroidController(
-                new FakeEnemyView(), rig.Config, rig.Loop, null, rig.Death));
+                new FakeEnemyView(), rig.Config, rig.Loop, null, rig.Bodies, rig.Death));
             Assert.Throws<ArgumentNullException>(() => new AsteroidController(
-                new FakeEnemyView(), rig.Config, rig.Loop, rig.Damage, null));
+                new FakeEnemyView(), rig.Config, rig.Loop, rig.Damage, null, rig.Death));
+            Assert.Throws<ArgumentNullException>(() => new AsteroidController(
+                new FakeEnemyView(), rig.Config, rig.Loop, rig.Damage, rig.Bodies, null));
         }
 
         [Test]
@@ -107,6 +110,33 @@ namespace Asteroids.Enemies.Tests
             Assert.That(rig.Damage.LiveDamageables, Is.EqualTo(1));
             Assert.That(rig.Damage.LiveSources, Is.EqualTo(1));
             Assert.That(rig.Damage.Sources[0].Item.Damage, Is.EqualTo(2));
+        }
+
+        [Test]
+        public void Launch_RegistersTheAsteroidAsAKineticBodyWithItsVelocity()
+        {
+            var rig = new Rig(new TestAsteroidType("A"));
+
+            rig.Controller.Launch(Launch(vx: 1.5f, vy: 0f));
+
+            Assert.That(rig.Bodies.LiveCount, Is.EqualTo(1));
+            Assert.That(rig.Bodies.Registrations[0].Entity, Is.SameAs(rig.View.Entity));
+            Assert.That(rig.Bodies.Registrations[0].Body.MinKnockbackSpeed, Is.EqualTo(0f));
+            Assert.That(rig.Bodies.Registrations[0].Body.Velocity.x, Is.EqualTo(1.5f).Within(Tolerance));
+        }
+
+        [Test]
+        public void Knock_OnTheBody_ChangesTheDirectionOfTravelButNotTheSpin()
+        {
+            var rig = new Rig(new TestAsteroidType("A") { MaxSpeed = 10f });
+            rig.Controller.Launch(Launch(x: 0f, y: 0f, angle: 0f, vx: 1f, vy: 0f, spin: 90f));
+
+            rig.Bodies.Registrations[0].Body.AddVelocity(new Vector2(-2f, 1f));
+            rig.Loop.Tick(1f);
+
+            // Velocity becomes (1, 0) + (-2, 1) = (-1, 1).
+            AssertPosition(rig.Pose, -1f, 1f);
+            Assert.That(rig.Pose.Angle, Is.EqualTo(90f).Within(Tolerance));
         }
 
         [Test]
@@ -169,6 +199,7 @@ namespace Asteroids.Enemies.Tests
             Assert.That(rig.Loop.LiveCount(SimulationPhase.Motion), Is.EqualTo(0));
             Assert.That(rig.Damage.LiveDamageables, Is.EqualTo(0));
             Assert.That(rig.Damage.LiveSources, Is.EqualTo(0));
+            Assert.That(rig.Bodies.LiveCount, Is.EqualTo(0));
             Assert.That(rig.FinishedCount, Is.EqualTo(1));
         }
 

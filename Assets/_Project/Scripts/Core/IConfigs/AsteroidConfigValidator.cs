@@ -3,9 +3,7 @@ using System.Collections.Generic;
 
 namespace Asteroids.Core.IConfigs
 {
-    /// <summary>
-    /// Finds mistakes in an asteroid config.
-    /// </summary>
+    /// <summary>Finds mistakes in an asteroid config.</summary>
     public static class AsteroidConfigValidator
     {
         /// <returns>One message per problem. Empty when the config is fine.</returns>
@@ -144,7 +142,7 @@ namespace Asteroids.Core.IConfigs
                         break;
                     }
 
-                    // The chain ran into a cycle that does not contain the start; its members report it.
+                    // The chain ran into a cycle that does not contain the start.
                     if (!visited.Add(next)) break;
 
                     current = next;

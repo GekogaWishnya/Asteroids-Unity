@@ -8,8 +8,9 @@ namespace Asteroids.Player
     /// <see cref="Asteroids.Core.IWeapon"/>, <see cref="Asteroids.Core.IConfigs.IShipMovementConfig"/>,
     /// <see cref="Asteroids.Core.IConfigs.IShipHealthConfig"/>, <see cref="Asteroids.Core.IConfigs.IShipRamConfig"/>,
     /// <see cref="Asteroids.Core.IConfigs.IInvulnerabilityConfig"/> (bound once, for the ship),
-    /// <see cref="Asteroids.Core.IConfigs.IWaveProtectionConfig"/>, <see cref="Asteroids.Core.ISimulationLoop"/>
-    /// and <see cref="Asteroids.Core.IDamageRegistry"/> to be bound by the host installer, and
+    /// <see cref="Asteroids.Core.IConfigs.IWaveProtectionConfig"/>, <see cref="Asteroids.Core.IConfigs.IControlLossConfig"/>,
+    /// <see cref="Asteroids.Core.ISimulationLoop"/>, <see cref="Asteroids.Core.IDamageRegistry"/> and
+    /// <see cref="Asteroids.Core.IKineticBodyRegistry"/> to be bound by the host installer, and
     /// <see cref="SignalBus"/> to be installed. Subscribes to <see cref="WaveStarted"/>, which another installer
     /// declares; the order of installation does not matter.
     /// </summary>
@@ -21,7 +22,10 @@ namespace Asteroids.Player
 
             Container.Bind<PlayerHealth>().AsSingle();
             Container.Bind<IPlayerHealth>().To<PlayerHealth>().FromResolve();
-            Container.Bind<IDamageable>().To<PlayerHealth>().FromResolve().WhenInjectedInto<ShipDefense>();
+            
+            Container.Bind(typeof(ShipControlLoss), typeof(IShipControlLock)).To<ShipControlLoss>().AsSingle();
+            Container.Bind<IDamageable>().To<LoseControlOnHit>().AsSingle().WhenInjectedInto<ShipDefense>();
+            Container.Bind<IDamageable>().To<PlayerHealth>().FromResolve().WhenInjectedInto<LoseControlOnHit>();
 
             Container.Bind<IShipEventSink>().To<SignalBusShipEventSink>().AsSingle();
 

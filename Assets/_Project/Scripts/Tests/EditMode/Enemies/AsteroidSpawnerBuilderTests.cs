@@ -13,6 +13,7 @@ namespace Asteroids.Enemies.Tests
             public readonly FakeEnemyViewFactory Views = new();
             public readonly FakeSimulationLoop Loop = new();
             public readonly FakeDamageRegistry Damage = new();
+            public readonly FakeKineticBodyRegistry Bodies = new();
             public readonly FakeScoreSink Score = new();
             public readonly AsteroidSpawnerBuilder Builder;
 
@@ -22,6 +23,7 @@ namespace Asteroids.Enemies.Tests
                     Views,
                     Loop,
                     Damage,
+                    Bodies,
                     Score,
                     new TestWorldBounds(new Rect(-8f, -8f, 16f, 16f)),
                     new SystemRandom(9));
@@ -49,24 +51,27 @@ namespace Asteroids.Enemies.Tests
             var views = new FakeEnemyViewFactory();
             var loop = new FakeSimulationLoop();
             var damage = new FakeDamageRegistry();
+            var bodies = new FakeKineticBodyRegistry();
             var score = new FakeScoreSink();
             var bounds = new TestWorldBounds(new Rect(-8f, -8f, 16f, 16f));
             var random = new SystemRandom(1);
 
             Assert.Throws<ArgumentNullException>(() =>
-                new AsteroidSpawnerBuilder(null, views, loop, damage, score, bounds, random));
+                new AsteroidSpawnerBuilder(null, views, loop, damage, bodies, score, bounds, random));
             Assert.Throws<ArgumentNullException>(() =>
-                new AsteroidSpawnerBuilder(config, null, loop, damage, score, bounds, random));
+                new AsteroidSpawnerBuilder(config, null, loop, damage, bodies, score, bounds, random));
             Assert.Throws<ArgumentNullException>(() =>
-                new AsteroidSpawnerBuilder(config, views, null, damage, score, bounds, random));
+                new AsteroidSpawnerBuilder(config, views, null, damage, bodies, score, bounds, random));
             Assert.Throws<ArgumentNullException>(() =>
-                new AsteroidSpawnerBuilder(config, views, loop, null, score, bounds, random));
+                new AsteroidSpawnerBuilder(config, views, loop, null, bodies, score, bounds, random));
             Assert.Throws<ArgumentNullException>(() =>
-                new AsteroidSpawnerBuilder(config, views, loop, damage, null, bounds, random));
+                new AsteroidSpawnerBuilder(config, views, loop, damage, null, score, bounds, random));
             Assert.Throws<ArgumentNullException>(() =>
-                new AsteroidSpawnerBuilder(config, views, loop, damage, score, null, random));
+                new AsteroidSpawnerBuilder(config, views, loop, damage, bodies, null, bounds, random));
             Assert.Throws<ArgumentNullException>(() =>
-                new AsteroidSpawnerBuilder(config, views, loop, damage, score, bounds, null));
+                new AsteroidSpawnerBuilder(config, views, loop, damage, bodies, score, null, random));
+            Assert.Throws<ArgumentNullException>(() =>
+                new AsteroidSpawnerBuilder(config, views, loop, damage, bodies, score, bounds, null));
         }
 
         [Test]

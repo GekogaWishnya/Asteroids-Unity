@@ -16,6 +16,9 @@ namespace Asteroids.Damage
             Container.BindSignal<CollisionEntered>()
                 .ToMethod<ContactDamageHandler>(handler => handler.OnCollisionEntered)
                 .FromResolve();
+            Container.BindSignal<CollisionExited>()
+                .ToMethod<ContactDamageHandler>(handler => handler.OnCollisionExited)
+                .FromResolve();
         }
     }
 }

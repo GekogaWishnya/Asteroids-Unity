@@ -6,7 +6,7 @@ namespace Asteroids.Data
 {
     [CreateAssetMenu(fileName = "ShipHealth", menuName = "Asteroids/Configs/Ship Health")]
     public sealed class ShipHealthConfig : ScriptableObject,
-        IShipHealthConfig, IShipRamConfig, IInvulnerabilityConfig, IWaveProtectionConfig
+        IShipHealthConfig, IShipRamConfig, IInvulnerabilityConfig, IWaveProtectionConfig, IControlLossConfig
     {
         [Tooltip("Initial and maximum ship health")]
         [FormerlySerializedAs("health")]
@@ -16,7 +16,10 @@ namespace Asteroids.Data
         [SerializeField, Min(1)] private int ramDamage = 1;
 
         [Tooltip("Seconds after a hit during which the ship takes no further damage. 0 effectively turns it off")]
-        [SerializeField, Min(0f)] private float invulnerabilitySeconds = 1.5f;
+        [SerializeField, Min(0f)] private float invulnerabilitySeconds = 3f;
+
+        [Tooltip("Seconds after a hit during which the ship cannot be steered, thrust or fired. 0 effectively turns it off")]
+        [SerializeField, Min(0f)] private float controlLossSeconds = 3f;
 
         [Tooltip("Layers the ship's collider ignores while protected. Do not include Boundary: " +
                  "the ship would stop wrapping around the world.")]
@@ -28,6 +31,7 @@ namespace Asteroids.Data
         public int MaxHealth => maxHealth;
         public int RamDamage => ramDamage;
         public float InvulnerabilitySeconds => invulnerabilitySeconds;
+        public float ControlLossSeconds => controlLossSeconds;
         public CollisionLayer IgnoredLayers => ignoredLayers;
         public float WaveStartProtectionSeconds => waveStartProtectionSeconds;
 
@@ -37,6 +41,12 @@ namespace Asteroids.Data
                 Debug.LogWarning(
                     $"{nameof(ShipHealthConfig)} '{name}' ignores the Boundary layer while protected, " +
                     "so the ship is not wrapped around the world during that time.", this);
+
+            if (controlLossSeconds > invulnerabilitySeconds)
+                Debug.LogWarning(
+                    $"{nameof(ShipHealthConfig)} '{name}': control loss ({controlLossSeconds} s) outlasts " +
+                    $"invulnerability ({invulnerabilitySeconds} s), so the ship can be hit again while the " +
+                    "pilot cannot steer away.", this);
         }
     }
 }

@@ -21,6 +21,7 @@ MonoBehaviour:
     maxSpeed: 1.6
     minSpinSpeed: 15
     maxSpinSpeed: 40
+    mass: 3
     childType: {fileID: 11400000, guid: d76536cfcf48f22448cbac8454dc1345, type: 2}
     childCount: 2
     poolPrewarm: 8
@@ -33,6 +34,7 @@ MonoBehaviour:
     maxSpeed: 2.8
     minSpinSpeed: 25
     maxSpinSpeed: 70
+    mass: 2
     childType: {fileID: 11400000, guid: 2c4808783e7e1db4e95bdafb877c3387, type: 2}
     childCount: 2
     poolPrewarm: 12
@@ -45,6 +47,7 @@ MonoBehaviour:
     maxSpeed: 4
     minSpinSpeed: 40
     maxSpinSpeed: 110
+    mass: 0.5
     childType: {fileID: 0}
     childCount: 0
     poolPrewarm: 16

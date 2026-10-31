@@ -12,8 +12,8 @@ namespace Asteroids.Enemies
     /// Lifecycle of one asteroid object, reused for many lives. <see cref="Launch"/> starts a life cycle. Object
     /// is shown, its health is refilled, and inertial motion (<see cref="MotionStep"/>) and a spin
     /// (<see cref="SpinStep"/>) are registered in <see cref="SimulationPhase.Motion"/> together with the
-    /// asteroid's health as damageable and the asteroid itself as damage source. The two motions are
-    /// independent, so spinning never changes the direction of travel.
+    /// asteroid's health as damageable, the asteroid itself as damage source and its motion as a kinetic body.
+    /// The spin and the motion are independent, so spinning never changes the direction of travel.
     /// </para>
     /// <para>
     /// When the health runs out, the asteroid tells its <see cref="IEnemyDeathHandler"/> where it died,
@@ -37,6 +37,7 @@ namespace Asteroids.Enemies
             IAsteroidTypeConfig config,
             ISimulationLoop loop,
             IDamageRegistry damageRegistry,
+            IKineticBodyRegistry bodyRegistry,
             IEnemyDeathHandler death)
         {
             _view = view ?? throw new ArgumentNullException(nameof(view));
@@ -44,6 +45,7 @@ namespace Asteroids.Enemies
             _death = death ?? throw new ArgumentNullException(nameof(death));
             if (loop == null) throw new ArgumentNullException(nameof(loop));
             if (damageRegistry == null) throw new ArgumentNullException(nameof(damageRegistry));
+            if (bodyRegistry == null) throw new ArgumentNullException(nameof(bodyRegistry));
 
             var entity = view.Entity ?? throw new ArgumentNullException(nameof(view), "The view has no entity.");
 
@@ -52,6 +54,7 @@ namespace Asteroids.Enemies
 
             var motionStep = new MotionStep(entity.Pose, _motion);
             var spinStep = new SpinStep(entity.Pose, _spin);
+            var body = new KineticBody(_motion, DriftConfig.NoKnockback);
 
             _registrations = new RegistrationScope(new Func<IDisposable>[]
             {
@@ -59,6 +62,7 @@ namespace Asteroids.Enemies
                 () => loop.Register(SimulationPhase.Motion, spinStep),
                 () => damageRegistry.RegisterDamageable(entity, _health),
                 () => damageRegistry.RegisterSource(entity, this),
+                () => bodyRegistry.Register(entity, body),
                 ListenForDepletion
             });
         }
@@ -84,7 +88,7 @@ namespace Asteroids.Enemies
             {
                 _view.Show(launch.Position, launch.Angle);
                 
-                _motion.ApplyImpulse(launch.Velocity - _motion.Velocity);
+                _motion.AddVelocity(launch.Velocity - _motion.Velocity);
                 _spin.Velocity = launch.SpinSpeed;
             }
             catch
@@ -161,12 +165,15 @@ namespace Asteroids.Enemies
             }
         }
 
-        private sealed class DriftConfig : IMotionConfig
+        private sealed class DriftConfig : IMotionConfig, IKnockbackConfig
         {
+            public static readonly IKnockbackConfig NoKnockback = new DriftConfig(0f);
+
             public DriftConfig(float maxSpeed) => MaxSpeed = maxSpeed;
 
             public float MaxSpeed { get; }
             public float LinearDamping => 0f;
+            public float MinKnockbackSpeed => 0f;
         }
 
         private sealed class DepletionSubscription : IDisposable

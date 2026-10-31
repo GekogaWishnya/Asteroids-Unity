@@ -53,6 +53,7 @@ namespace Asteroids.Installers
             Container.Bind<IShipRamConfig>().FromInstance(shipHealth);
             Container.Bind<IInvulnerabilityConfig>().FromInstance(shipHealth);
             Container.Bind<IWaveProtectionConfig>().FromInstance(shipHealth);
+            Container.Bind<IControlLossConfig>().FromInstance(shipHealth);
             Container.Bind<IWorldLayout>().FromInstance(worldConfig);
             Container.Bind<IWorldAppearance>().FromInstance(worldConfig);
             Container.Bind<IHudLayout>().FromInstance(hudConfig);

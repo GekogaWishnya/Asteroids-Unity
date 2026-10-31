@@ -30,7 +30,8 @@ namespace Asteroids.Enemies.Tests
                 Population = new AsteroidPopulation(
                     config,
                     () => new AsteroidController(
-                        Views.Create(config.Type), config, Loop, damage, new RecordingDeathHandler()),
+                        Views.Create(config.Type), config, Loop, damage, new FakeKineticBodyRegistry(),
+                        new RecordingDeathHandler()),
                     random);
                 Spawner = new AsteroidSpawner(Population, new TestWorldBounds(Area), random);
             }

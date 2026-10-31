@@ -13,6 +13,7 @@ namespace Asteroids.Enemies.Tests
             public readonly FakeEnemyViewFactory Views = new();
             public readonly FakeSimulationLoop Loop = new();
             public readonly FakeDamageRegistry Damage = new();
+            public readonly FakeKineticBodyRegistry Bodies = new();
             public readonly TestAsteroidType Config;
             public readonly AsteroidPopulation Population;
 
@@ -22,7 +23,7 @@ namespace Asteroids.Enemies.Tests
                 Population = new AsteroidPopulation(
                     Config,
                     () => new AsteroidController(
-                        Views.Create(Config.Type), Config, Loop, Damage, new RecordingDeathHandler()),
+                        Views.Create(Config.Type), Config, Loop, Damage, Bodies, new RecordingDeathHandler()),
                     random ?? new SystemRandom(11));
             }
         }

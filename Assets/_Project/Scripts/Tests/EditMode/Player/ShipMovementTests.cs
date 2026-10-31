@@ -14,6 +14,8 @@ namespace Asteroids.Player.Tests
 
         private FakeSimulationLoop _loop;
         private TestShipInput _input;
+        private TestControlLock _lock;
+        private FakeKineticBodyRegistry _bodies;
         private TestMovementConfig _config;
         private BodyPose _pose;
         private Entity _ship;
@@ -23,12 +25,14 @@ namespace Asteroids.Player.Tests
         {
             _loop = new FakeSimulationLoop();
             _input = new TestShipInput();
+            _lock = new TestControlLock();
+            _bodies = new FakeKineticBodyRegistry();
             _config = new TestMovementConfig { Thrust = 10f, TurnSpeed = 100f, MaxSpeed = 100f };
             _pose = new BodyPose();
             _ship = new Entity(_pose);
         }
 
-        private ShipMovement Create() => new(_input, _config, _loop);
+        private ShipMovement Create() => new(_input, _lock, _config, _loop, _bodies);
 
         [Test]
         public void Construct_RegistersNothing()
@@ -36,6 +40,69 @@ namespace Asteroids.Player.Tests
             Create();
 
             Assert.That(_loop.Entries, Is.Empty);
+            Assert.That(_bodies.Registrations, Is.Empty);
+        }
+
+        [Test]
+        public void Attach_RegistersTheShipAsAKineticBody()
+        {
+            Create().Attach(_ship);
+
+            Assert.That(_bodies.LiveCount, Is.EqualTo(1));
+            Assert.That(_bodies.Registrations[0].Entity, Is.SameAs(_ship));
+            Assert.That(_bodies.Registrations[0].Body.MinKnockbackSpeed, Is.EqualTo(_config.MinKnockbackSpeed));
+        }
+
+        [Test]
+        public void Dispose_RemovesTheKineticBody()
+        {
+            Create().Attach(_ship).Dispose();
+
+            Assert.That(_bodies.LiveCount, Is.EqualTo(0));
+        }
+
+        [Test]
+        public void Knock_OnTheBody_MovesTheShip()
+        {
+            Create().Attach(_ship);
+
+            _bodies.Registrations[0].Body.AddVelocity(new Vector2(2f, 0f));
+            _loop.Tick(Dt);
+
+            Assert.That(_bodies.Registrations[0].Body.Velocity.x, Is.EqualTo(2f).Within(Tolerance));
+            Assert.That(_pose.Position.x, Is.EqualTo(2f * Dt).Within(Tolerance));
+        }
+
+        [Test]
+        public void Tick_WhileLocked_IgnoresTurnAndThrustButKeepsDrifting()
+        {
+            var movement = Create();
+            movement.Attach(_ship);
+            _bodies.Registrations[0].Body.AddVelocity(new Vector2(1f, 0f));
+            _lock.IsLocked = true;
+            _input.Turn = 1f;
+            _input.Thrust = 1f;
+
+            _loop.Tick(Dt);
+
+            Assert.That(_pose.Angle, Is.EqualTo(0f));
+            Assert.That(_pose.Position.x, Is.EqualTo(1f * Dt).Within(Tolerance));
+            Assert.That(_pose.Position.y, Is.EqualTo(0f).Within(Tolerance));
+        }
+
+        [Test]
+        public void Tick_AfterTheLockEnds_ObeysInputAgain()
+        {
+            _pose.Angle = 90f;
+            _lock.IsLocked = true;
+            _input.Turn = 1f;
+            Create().Attach(_ship);
+            _loop.Tick(Dt);
+
+            _lock.IsLocked = false;
+            _loop.Tick(Dt);
+
+            Assert.That(_pose.Angle, Is.EqualTo(90f - _config.TurnSpeed * Dt).Within(Tolerance));
         }
 
         [Test]
@@ -157,9 +224,11 @@ namespace Asteroids.Player.Tests
         [Test]
         public void Construct_NullArguments_Throw()
         {
-            Assert.Throws<ArgumentNullException>(() => new ShipMovement(null, _config, _loop));
-            Assert.Throws<ArgumentNullException>(() => new ShipMovement(_input, null, _loop));
-            Assert.Throws<ArgumentNullException>(() => new ShipMovement(_input, _config, null));
+            Assert.Throws<ArgumentNullException>(() => new ShipMovement(null, _lock, _config, _loop, _bodies));
+            Assert.Throws<ArgumentNullException>(() => new ShipMovement(_input, null, _config, _loop, _bodies));
+            Assert.Throws<ArgumentNullException>(() => new ShipMovement(_input, _lock, null, _loop, _bodies));
+            Assert.Throws<ArgumentNullException>(() => new ShipMovement(_input, _lock, _config, null, _bodies));
+            Assert.Throws<ArgumentNullException>(() => new ShipMovement(_input, _lock, _config, _loop, null));
         }
     }
 }

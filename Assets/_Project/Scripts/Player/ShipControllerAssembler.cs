@@ -8,6 +8,7 @@ namespace Asteroids.Player
     public sealed class ShipControllerAssembler : IFactory<IEntity, IProtectionTargets, IShipController>
     {
         private readonly ShipMovement.Factory _movement;
+        private readonly ShipControlLoss _controlLoss;
         private readonly ShipDefense.Factory _defense;
         private readonly ShipRam.Factory _ram;
         private readonly ShipArmament.Factory _armament;
@@ -17,6 +18,7 @@ namespace Asteroids.Player
         /// <exception cref="ArgumentNullException">Any argument is null.</exception>
         public ShipControllerAssembler(
             ShipMovement.Factory movement,
+            ShipControlLoss controlLoss,
             ShipDefense.Factory defense,
             ShipRam.Factory ram,
             ShipArmament.Factory armament,
@@ -24,6 +26,7 @@ namespace Asteroids.Player
             IShipEventSink events)
         {
             _movement = movement ?? throw new ArgumentNullException(nameof(movement));
+            _controlLoss = controlLoss ?? throw new ArgumentNullException(nameof(controlLoss));
             _defense = defense ?? throw new ArgumentNullException(nameof(defense));
             _ram = ram ?? throw new ArgumentNullException(nameof(ram));
             _armament = armament ?? throw new ArgumentNullException(nameof(armament));
@@ -36,6 +39,7 @@ namespace Asteroids.Player
             var parts = new IShipPart[]
             {
                 _movement.Create(),
+                _controlLoss,
                 _defense.Create(targets),
                 _ram.Create(),
                 _armament.Create()
