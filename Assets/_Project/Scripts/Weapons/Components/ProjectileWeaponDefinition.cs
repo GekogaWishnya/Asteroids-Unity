@@ -66,14 +66,30 @@ namespace Asteroids.Weapons.Components
         private IReadOnlyList<string> FindProblems()
         {
             var problems = new List<string>(ProjectileWeaponConfigValidator.Validate(this));
-            if (projectilePrefab == null) problems.Add("It has no projectile prefab.");
+            if (!projectilePrefab) problems.Add("has no projectile prefab.");
             return problems;
         }
 
+#if UNITY_EDITOR
         private void OnValidate()
         {
+            UnityEditor.EditorApplication.delayCall -= ValidateWhenSettled;
+            UnityEditor.EditorApplication.delayCall += ValidateWhenSettled;
+        }
+
+        private void ValidateWhenSettled()
+        {
+            if (!this) return;
+
+            if (UnityEditor.EditorApplication.isUpdating)
+            {
+                OnValidate();
+                return;
+            }
+
             foreach (var problem in FindProblems())
                 Debug.LogWarning($"{name}: {problem}", this);
         }
+#endif
     }
 }
