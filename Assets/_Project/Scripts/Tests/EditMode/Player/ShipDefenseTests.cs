@@ -98,6 +98,20 @@ namespace Asteroids.Player.Tests
         }
 
         [Test]
+        public void IsProtected_FollowsTheWindowAndEndsOnDetach()
+        {
+            var defense = Create();
+            var attachment = defense.Attach(_ship);
+            Assert.That(defense.IsProtected, Is.False);
+
+            RegisteredShip.TakeDamage(1);
+            Assert.That(defense.IsProtected, Is.True);
+
+            attachment.Dispose();
+            Assert.That(defense.IsProtected, Is.False);
+        }
+
+        [Test]
         public void Hit_AfterTheProtectionRanOut_HurtsAgain()
         {
             Create().Attach(_ship);

@@ -12,7 +12,7 @@ namespace Asteroids.Player
     /// <see cref="Asteroids.Core.ISimulationLoop"/>, <see cref="Asteroids.Core.IDamageRegistry"/> and
     /// <see cref="Asteroids.Core.IKineticBodyRegistry"/> to be bound by the host installer, and
     /// <see cref="SignalBus"/> to be installed. Subscribes to <see cref="WaveStarted"/>, which another installer
-    /// declares; the order of installation does not matter.
+    /// declares and binds <see cref="IPlayerTarget"/>.
     /// </summary>
     public sealed class PlayerInstaller : Installer<PlayerInstaller>
     {
@@ -28,6 +28,8 @@ namespace Asteroids.Player
             Container.Bind<IDamageable>().To<PlayerHealth>().FromResolve().WhenInjectedInto<LoseControlOnHit>();
 
             Container.Bind<IShipEventSink>().To<SignalBusShipEventSink>().AsSingle();
+
+            Container.Bind(typeof(ShipTarget), typeof(IPlayerTarget)).To<ShipTarget>().AsSingle();
 
             Container.Bind<WaveStartProtection>().AsSingle();
             Container.BindSignal<WaveStarted>()

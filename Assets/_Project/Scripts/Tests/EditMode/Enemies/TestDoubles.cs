@@ -23,7 +23,10 @@ namespace Asteroids.Enemies.Tests
 
     internal sealed class FakeEnemyView : IEnemyView
     {
-        public IEntity Entity { get; } = new TestEntity();
+        /// <param name="entity">Defaults to a <see cref="TestEntity"/>, whose pose always faces +Y.</param>
+        public FakeEnemyView(IEntity entity = null) => Entity = entity ?? new TestEntity();
+
+        public IEntity Entity { get; }
         public bool IsShown { get; private set; }
         public bool IsDisposed { get; private set; }
         public int ShowCount { get; private set; }
@@ -54,9 +57,12 @@ namespace Asteroids.Enemies.Tests
         public List<FakeEnemyView> Views { get; } = new();
         public List<EnemyTypeId> Types { get; } = new();
 
+        /// <summary>Makes the entity of every new view. Null for a <see cref="TestEntity"/>.</summary>
+        public Func<IEntity> CreateEntity { get; set; }
+
         public IEnemyView Create(EnemyTypeId type)
         {
-            var view = new FakeEnemyView();
+            var view = new FakeEnemyView(CreateEntity?.Invoke());
             Views.Add(view);
             Types.Add(type);
             return view;
@@ -313,5 +319,41 @@ namespace Asteroids.Enemies.Tests
             Types = new List<IAsteroidTypeConfig>(types);
 
         public IReadOnlyList<IAsteroidTypeConfig> Types { get; }
+    }
+
+    internal sealed class FakePlayerTarget : IPlayerTarget
+    {
+        public bool HasTarget { get; set; }
+        public Vector2 Position { get; set; }
+        public Vector2 Velocity { get; set; }
+
+        public static FakePlayerTarget At(float x, float y) =>
+            new() { HasTarget = true, Position = new Vector2(x, y) };
+    }
+
+    internal sealed class TestUfoType : IUfoTypeConfig
+    {
+        public TestUfoType(string id = "Ufo") => Type = new EnemyTypeId(id);
+
+        public EnemyTypeId Type { get; set; }
+        public int MaxHealth { get; set; } = 1;
+        public int ContactDamage { get; set; } = 1;
+        public int ScorePoints { get; set; } = 150;
+        public float LaunchSpeed { get; set; } = 2f;
+        public float Thrust { get; set; } = 6f;
+        public float TurnSpeed { get; set; } = 90f;
+        public float MaxSpeed { get; set; } = 100f;
+        public float LinearDamping { get; set; }
+        public float MinKnockbackSpeed { get; set; }
+        public float StunSeconds { get; set; } = 1.5f;
+        public int PoolPrewarm { get; set; }
+        public int PoolMaxIdle { get; set; } = 8;
+    }
+
+    internal sealed class TestUfoConfig : IUfoConfig
+    {
+        public TestUfoConfig(params IUfoTypeConfig[] types) => Types = new List<IUfoTypeConfig>(types);
+
+        public IReadOnlyList<IUfoTypeConfig> Types { get; }
     }
 }

@@ -1,5 +1,4 @@
 using System;
-using Asteroids.Common;
 using Asteroids.Core;
 using Asteroids.Core.IConfigs;
 using Asteroids.Health;
@@ -23,13 +22,10 @@ namespace Asteroids.Enemies
     /// </summary>
     public sealed class AsteroidController : IDamageSource, IDisposable
     {
-        private readonly IEnemyView _view;
         private readonly IAsteroidTypeConfig _config;
-        private readonly IEnemyDeathHandler _death;
-        private readonly HealthModel _health;
         private readonly InertialMotion _motion;
         private readonly AngularMotion _spin = new();
-        private readonly RegistrationScope _registrations;
+        private readonly EnemyLife _life;
 
         /// <exception cref="ArgumentNullException">Any argument (or the view's entity) is null.</exception>
         public AsteroidController(
@@ -40,129 +36,54 @@ namespace Asteroids.Enemies
             IKineticBodyRegistry bodyRegistry,
             IEnemyDeathHandler death)
         {
-            _view = view ?? throw new ArgumentNullException(nameof(view));
+            if (view == null) throw new ArgumentNullException(nameof(view));
             _config = config ?? throw new ArgumentNullException(nameof(config));
-            _death = death ?? throw new ArgumentNullException(nameof(death));
+            if (death == null) throw new ArgumentNullException(nameof(death));
             if (loop == null) throw new ArgumentNullException(nameof(loop));
             if (damageRegistry == null) throw new ArgumentNullException(nameof(damageRegistry));
             if (bodyRegistry == null) throw new ArgumentNullException(nameof(bodyRegistry));
 
             var entity = view.Entity ?? throw new ArgumentNullException(nameof(view), "The view has no entity.");
 
-            _health = new HealthModel(config.MaxHealth);
+            var health = new HealthModel(config.MaxHealth);
             _motion = new InertialMotion(new DriftConfig(config.MaxSpeed));
 
             var motionStep = new MotionStep(entity.Pose, _motion);
             var spinStep = new SpinStep(entity.Pose, _spin);
             var body = new KineticBody(_motion, DriftConfig.NoKnockback);
 
-            _registrations = new RegistrationScope(new Func<IDisposable>[]
+            _life = new EnemyLife("asteroid", view, health, death, new Func<IDisposable>[]
             {
                 () => loop.Register(SimulationPhase.Motion, motionStep),
                 () => loop.Register(SimulationPhase.Motion, spinStep),
-                () => damageRegistry.RegisterDamageable(entity, _health),
+                () => damageRegistry.RegisterDamageable(entity, health),
                 () => damageRegistry.RegisterSource(entity, this),
-                () => bodyRegistry.Register(entity, body),
-                ListenForDepletion
+                () => bodyRegistry.Register(entity, body)
             });
+            _life.Finished += () => Finished?.Invoke(this);
         }
 
         /// <summary>Raised once per life, when the asteroid is out of play again and can be reused.</summary>
         public event Action<AsteroidController> Finished;
 
-        public bool IsInPlay => _registrations.IsEnabled;
+        public bool IsInPlay => _life.IsInPlay;
 
         /// <summary>Damage dealt to whatever the asteroid touches and may hurt.</summary>
         public int Damage => _config.ContactDamage;
 
         /// <exception cref="InvalidOperationException">The asteroid is already in play.</exception>
-        public void Launch(AsteroidLaunch launch)
-        {
-            if (_registrations.IsEnabled)
-                throw new InvalidOperationException("The asteroid is already in play.");
-
-            _health.Reset();
-            _registrations.Enable();
-
-            try
+        public void Launch(AsteroidLaunch launch) =>
+            _life.Enter(launch.Position, launch.Angle, () =>
             {
-                _view.Show(launch.Position, launch.Angle);
-                
                 _motion.AddVelocity(launch.Velocity - _motion.Velocity);
                 _spin.Velocity = launch.SpinSpeed;
-            }
-            catch
-            {
-                try
-                {
-                    Leave();
-                }
-                catch
-                {
-                    // The failure that led here matters more than a failure of the cleanup.
-                }
-
-                throw;
-            }
-        }
+            });
 
         /// <summary>Takes the asteroid out of play if needed and destroys its object. Not reusable afterwards.</summary>
         public void Dispose()
         {
             Finished = null;
-
-            try
-            {
-                _registrations.Dispose();
-            }
-            finally
-            {
-                _view.Dispose();
-            }
-        }
-
-        private IDisposable ListenForDepletion()
-        {
-            _health.Depleted += OnDepleted;
-            return new DepletionSubscription(_health, OnDepleted);
-        }
-
-        private void OnDepleted()
-        {
-            var position = _view.Entity.Pose.Position;
-
-            try
-            {
-                _death.Died(position);
-            }
-            finally
-            {
-                Retire();
-            }
-        }
-
-        private void Retire()
-        {
-            try
-            {
-                Leave();
-            }
-            finally
-            {
-                Finished?.Invoke(this);
-            }
-        }
-
-        private void Leave()
-        {
-            try
-            {
-                _registrations.Disable();
-            }
-            finally
-            {
-                _view.Hide();
-            }
+            _life.Dispose();
         }
 
         private sealed class DriftConfig : IMotionConfig, IKnockbackConfig
@@ -174,20 +95,6 @@ namespace Asteroids.Enemies
             public float MaxSpeed { get; }
             public float LinearDamping => 0f;
             public float MinKnockbackSpeed => 0f;
-        }
-
-        private sealed class DepletionSubscription : IDisposable
-        {
-            private readonly HealthModel _health;
-            private readonly Action _handler;
-
-            public DepletionSubscription(HealthModel health, Action handler)
-            {
-                _health = health;
-                _handler = handler;
-            }
-
-            public void Dispose() => _health.Depleted -= _handler;
         }
     }
 }

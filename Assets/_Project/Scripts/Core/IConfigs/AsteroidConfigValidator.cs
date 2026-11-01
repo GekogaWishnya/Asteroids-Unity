@@ -64,7 +64,7 @@ namespace Asteroids.Core.IConfigs
             ValidateRange(label, "speed", type.MinSpeed, type.MaxSpeed, problems);
             ValidateRange(label, "spin speed", type.MinSpinSpeed, type.MaxSpinSpeed, problems);
             ValidateChildren(label, type, indexById, problems);
-            ValidatePool(label, type, problems);
+            PoolConfigRules.Validate(label, type.PoolPrewarm, type.PoolMaxIdle, problems);
         }
 
         private static void ValidateRange(string label, string what, float min, float max, List<string> problems)
@@ -102,20 +102,6 @@ namespace Asteroids.Core.IConfigs
 
             if (hasChildType && !indexById.ContainsKey(type.ChildType))
                 problems.Add($"{label}: child type '{type.ChildType}' is not defined in this asteroid config.");
-        }
-
-        private static void ValidatePool(string label, IAsteroidTypeConfig type, List<string> problems)
-        {
-            if (type.PoolPrewarm < 0)
-                problems.Add($"{label}: pool prewarm must not be negative (is {type.PoolPrewarm}).");
-
-            if (type.PoolMaxIdle < 0)
-                problems.Add($"{label}: pool max idle must not be negative (is {type.PoolMaxIdle}).");
-
-            if (type.PoolPrewarm >= 0 && type.PoolMaxIdle >= 0 && type.PoolPrewarm > type.PoolMaxIdle)
-                problems.Add(
-                    $"{label}: pool prewarm {type.PoolPrewarm} is above max idle {type.PoolMaxIdle}; " +
-                    $"the pool never keeps more than {type.PoolMaxIdle}, so the rest is wasted.");
         }
 
         /// <summary>

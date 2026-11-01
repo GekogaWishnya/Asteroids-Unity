@@ -6,10 +6,11 @@ namespace Asteroids.Enemies
     /// <summary>
     /// Binds <see cref="IEnemyData"/> and the spawners of every kind of enemy.
     /// Requires the host installer to bind <see cref="Asteroids.Core.IConfigs.IAsteroidConfig"/>,
-    /// <see cref="IEnemyViewFactory"/> and <see cref="Asteroids.Common.IRandom"/>, and requires
-    /// <see cref="ISimulationLoop"/>, <see cref="IDamageRegistry"/>, <see cref="IScoreSink"/> and
-    /// <see cref="Asteroids.Physics.IWorldBounds"/> to be bound by the simulation, damage, scoring and
-    /// world installers.
+    /// <see cref="Asteroids.Core.IConfigs.IUfoConfig"/>, <see cref="IPlayerTarget"/>,
+    /// <see cref="IEnemyViewFactory"/>, <see cref="Asteroids.Common.IRandom"/>,
+    /// <see cref="ISimulationLoop"/>, <see cref="IDamageRegistry"/>, <see cref="IScoreSink"/>,
+    /// <see cref="Asteroids.Physics.IWorldBounds"/> and <see cref="IKineticBodyRegistry"/> to be bound
+    /// by the simulation, collision, damage, scoring, player and world installers.
     /// </summary>
     public sealed class EnemiesInstaller : Installer<EnemiesInstaller>
     {
@@ -17,8 +18,14 @@ namespace Asteroids.Enemies
         {
             Container.Bind<AsteroidSpawnerBuilder>().AsSingle();
 
+            Container.Bind<UfoSpawnerBuilder>().AsSingle();
+
             Container.Bind<IEnemySpawner>()
                 .FromMethodMultiple(context => context.Container.Resolve<AsteroidSpawnerBuilder>().Spawners)
+                .AsCached();
+
+            Container.Bind<IEnemySpawner>()
+                .FromMethodMultiple(context => context.Container.Resolve<UfoSpawnerBuilder>().Spawners)
                 .AsCached();
 
             // Zenject injects List<T>, not IEnumerable<T>, so the list is resolved explicitly.

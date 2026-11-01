@@ -11,7 +11,7 @@ namespace Asteroids.Player
     /// and what the damage system hurts is an <see cref="InvulnerabilityGuard"/> around the player's health. Each hit
     /// that gets through, and each wave start (through <see cref="WaveStartProtection"/>), starts a protection window.
     /// </summary>
-    public sealed class ShipDefense : IShipPart
+    public sealed class ShipDefense : IShipPart, IShipProtectionState
     {
         private readonly InvulnerabilityGuard _guard;
         private readonly WaveStartProtection _waveProtection;
@@ -35,6 +35,8 @@ namespace Asteroids.Player
             _damageRegistry = damageRegistry ?? throw new ArgumentNullException(nameof(damageRegistry));
             _guard = new InvulnerabilityGuard(health, config, targets);
         }
+        
+        public bool IsProtected => _guard.IsActive;
 
         public IDisposable Attach(IEntity ship)
         {

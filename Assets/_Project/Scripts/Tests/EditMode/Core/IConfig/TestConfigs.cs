@@ -55,4 +55,30 @@ namespace Asteroids.Core.IConfigs.Tests
 
         public IReadOnlyList<IAsteroidTypeConfig> Types { get; set; }
     }
+
+    internal sealed class TestUfoType : IUfoTypeConfig
+    {
+        public TestUfoType(string id = "Ufo") => Type = new EnemyTypeId(id);
+
+        public EnemyTypeId Type { get; set; }
+        public int MaxHealth { get; set; } = 1;
+        public int ContactDamage { get; set; } = 1;
+        public int ScorePoints { get; set; } = 150;
+        public float LaunchSpeed { get; set; } = 2f;
+        public float Thrust { get; set; } = 6f;
+        public float TurnSpeed { get; set; } = 120f;
+        public float MaxSpeed { get; set; } = 5f;
+        public float LinearDamping { get; set; } = 0.5f;
+        public float MinKnockbackSpeed { get; set; } = 3f;
+        public float StunSeconds { get; set; } = 1.5f;
+        public int PoolPrewarm { get; set; } = 4;
+        public int PoolMaxIdle { get; set; } = 8;
+    }
+
+    internal sealed class TestUfoConfig : IUfoConfig
+    {
+        public TestUfoConfig(params IUfoTypeConfig[] types) => Types = new List<IUfoTypeConfig>(types);
+
+        public IReadOnlyList<IUfoTypeConfig> Types { get; set; }
+    }
 }

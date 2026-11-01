@@ -29,6 +29,7 @@ namespace Asteroids.Installers
         [SerializeField] private WorldConfig worldConfig;
         [SerializeField] private HudConfig hudConfig;
         [SerializeField] private AsteroidConfig asteroidConfig;
+        [SerializeField] private UfoConfig ufoConfig;
         [SerializeField] private LevelConfig levelConfig;
         [SerializeField] private EnemyTypeDefinition[] enemyTypes;
         [SerializeField] private WeaponDefinition shipWeapon;
@@ -58,6 +59,7 @@ namespace Asteroids.Installers
             Container.Bind<IWorldAppearance>().FromInstance(worldConfig);
             Container.Bind<IHudLayout>().FromInstance(hudConfig);
             Container.Bind<IAsteroidConfig>().FromInstance(asteroidConfig);
+            Container.Bind<IUfoConfig>().FromInstance(ufoConfig);
             Container.Bind<ILevelConfig>().FromInstance(levelConfig);
 
             Container.Bind<IRandom>().FromInstance(new SystemRandom());

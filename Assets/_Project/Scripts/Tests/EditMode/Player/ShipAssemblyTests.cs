@@ -99,6 +99,49 @@ namespace Asteroids.Player.Tests
         }
 
         [Test]
+        public void Enable_MakesTheShipThePlayerTarget()
+        {
+            var rig = new Rig();
+            rig.Pose.Position = new UnityEngine.Vector2(1f, 2f);
+            var target = rig.Container.Resolve<IPlayerTarget>();
+
+            rig.CreateShip().Enable();
+
+            Assert.That(target.HasTarget, Is.True);
+            Assert.That(target.Position, Is.EqualTo(new UnityEngine.Vector2(1f, 2f)));
+        }
+
+        [Test]
+        public void Hit_TheShipIsNoTargetWhileProtected()
+        {
+            var rig = new Rig();
+            var target = rig.Container.Resolve<IPlayerTarget>();
+            rig.CreateShip().Enable();
+
+            rig.RegisteredShip.TakeDamage(1);
+            var targetedWhileProtected = target.HasTarget;
+            rig.Loop.Tick(1.5f);
+            rig.Loop.Tick(1.5f);
+
+            Assert.That(targetedWhileProtected, Is.False);
+            Assert.That(target.HasTarget, Is.True);
+        }
+
+        [Test]
+        public void Damage_Lethal_TheShipIsNoLongerTheTargetWhenDeathIsReported()
+        {
+            var rig = new Rig();
+            var target = rig.Container.Resolve<IPlayerTarget>();
+            bool? targetedWhenReported = null;
+            rig.Container.Resolve<SignalBus>().Subscribe<ShipDestroyed>(_ => targetedWhenReported = target.HasTarget);
+            rig.CreateShip().Enable();
+
+            rig.Registry.Damageables[0].Item.TakeDamage(3);
+
+            Assert.That(targetedWhenReported, Is.False);
+        }
+
+        [Test]
         public void Damage_ThroughTheRegistration_HurtsThePlayerHealth()
         {
             var rig = new Rig();

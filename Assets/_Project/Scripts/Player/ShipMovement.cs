@@ -40,6 +40,9 @@ namespace Asteroids.Player
             _body = new KineticBody(_motion, config);
         }
 
+        /// <summary>Ship's velocity.</summary>
+        public IMotionState Motion => _motion;
+
         public IDisposable Attach(IEntity ship)
         {
             if (ship == null) throw new ArgumentNullException(nameof(ship));
