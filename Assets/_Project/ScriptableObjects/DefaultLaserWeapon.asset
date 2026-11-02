@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 81ec23c496e58d54295530a9c736f314, type: 3}
+  m_Name: DefaultLaserWeapon
+  m_EditorClassIdentifier: 
+  beamPrefab: {fileID: 5392098961752387087, guid: 530b728deaf65a04bad192c48cff5e89, type: 3}
+  muzzleOffset: 0
+  maxEnergy: 100
+  drainPerSecond: 50
+  refillPerSecond: 5
+  refillDelay: 1
+  minEnergyToFire: 20
+  hitDamage: 1
+  hitInterval: 0.1

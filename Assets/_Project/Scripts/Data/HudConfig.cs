@@ -1,22 +1,25 @@
 using Asteroids.Core.IConfigs;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Asteroids.Data
 {
     [CreateAssetMenu(fileName = "Hud", menuName = "Asteroids/Configs/Hud")]
     public sealed class HudConfig : ScriptableObject, IHudLayout
     {
-        [Tooltip("Side of the gameplay area the HUD band is attached to")]
-        [SerializeField] private HudEdge edge = HudEdge.Top;
-        [Tooltip("Height of the HUD band in pixels")]
-        [SerializeField, Delayed] private int heightPixels = 32;
+        [Tooltip("Height of the HUD band above the gameplay area in pixels.")]
+        [FormerlySerializedAs("heightPixels")]
+        [SerializeField, Delayed] private int topHeightPixels = 12;
+        [Tooltip("Height of the HUD band below the gameplay area in pixels.")]
+        [SerializeField, Delayed] private int bottomHeightPixels = 12;
 
-        public HudEdge Edge => edge;
-        public int HeightPixels => heightPixels;
+        public int TopHeightPixels => topHeightPixels;
+        public int BottomHeightPixels => bottomHeightPixels;
 
         private void OnValidate()
         {
-            heightPixels = Mathf.Max(2, heightPixels & ~1);
+            topHeightPixels = Mathf.Max(0, topHeightPixels & ~1);
+            bottomHeightPixels = Mathf.Max(0, bottomHeightPixels & ~1);
         }
     }
 }

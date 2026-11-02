@@ -34,4 +34,19 @@ namespace Asteroids.UI.Tests
 
         public IObservableValue<int> Value => ValueSource;
     }
+
+    internal sealed class FakeLaserStatus : ILaserStatus
+    {
+        public FakeLaserStatus(float energy, float secondsToFull)
+        {
+            EnergyValue = new ObservableValue<float>(energy);
+            SecondsValue = new ObservableValue<float>(secondsToFull);
+        }
+
+        public ObservableValue<float> EnergyValue { get; }
+        public ObservableValue<float> SecondsValue { get; }
+
+        public IObservableValue<float> Energy => EnergyValue;
+        public IObservableValue<float> SecondsToFull => SecondsValue;
+    }
 }

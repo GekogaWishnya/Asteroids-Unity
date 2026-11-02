@@ -1,3 +1,4 @@
+using System;
 using Asteroids.Core;
 using UnityEngine;
 using Zenject;
@@ -13,5 +14,18 @@ namespace Asteroids.Weapons.Components
         /// <exception cref="System.ArgumentNullException"><paramref name="container"/> is null.</exception>
         /// <exception cref="System.InvalidOperationException">The definition is invalid.</exception>
         public abstract IWeapon Create(DiContainer container);
+
+        /// <summary>
+        /// Binds what others (the HUD) may read about the weapon this definition builds for a loadout, such as
+        /// <see cref="ILaserStatus"/>.
+        /// </summary>
+        /// <param name="container">The container to bind in.</param>
+        /// <param name="weapon">Returns the built weapon of the slot. Call it lazily, from the binding.</param>
+        /// <exception cref="ArgumentNullException">An argument is null.</exception>
+        public virtual void BindStatus(DiContainer container, Func<DiContainer, IWeapon> weapon)
+        {
+            if (container == null) throw new ArgumentNullException(nameof(container));
+            if (weapon == null) throw new ArgumentNullException(nameof(weapon));
+        }
     }
 }

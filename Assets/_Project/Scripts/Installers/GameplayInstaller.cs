@@ -32,7 +32,7 @@ namespace Asteroids.Installers
         [SerializeField] private UfoConfig ufoConfig;
         [SerializeField] private LevelConfig levelConfig;
         [SerializeField] private EnemyTypeDefinition[] enemyTypes;
-        [SerializeField] private WeaponDefinition shipWeapon;
+        [SerializeField] private ShipLoadoutDefinition shipLoadout;
 
         public override void InstallBindings()
         {
@@ -66,18 +66,7 @@ namespace Asteroids.Installers
             Container.Bind<EnemyPrefabCatalog>().FromInstance(CreatePrefabCatalog());
             Container.Bind<IEnemyViewFactory>().To<PrefabEnemyViewFactory>().AsSingle();
 
-            Container.Bind<IWeapon>()
-                .FromMethod(context => CreateShipWeapon(context.Container))
-                .AsSingle()
-                .WhenInjectedInto<ShipArmament>();
-        }
-
-        private IWeapon CreateShipWeapon(DiContainer container)
-        {
-            if (!shipWeapon)
-                throw new InvalidOperationException("The gameplay installer has no ship weapon assigned.");
-
-            return shipWeapon.Create(container);
+            ShipLoadoutDefinition.Install(Container, shipLoadout);
         }
 
         private EnemyPrefabCatalog CreatePrefabCatalog()

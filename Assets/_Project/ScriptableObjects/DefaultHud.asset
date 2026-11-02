@@ -12,5 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 76f3e9e83bc5b804f8e347e7511ba729, type: 3}
   m_Name: DefaultHud
   m_EditorClassIdentifier: 
-  edge: 0
-  heightPixels: 12
+  topHeightPixels: 12
+  bottomHeightPixels: 24

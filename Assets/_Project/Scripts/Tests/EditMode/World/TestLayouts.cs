@@ -17,13 +17,13 @@ namespace Asteroids.World.Tests
 
     internal sealed class TestHudLayout : IHudLayout
     {
-        public TestHudLayout(HudEdge edge, int heightPixels)
+        public TestHudLayout(int topHeightPixels, int bottomHeightPixels)
         {
-            Edge = edge;
-            HeightPixels = heightPixels;
+            TopHeightPixels = topHeightPixels;
+            BottomHeightPixels = bottomHeightPixels;
         }
 
-        public HudEdge Edge { get; }
-        public int HeightPixels { get; }
+        public int TopHeightPixels { get; }
+        public int BottomHeightPixels { get; }
     }
 }

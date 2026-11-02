@@ -45,7 +45,7 @@ namespace Asteroids.Player.Tests
                 Container.Bind<ISimulationLoop>().FromInstance(Loop);
                 Container.Bind<IDamageRegistry>().FromInstance(Registry);
                 Container.Bind<IKineticBodyRegistry>().FromInstance(Bodies);
-                Container.Bind<IWeapon>().FromInstance(Weapon);
+                Container.Bind<IShipLoadout>().FromInstance(new FakeLoadout { Primary = Weapon });
 
                 PlayerInstaller.Install(Container);
 

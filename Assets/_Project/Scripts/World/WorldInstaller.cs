@@ -8,8 +8,7 @@ namespace Asteroids.World
     /// <summary>
     /// Requires <see cref="Asteroids.Core.IConfigs.IWorldLayout"/> and <see cref="Asteroids.Core.IConfigs.IHudLayout"/>
     /// to be bound by the host installer and <see cref="CollisionInstaller"/> to be installed.
-    /// Binds <see cref="IWorldBounds"/> (the gameplay area) and
-    /// <see cref="IViewLayout"/> (combination of the gameplay area and the HUD band).
+    /// Binds <see cref="IWorldBounds"/> (the gameplay area) and <see cref="IViewLayout"/>.
     /// </summary>
     public sealed class WorldInstaller : Installer<WorldInstaller>
     {

@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using Asteroids.Core;
 using Asteroids.Physics;
 using NUnit.Framework;
 
@@ -7,62 +9,129 @@ namespace Asteroids.Player.Tests
     [TestFixture]
     public sealed class ShipArmamentTests
     {
-        private FakeWeapon _weapon;
-        private TestShipInput _trigger;
+        private FakeWeapon _primary;
+        private FakeWeapon _alternate;
+        private FakeLoadout _loadout;
+        private TestShipInput _input;
         private TestControlLock _lock;
         private Entity _ship;
 
         [SetUp]
         public void SetUp()
         {
-            _weapon = new FakeWeapon();
-            _trigger = new TestShipInput();
+            _primary = new FakeWeapon();
+            _alternate = new FakeWeapon();
+            _loadout = new FakeLoadout { Primary = _primary, Alternate = _alternate };
+            _input = new TestShipInput();
             _lock = new TestControlLock();
             _ship = new Entity(new BodyPose());
         }
 
-        private ShipArmament Create() => new(_weapon, _trigger, _lock);
+        private ShipArmament Create() => new(_loadout, _input, _lock);
 
         [Test]
-        public void Construct_DoesNotAttachTheWeapon()
+        public void Construct_DoesNotAttachTheWeapons()
         {
             Create();
 
-            Assert.That(_weapon.Attachments, Is.Empty);
+            Assert.That(_primary.Attachments, Is.Empty);
+            Assert.That(_alternate.Attachments, Is.Empty);
         }
 
         [Test]
-        public void Attach_MountsTheWeaponOnTheShipWithATriggerThatFollowsTheInput()
+        public void Attach_MountsEveryWeaponOnTheShip()
         {
             Create().Attach(_ship);
 
-            Assert.That(_weapon.Attachments.Count, Is.EqualTo(1));
-            Assert.That(_weapon.Attachments[0].Carrier, Is.SameAs(_ship));
-
-            var trigger = _weapon.Attachments[0].Trigger;
-            _trigger.IsFiring = true;
-            Assert.That(trigger.IsFiring, Is.True);
-            _trigger.IsFiring = false;
-            Assert.That(trigger.IsFiring, Is.False);
+            Assert.That(_primary.LiveCount, Is.EqualTo(1));
+            Assert.That(_alternate.LiveCount, Is.EqualTo(1));
+            Assert.That(_primary.Attachments[0].Carrier, Is.SameAs(_ship));
+            Assert.That(_alternate.Attachments[0].Carrier, Is.SameAs(_ship));
         }
 
         [Test]
-        public void Trigger_WhileLocked_DoesNotFire()
+        public void Attach_MountsThePrimaryWeaponFirst()
+        {
+            var order = new List<string>();
+            _primary.OnAttach = () => order.Add("Primary");
+            _alternate.OnAttach = () => order.Add("Alternate");
+
+            Create().Attach(_ship);
+
+            Assert.That(order, Is.EqualTo(new[] { "Primary", "Alternate" }));
+        }
+
+        [Test]
+        public void Attach_EachWeaponFollowsTheTriggerOfItsSlot()
         {
             Create().Attach(_ship);
-            _trigger.IsFiring = true;
+            var primary = _primary.Attachments[0].Trigger;
+            var alternate = _alternate.Attachments[0].Trigger;
+
+            _input.IsFiring = true;
+            Assert.That(primary.IsFiring, Is.True);
+            Assert.That(alternate.IsFiring, Is.False);
+
+            _input.IsFiring = false;
+            _input.Alternate.IsFiring = true;
+            Assert.That(primary.IsFiring, Is.False);
+            Assert.That(alternate.IsFiring, Is.True);
+        }
+
+        [Test]
+        public void Triggers_WhileLocked_DoNotFire()
+        {
+            Create().Attach(_ship);
+            _input.IsFiring = true;
+            _input.Alternate.IsFiring = true;
 
             _lock.IsLocked = true;
 
-            Assert.That(_weapon.Attachments[0].Trigger.IsFiring, Is.False);
+            Assert.That(_primary.Attachments[0].Trigger.IsFiring, Is.False);
+            Assert.That(_alternate.Attachments[0].Trigger.IsFiring, Is.False);
         }
 
         [Test]
-        public void Dispose_TakesTheWeaponOff()
+        public void Attach_OnlyAnAlternateWeapon_MountsIt()
+        {
+            _loadout.Primary = null;
+
+            Create().Attach(_ship);
+
+            Assert.That(_alternate.LiveCount, Is.EqualTo(1));
+            Assert.That(_primary.Attachments, Is.Empty);
+        }
+
+        [Test]
+        public void Attach_EmptyLoadout_MountsNothingAndStillTakesTheSlot()
+        {
+            _loadout.Primary = null;
+            _loadout.Alternate = null;
+            var armament = Create();
+
+            var attachment = armament.Attach(_ship);
+
+            Assert.That(attachment, Is.Not.Null);
+            Assert.Throws<InvalidOperationException>(() => armament.Attach(_ship));
+        }
+
+        [Test]
+        public void Attach_ASecondWeaponFails_TakesTheFirstOffAgain()
+        {
+            _alternate.OnAttach = () => throw new InvalidOperationException("mount failed");
+
+            Assert.Throws<InvalidOperationException>(() => Create().Attach(_ship));
+
+            Assert.That(_primary.LiveCount, Is.EqualTo(0));
+        }
+
+        [Test]
+        public void Dispose_TakesEveryWeaponOff()
         {
             Create().Attach(_ship).Dispose();
 
-            Assert.That(_weapon.LiveCount, Is.EqualTo(0));
+            Assert.That(_primary.LiveCount, Is.EqualTo(0));
+            Assert.That(_alternate.LiveCount, Is.EqualTo(0));
         }
 
         [Test]
@@ -83,9 +152,9 @@ namespace Asteroids.Player.Tests
         [Test]
         public void Construct_NullArguments_Throw()
         {
-            Assert.Throws<ArgumentNullException>(() => new ShipArmament(null, _trigger, _lock));
-            Assert.Throws<ArgumentNullException>(() => new ShipArmament(_weapon, null, _lock));
-            Assert.Throws<ArgumentNullException>(() => new ShipArmament(_weapon, _trigger, null));
+            Assert.Throws<ArgumentNullException>(() => new ShipArmament(null, _input, _lock));
+            Assert.Throws<ArgumentNullException>(() => new ShipArmament(_loadout, null, _lock));
+            Assert.Throws<ArgumentNullException>(() => new ShipArmament(_loadout, _input, null));
         }
     }
 }

@@ -22,6 +22,21 @@ namespace Asteroids.Collisions.Components
             }
         }
 
+        public static void Box(Vector2 center, Vector2 axisX, Vector2 axisY, Vector2 halfExtents)
+        {
+            var x = axisX * halfExtents.x;
+            var y = axisY * halfExtents.y;
+            var a = center + x + y;
+            var b = center + x - y;
+            var c = center - x - y;
+            var d = center - x + y;
+
+            Gizmos.DrawLine(a, b);
+            Gizmos.DrawLine(b, c);
+            Gizmos.DrawLine(c, d);
+            Gizmos.DrawLine(d, a);
+        }
+
         /// <summary>Edge line and an arrow pointing into the allowed area.</summary>
         public static void Wall(Vector2 point, Vector2 inward, float halfLength)
         {

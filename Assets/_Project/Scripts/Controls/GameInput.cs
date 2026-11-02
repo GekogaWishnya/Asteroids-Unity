@@ -55,6 +55,15 @@ namespace Asteroids.Controls
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""AltFire"",
+                    ""type"": ""Button"",
+                    ""id"": ""18918f74-145b-4a01-bde6-6e231c81f418"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -225,6 +234,17 @@ namespace Asteroids.Controls
                 },
                 {
                     ""name"": """",
+                    ""id"": ""4db04494-3f6c-4208-9bca-702e9920acc3"",
+                    ""path"": ""<Keyboard>/space"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Fire"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
                     ""id"": ""8c5d587c-a650-482d-9ae8-1850c489aa0f"",
                     ""path"": ""<Mouse>/leftButton"",
                     ""interactions"": """",
@@ -244,6 +264,39 @@ namespace Asteroids.Controls
                     ""action"": ""Fire"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""e28d2e15-1f30-4f20-b1f5-342495fe181d"",
+                    ""path"": ""<Keyboard>/leftShift"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""AltFire"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""151551e8-7002-44b0-97f7-09f767feb40e"",
+                    ""path"": ""<Mouse>/rightButton"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""AltFire"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""479dd157-ad00-4355-a9bb-2313b46c3ebe"",
+                    ""path"": ""<Gamepad>/leftTrigger"",
+                    ""interactions"": """",
+                    ""processors"": ""AxisDeadzone"",
+                    ""groups"": """",
+                    ""action"": ""AltFire"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         },
@@ -261,6 +314,7 @@ namespace Asteroids.Controls
             m_Gameplay_Turn = m_Gameplay.FindAction("Turn", throwIfNotFound: true);
             m_Gameplay_Thrust = m_Gameplay.FindAction("Thrust", throwIfNotFound: true);
             m_Gameplay_Fire = m_Gameplay.FindAction("Fire", throwIfNotFound: true);
+            m_Gameplay_AltFire = m_Gameplay.FindAction("AltFire", throwIfNotFound: true);
             // UI
             m_UI = asset.FindActionMap("UI", throwIfNotFound: true);
         }
@@ -327,6 +381,7 @@ namespace Asteroids.Controls
         private readonly InputAction m_Gameplay_Turn;
         private readonly InputAction m_Gameplay_Thrust;
         private readonly InputAction m_Gameplay_Fire;
+        private readonly InputAction m_Gameplay_AltFire;
         public struct GameplayActions
         {
             private @GameInput m_Wrapper;
@@ -334,6 +389,7 @@ namespace Asteroids.Controls
             public InputAction @Turn => m_Wrapper.m_Gameplay_Turn;
             public InputAction @Thrust => m_Wrapper.m_Gameplay_Thrust;
             public InputAction @Fire => m_Wrapper.m_Gameplay_Fire;
+            public InputAction @AltFire => m_Wrapper.m_Gameplay_AltFire;
             public InputActionMap Get() { return m_Wrapper.m_Gameplay; }
             public void Enable() { Get().Enable(); }
             public void Disable() { Get().Disable(); }
@@ -352,6 +408,9 @@ namespace Asteroids.Controls
                 @Fire.started += instance.OnFire;
                 @Fire.performed += instance.OnFire;
                 @Fire.canceled += instance.OnFire;
+                @AltFire.started += instance.OnAltFire;
+                @AltFire.performed += instance.OnAltFire;
+                @AltFire.canceled += instance.OnAltFire;
             }
 
             private void UnregisterCallbacks(IGameplayActions instance)
@@ -365,6 +424,9 @@ namespace Asteroids.Controls
                 @Fire.started -= instance.OnFire;
                 @Fire.performed -= instance.OnFire;
                 @Fire.canceled -= instance.OnFire;
+                @AltFire.started -= instance.OnAltFire;
+                @AltFire.performed -= instance.OnAltFire;
+                @AltFire.canceled -= instance.OnAltFire;
             }
 
             public void RemoveCallbacks(IGameplayActions instance)
@@ -425,6 +487,7 @@ namespace Asteroids.Controls
             void OnTurn(InputAction.CallbackContext context);
             void OnThrust(InputAction.CallbackContext context);
             void OnFire(InputAction.CallbackContext context);
+            void OnAltFire(InputAction.CallbackContext context);
         }
         public interface IUIActions
         {

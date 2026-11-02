@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f9796c4d0fbddab4db1d0b78ea961602, type: 3}
-  m_Name: DefaultGun
+  m_Name: DefaultProjectileWeapon
   m_EditorClassIdentifier: 
   projectilePrefab: {fileID: 4240737661044347845, guid: 97d3e08aba7e1c44884bf9ae5a497183, type: 3}
   projectileSpeed: 12
