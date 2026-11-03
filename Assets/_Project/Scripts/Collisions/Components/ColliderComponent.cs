@@ -72,10 +72,20 @@ namespace Asteroids.Collisions.Components
         private IDisposable RegisterCollider()
         {
             var col = CreateCollider(ResolveOwner());
-            _system.Register(col);
+            var handle = _system.Register(col);
             _collider = col;
 
-            return new ColliderRegistration(_system, col, () => _collider = null);
+            return new DisposableAction(() =>
+            {
+                try
+                {
+                    handle.Dispose();
+                }
+                finally
+                {
+                    _collider = null;
+                }
+            });
         }
 
         /// <summary>The sibling entity if there is one, otherwise this GameObject.</summary>
@@ -91,32 +101,6 @@ namespace Asteroids.Collisions.Components
             ?? throw new InvalidOperationException(
                 $"{GetType().Name} on '{name}' needs a sibling component implementing " +
                 $"{nameof(IEntityProvider)} (add EntityComponent).");
-
-        private sealed class ColliderRegistration : IDisposable
-        {
-            private readonly ICollisionSystem _system;
-            private readonly ICollider _collider;
-            private readonly Action _onReleased;
-
-            public ColliderRegistration(ICollisionSystem system, ICollider collider, Action onReleased)
-            {
-                _system = system;
-                _collider = collider;
-                _onReleased = onReleased;
-            }
-
-            public void Dispose()
-            {
-                try
-                {
-                    _system.Unregister(_collider);
-                }
-                finally
-                {
-                    _onReleased();
-                }
-            }
-        }
 
 #if UNITY_EDITOR
         private void OnDrawGizmos()

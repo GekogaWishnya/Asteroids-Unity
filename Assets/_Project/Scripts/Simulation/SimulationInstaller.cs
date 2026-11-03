@@ -1,3 +1,4 @@
+using Asteroids.Common;
 using Zenject;
 
 namespace Asteroids.Simulation
@@ -6,6 +7,7 @@ namespace Asteroids.Simulation
     {
         public override void InstallBindings()
         {
+            Container.Bind<IErrorLog>().To<UnityErrorLog>().AsSingle();
             Container.BindInterfacesTo<SimulationLoop>().AsSingle();
         }
     }

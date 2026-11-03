@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Asteroids.Common;
+using Asteroids.Core;
 using Asteroids.Health;
 using UnityEngine;
 
@@ -91,11 +92,7 @@ namespace Asteroids.Enemies
             }
         }
 
-        private IDisposable ListenForDepletion()
-        {
-            _health.Depleted += OnDepleted;
-            return new DepletionSubscription(_health, OnDepleted);
-        }
+        private IDisposable ListenForDepletion() => _health.SubscribeDepleted(OnDepleted);
 
         private void OnDepleted()
         {
@@ -133,20 +130,6 @@ namespace Asteroids.Enemies
             {
                 _view.Hide();
             }
-        }
-
-        private sealed class DepletionSubscription : IDisposable
-        {
-            private readonly HealthModel _health;
-            private readonly Action _handler;
-
-            public DepletionSubscription(HealthModel health, Action handler)
-            {
-                _health = health;
-                _handler = handler;
-            }
-
-            public void Dispose() => _health.Depleted -= _handler;
         }
     }
 }

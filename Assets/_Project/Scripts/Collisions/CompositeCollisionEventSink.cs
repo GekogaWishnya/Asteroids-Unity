@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using Asteroids.Common;
 
 namespace Asteroids.Collisions
 {
@@ -20,17 +21,56 @@ namespace Asteroids.Collisions
 
         public void Entered(ICollider self, ICollider other, in Contact contact)
         {
-            foreach (var sink in _sinks) sink.Entered(self, other, contact);
+            var failures = new FailureCollector();
+            foreach (var sink in _sinks)
+            {
+                try
+                {
+                    sink.Entered(self, other, contact);
+                }
+                catch (Exception e)
+                {
+                    failures.Record(e);
+                }
+            }
+
+            failures.ThrowIfFailed();
         }
 
         public void Stayed(ICollider self, ICollider other, in Contact contact)
         {
-            foreach (var sink in _sinks) sink.Stayed(self, other, contact);
+            var failures = new FailureCollector();
+            foreach (var sink in _sinks)
+            {
+                try
+                {
+                    sink.Stayed(self, other, contact);
+                }
+                catch (Exception e)
+                {
+                    failures.Record(e);
+                }
+            }
+
+            failures.ThrowIfFailed();
         }
 
         public void Exited(ICollider self, ICollider other)
         {
-            foreach (var sink in _sinks) sink.Exited(self, other);
+            var failures = new FailureCollector();
+            foreach (var sink in _sinks)
+            {
+                try
+                {
+                    sink.Exited(self, other);
+                }
+                catch (Exception e)
+                {
+                    failures.Record(e);
+                }
+            }
+
+            failures.ThrowIfFailed();
         }
     }
 }

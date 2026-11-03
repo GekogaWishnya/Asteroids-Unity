@@ -77,19 +77,22 @@ namespace Asteroids.Collisions
             if (_colliders.IsLocked)
                 throw new InvalidOperationException($"{nameof(Tick)} can't be called during stepping.");
 
+            var failures = new FailureCollector();
             _colliders.Lock();
             try
             {
                 unchecked { _stamp++; }
                 Detect();
-                Dispatch();
-                ExpireStalePairs();
+                Dispatch(ref failures);
+                ExpireStalePairs(ref failures);
             }
             finally
             {
                 _detected.Clear();
                 _colliders.Unlock();
             }
+            
+            failures.ThrowIfFailed();
         }
 
         private void Detect()
@@ -108,10 +111,12 @@ namespace Asteroids.Collisions
             }
         }
 
-        private void Dispatch()
+        private void Dispatch(ref FailureCollector failures)
         {
             foreach (var detected in _detected)
             {
+                if (!_registered.Contains(detected.First) || !_registered.Contains(detected.Second)) continue;
+
                 var pair = new ColliderPair(detected.First, detected.Second);
                 var isNew = !_active.ContainsKey(pair);
                 _active[pair] = _stamp;
@@ -119,18 +124,18 @@ namespace Asteroids.Collisions
                 var inverted = detected.Contact.Inverted;
                 if (isNew)
                 {
-                    _sink.Entered(detected.First, detected.Second, detected.Contact);
-                    _sink.Entered(detected.Second, detected.First, inverted);
+                    NotifyEntered(detected.First, detected.Second, detected.Contact, ref failures);
+                    NotifyEntered(detected.Second, detected.First, inverted, ref failures);
                 }
                 else
                 {
-                    _sink.Stayed(detected.First, detected.Second, detected.Contact);
-                    _sink.Stayed(detected.Second, detected.First, inverted);
+                    NotifyStayed(detected.First, detected.Second, detected.Contact, ref failures);
+                    NotifyStayed(detected.Second, detected.First, inverted, ref failures);
                 }
             }
         }
 
-        private void ExpireStalePairs()
+        private void ExpireStalePairs(ref FailureCollector failures)
         {
             _expired.Clear();
             foreach (var entry in _active)
@@ -139,8 +144,44 @@ namespace Asteroids.Collisions
             foreach (var pair in _expired)
             {
                 _active.Remove(pair);
-                _sink.Exited(pair.First, pair.Second);
-                _sink.Exited(pair.Second, pair.First);
+                NotifyExited(pair.First, pair.Second, ref failures);
+                NotifyExited(pair.Second, pair.First, ref failures);
+            }
+        }
+
+        private void NotifyEntered(ICollider self, ICollider other, in Contact contact, ref FailureCollector failures)
+        {
+            try
+            {
+                _sink.Entered(self, other, contact);
+            }
+            catch (Exception e)
+            {
+                failures.Record(e);
+            }
+        }
+
+        private void NotifyStayed(ICollider self, ICollider other, in Contact contact, ref FailureCollector failures)
+        {
+            try
+            {
+                _sink.Stayed(self, other, contact);
+            }
+            catch (Exception e)
+            {
+                failures.Record(e);
+            }
+        }
+
+        private void NotifyExited(ICollider self, ICollider other, ref FailureCollector failures)
+        {
+            try
+            {
+                _sink.Exited(self, other);
+            }
+            catch (Exception e)
+            {
+                failures.Record(e);
             }
         }
 
@@ -158,12 +199,15 @@ namespace Asteroids.Collisions
 
                 for (var i = 0; i < ended.Count; i++) _active.Remove(ended[i]);
 
+                var failures = new FailureCollector();
                 for (var i = 0; i < ended.Count; i++)
                 {
                     var pair = ended[i];
-                    _sink.Exited(pair.First, pair.Second);
-                    _sink.Exited(pair.Second, pair.First);
+                    NotifyExited(pair.First, pair.Second, ref failures);
+                    NotifyExited(pair.Second, pair.First, ref failures);
                 }
+
+                failures.ThrowIfFailed();
             }
             finally
             {

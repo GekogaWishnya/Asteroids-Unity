@@ -24,6 +24,13 @@ namespace Asteroids.Collisions.Tests
             public void Exited(ICollider self, ICollider other) => _log.Add($"{_name} exited");
         }
 
+        private sealed class ThrowingSink : ICollisionEventSink
+        {
+            public void Entered(ICollider self, ICollider other, in Contact contact) => throw new InvalidOperationException();
+            public void Stayed(ICollider self, ICollider other, in Contact contact) => throw new InvalidOperationException();
+            public void Exited(ICollider self, ICollider other) => throw new InvalidOperationException();
+        }
+
         [Test]
         public void EveryEvent_GoesToEverySinkInOrder()
         {
@@ -41,6 +48,22 @@ namespace Asteroids.Collisions.Tests
             {
                 "a entered", "b entered", "a stayed", "b stayed", "a exited", "b exited"
             }));
+        }
+
+        [Test]
+        public void EveryEvent_ASinkThrows_LaterSinksStillGetItAndTheFailureIsRethrown()
+        {
+            var log = new List<string>();
+            var sink = new CompositeCollisionEventSink(new ThrowingSink(), new LoggingSink("b", log));
+            var first = new FakeCollider("first");
+            var second = new FakeCollider("second");
+            var contact = new Contact(Vector2.up, 1f);
+
+            Assert.Throws<InvalidOperationException>(() => sink.Entered(first, second, contact));
+            Assert.Throws<InvalidOperationException>(() => sink.Stayed(first, second, contact));
+            Assert.Throws<InvalidOperationException>(() => sink.Exited(first, second));
+
+            Assert.That(log, Is.EqualTo(new[] { "b entered", "b stayed", "b exited" }));
         }
 
         [Test]

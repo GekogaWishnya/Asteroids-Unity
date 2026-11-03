@@ -551,5 +551,112 @@ namespace Asteroids.Collisions.Tests
 
             Assert.That(_sink.Notifications, Is.Empty);
         }
+        // ---- Stale contacts and failing handlers ----
+
+        [Test]
+        public void Tick_ColliderUnregisteredByAnEarlierContact_ItsLaterContactsAreSkipped()
+        {
+            var a = CreateCollider("a", overlaps: true);
+            var b = CreateCollider("b");
+            var c = CreateCollider("c");
+            _sink[a] = n =>
+            {
+                if (ReferenceEquals(n.Other, b)) _system.Unregister(c);
+            };
+            _system.Register(a);
+            _system.Register(b);
+            _system.Register(c);
+
+            _system.Tick(0f);
+
+            Assert.That(Count(b, NotificationKind.Entered), Is.EqualTo(1));
+            Assert.That(_sink.For(c), Is.Empty);
+            Assert.That(Count(a, NotificationKind.Entered), Is.EqualTo(1));
+        }
+
+        [Test]
+        public void Tick_ActivePairSkippedAsStale_EndsWithOneExitedPerSide()
+        {
+            var a = CreateCollider("a", overlaps: true);
+            var b = CreateCollider("b");
+            var c = CreateCollider("c");
+            _system.Register(a);
+            _system.Register(b);
+            _system.Register(c);
+            _system.Tick(0f);
+            _sink.Notifications.Clear();
+            _sink[a] = n =>
+            {
+                if (n.Kind == NotificationKind.Stayed && ReferenceEquals(n.Other, b)) _system.Unregister(c);
+            };
+
+            _system.Tick(0f);
+            _system.Tick(0f);
+
+            Assert.That(Count(c, NotificationKind.Stayed), Is.Zero);
+            Assert.That(Count(c, NotificationKind.Exited), Is.EqualTo(1));
+            Assert.That(_sink.For(a).FindAll(n => n.Kind == NotificationKind.Exited && ReferenceEquals(n.Other, c)).Count,
+                Is.EqualTo(1));
+        }
+
+        [Test]
+        public void Tick_HandlerThrowsOnTheFirstSide_SecondSideAndLaterPairsStillGetTheirEvents()
+        {
+            var a = CreateCollider("a", overlaps: true);
+            var b = CreateCollider("b");
+            var c = CreateCollider("c");
+            _sink[a] = n =>
+            {
+                if (ReferenceEquals(n.Other, b)) throw new InvalidOperationException("boom");
+            };
+            _system.Register(a);
+            _system.Register(b);
+            _system.Register(c);
+
+            Assert.Throws<InvalidOperationException>(() => _system.Tick(0f));
+
+            Assert.That(Count(b, NotificationKind.Entered), Is.EqualTo(1));
+            Assert.That(Count(c, NotificationKind.Entered), Is.EqualTo(1));
+        }
+
+        [Test]
+        public void Tick_HandlerThrewOnEntered_PairContinuesWithStayed()
+        {
+            var a = CreateCollider("a", overlaps: true);
+            var b = CreateCollider("b");
+            _sink[a] = _ => throw new InvalidOperationException("boom");
+            _system.Register(a);
+            _system.Register(b);
+            Assert.Throws<InvalidOperationException>(() => _system.Tick(0f));
+            _sink[a] = null;
+            _sink.Notifications.Clear();
+
+            _system.Tick(0f);
+
+            Assert.That(Count(a, NotificationKind.Stayed), Is.EqualTo(1));
+            Assert.That(Count(b, NotificationKind.Stayed), Is.EqualTo(1));
+        }
+
+        [Test]
+        public void Unregister_ExitedHandlerThrows_OtherSidesStillExitAndFailureIsRethrown()
+        {
+            var a = CreateCollider("a", overlaps: true);
+            var b = CreateCollider("b");
+            var c = CreateCollider("c");
+            _system.Register(a);
+            _system.Register(b);
+            _system.Register(c);
+            _system.Tick(0f);
+            _sink[b] = n =>
+            {
+                if (n.Kind == NotificationKind.Exited) throw new InvalidOperationException("boom");
+            };
+
+            Assert.Throws<InvalidOperationException>(() => _system.Unregister(a));
+
+            Assert.That(Count(b, NotificationKind.Exited), Is.EqualTo(1));
+            Assert.That(Count(c, NotificationKind.Exited), Is.EqualTo(1));
+            Assert.That(Count(a, NotificationKind.Exited), Is.EqualTo(2));
+        }
     }
 }

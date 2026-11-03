@@ -1,4 +1,5 @@
 using System;
+using Asteroids.Common;
 using Asteroids.Core;
 using Asteroids.Core.IConfigs;
 using Asteroids.Invulnerability;
@@ -26,7 +27,10 @@ namespace Asteroids.Player
             if (_guard != null) throw new InvalidOperationException("A ship is already attached.");
 
             _guard = guard;
-            return new Attachment(this, guard);
+            return new DisposableAction(() =>
+            {
+                if (ReferenceEquals(_guard, guard)) _guard = null;
+            });
         }
 
         public void OnWaveStarted(WaveStarted signal)
@@ -35,23 +39,6 @@ namespace Asteroids.Player
             if (_guard == null || seconds <= 0f) return;
 
             _guard.Grant(seconds);
-        }
-
-        private sealed class Attachment : IDisposable
-        {
-            private readonly WaveStartProtection _owner;
-            private readonly InvulnerabilityGuard _guard;
-
-            public Attachment(WaveStartProtection owner, InvulnerabilityGuard guard)
-            {
-                _owner = owner;
-                _guard = guard;
-            }
-
-            public void Dispose()
-            {
-                if (ReferenceEquals(_owner._guard, _guard)) _owner._guard = null;
-            }
         }
     }
 }

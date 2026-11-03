@@ -18,7 +18,8 @@ namespace Asteroids.Collisions
 
         /// <summary>
         /// Returns false if not registered. After being unregistered collider gets Exit signal.
-        /// Deferred to the end of the tick if called during a tick. The collider still gets this tick's events.
+        /// Deferred to the end of the tick if called during a tick.
+        /// Contacts of the collider that come later in the same tick are skipped.
         /// </summary>
         bool Unregister(ICollider collider);
     }

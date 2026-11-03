@@ -57,8 +57,7 @@ namespace Asteroids.Weapons.Laser
                 () => _loop.Register(SimulationPhase.Input, new TriggerStep(this, pose, trigger)),
                 () => _loop.Register(SimulationPhase.Motion, new AimStep(this, pose)),
                 () => _loop.Register(SimulationPhase.Logic, new HitStep(_hits)),
-                // Last, so it is the first to go: the beam is out before anything else is taken down.
-                () => new BeamShutdown(this)
+                () => new DisposableAction(Shutdown)
             }));
 
             attachment.Scope.Enable();
@@ -178,15 +177,6 @@ namespace Asteroids.Weapons.Laser
             public HitStep(LaserHitTable hits) => _hits = hits;
 
             public void Tick(float deltaTime) => _hits.Tick(deltaTime);
-        }
-
-        private sealed class BeamShutdown : IDisposable
-        {
-            private readonly LaserWeapon _weapon;
-
-            public BeamShutdown(LaserWeapon weapon) => _weapon = weapon;
-
-            public void Dispose() => _weapon.Shutdown();
         }
 
         private sealed class Attachment : IDisposable

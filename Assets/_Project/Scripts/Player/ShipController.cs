@@ -54,30 +54,12 @@ namespace Asteroids.Player
 
         public void Disable() => _registrations.Disable();
 
-        private IDisposable ListenForDepletion()
-        {
-            _health.Depleted += OnDepleted;
-            return new DepletionSubscription(_health, OnDepleted);
-        }
+        private IDisposable ListenForDepletion() => _health.SubscribeDepleted(OnDepleted);
 
         private void OnDepleted()
         {
             Disable();
             _events.Destroyed(_entity);
-        }
-
-        private sealed class DepletionSubscription : IDisposable
-        {
-            private readonly IHealth _health;
-            private readonly Action _handler;
-
-            public DepletionSubscription(IHealth health, Action handler)
-            {
-                _health = health;
-                _handler = handler;
-            }
-
-            public void Dispose() => _health.Depleted -= _handler;
         }
     }
 }

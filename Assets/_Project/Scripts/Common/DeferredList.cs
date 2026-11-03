@@ -51,14 +51,22 @@ namespace Asteroids.Common
         {
             if (!IsLocked) throw new InvalidOperationException($"{nameof(DeferredList<T>)} is not locked.");
 
+            var failures = new FailureCollector();
             try
             {
                 // Index loop on purpose - callbacks fired below may queue further changes.
                 for (var i = 0; i < _pending.Count; i++)
                 {
                     var change = _pending[i];
-                    if (change.IsAdd) ApplyAdd(change.Item);
-                    else ApplyRemove(change.Item);
+                    try
+                    {
+                        if (change.IsAdd) ApplyAdd(change.Item);
+                        else ApplyRemove(change.Item);
+                    }
+                    catch (Exception e)
+                    {
+                        failures.Record(e);
+                    }
                 }
             }
             finally
@@ -66,6 +74,8 @@ namespace Asteroids.Common
                 _pending.Clear();
                 IsLocked = false;
             }
+
+            failures.ThrowIfFailed();
         }
 
         private void ApplyAdd(T item)

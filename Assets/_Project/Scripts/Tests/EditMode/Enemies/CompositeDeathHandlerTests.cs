@@ -8,6 +8,15 @@ namespace Asteroids.Enemies.Tests
     [TestFixture]
     public sealed class CompositeDeathHandlerTests
     {
+        private sealed class ThrowingHandler : IEnemyDeathHandler
+        {
+            private readonly Exception _failure;
+
+            public ThrowingHandler(Exception failure) => _failure = failure;
+
+            public void Died(Vector2 position) => throw _failure;
+        }
+
         private sealed class NamedHandler : IEnemyDeathHandler
         {
             private readonly string _name;
@@ -68,7 +77,7 @@ namespace Asteroids.Enemies.Tests
         }
 
         [Test]
-        public void Died_AHandlerThrows_StopsThereAndRethrows()
+        public void Died_AHandlerThrows_RunsTheRestAndRethrows()
         {
             var log = new List<string>();
             var composite = new CompositeDeathHandler(new IEnemyDeathHandler[]
@@ -79,7 +88,22 @@ namespace Asteroids.Enemies.Tests
 
             Assert.Throws<InvalidOperationException>(() => composite.Died(Vector2.zero));
 
-            Assert.That(log, Is.EqualTo(new[] { "first", "second" }));
+            Assert.That(log, Is.EqualTo(new[] { "first", "second", "third" }));
+        }
+
+        [Test]
+        public void Died_TwoHandlersThrow_RethrowsTheFirstAfterAllRan()
+        {
+            var log = new List<string>();
+            var composite = new CompositeDeathHandler(new IEnemyDeathHandler[]
+            {
+                new NamedHandler("first", log, throws: true), new ThrowingHandler(new ArgumentException("second")),
+                new NamedHandler("third", log)
+            });
+
+            Assert.Throws<InvalidOperationException>(() => composite.Died(Vector2.zero));
+
+            Assert.That(log, Is.EqualTo(new[] { "first", "third" }));
         }
 
         [Test]

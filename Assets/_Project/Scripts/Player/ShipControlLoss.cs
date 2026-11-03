@@ -1,4 +1,5 @@
 using System;
+using Asteroids.Common;
 using Asteroids.Core;
 
 namespace Asteroids.Player
@@ -51,7 +52,13 @@ namespace Asteroids.Player
         private IDisposable Track()
         {
             _isAttached = true;
-            return new Tracking(this);
+            return new DisposableAction(Detach);
+        }
+
+        private void Detach()
+        {
+            _isAttached = false;
+            _countdown.Remaining = 0f;
         }
 
         private sealed class Countdown : ISimulationStep
@@ -59,19 +66,6 @@ namespace Asteroids.Player
             public float Remaining { get; set; }
 
             public void Tick(float deltaTime) => Remaining = Math.Max(0f, Remaining - deltaTime);
-        }
-
-        private sealed class Tracking : IDisposable
-        {
-            private readonly ShipControlLoss _owner;
-
-            public Tracking(ShipControlLoss owner) => _owner = owner;
-
-            public void Dispose()
-            {
-                _owner._isAttached = false;
-                _owner._countdown.Remaining = 0f;
-            }
         }
     }
 }

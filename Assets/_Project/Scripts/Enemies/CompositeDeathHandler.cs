@@ -1,12 +1,13 @@
 using System;
 using System.Collections.Generic;
+using Asteroids.Common;
 using UnityEngine;
 
 namespace Asteroids.Enemies
 {
     /// <summary>
-    /// Runs several death handlers in the order given. If one throws, the exception propagates and the
-    /// handlers after it do not run. With no handlers does nothing.
+    /// Runs several death handlers in the order given. If one throws, the others still run and
+    /// the first exception is rethrown afterward.
     /// </summary>
     public sealed class CompositeDeathHandler : IEnemyDeathHandler
     {
@@ -29,7 +30,20 @@ namespace Asteroids.Enemies
 
         public void Died(Vector2 position)
         {
-            foreach (var handler in _handlers) handler.Died(position);
+            var failures = new FailureCollector();
+            foreach (var handler in _handlers)
+            {
+                try
+                {
+                    handler.Died(position);
+                }
+                catch (Exception e)
+                {
+                    failures.Record(e);
+                }
+            }
+
+            failures.ThrowIfFailed();
         }
     }
 }
