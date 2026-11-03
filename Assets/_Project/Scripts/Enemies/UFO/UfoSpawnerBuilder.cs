@@ -13,6 +13,7 @@ namespace Asteroids.Enemies
         private readonly IEnemyViewFactory _views;
         private readonly IPlayerTarget _target;
         private readonly ISimulationLoop _loop;
+        private readonly IWrapRegistry _wrap;
         private readonly IDamageRegistry _damageRegistry;
         private readonly IKineticBodyRegistry _bodyRegistry;
         private readonly IScoreSink _score;
@@ -27,6 +28,7 @@ namespace Asteroids.Enemies
             IEnemyViewFactory views,
             IPlayerTarget target,
             ISimulationLoop loop,
+            IWrapRegistry wrap,
             IDamageRegistry damageRegistry,
             IKineticBodyRegistry bodyRegistry,
             IScoreSink score,
@@ -37,6 +39,7 @@ namespace Asteroids.Enemies
             _views = views ?? throw new ArgumentNullException(nameof(views));
             _target = target ?? throw new ArgumentNullException(nameof(target));
             _loop = loop ?? throw new ArgumentNullException(nameof(loop));
+            _wrap = wrap ?? throw new ArgumentNullException(nameof(wrap));
             _damageRegistry = damageRegistry ?? throw new ArgumentNullException(nameof(damageRegistry));
             _bodyRegistry = bodyRegistry ?? throw new ArgumentNullException(nameof(bodyRegistry));
             _score = score ?? throw new ArgumentNullException(nameof(score));
@@ -70,6 +73,7 @@ namespace Asteroids.Enemies
                 type,
                 _target,
                 _loop,
+                _wrap,
                 _damageRegistry,
                 _bodyRegistry,
                 CreateDeathHandler(type));

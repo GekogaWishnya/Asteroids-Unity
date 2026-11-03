@@ -16,6 +16,7 @@ namespace Asteroids.Enemies.Tests
         {
             public readonly FakeEnemyViewFactory Views = new() { CreateEntity = () => new Entity(new BodyPose()) };
             public readonly FakeSimulationLoop Loop = new();
+            public readonly FakeWrapRegistry Wrap = new();
             public readonly FakeDamageRegistry Damage = new();
             public readonly FakeKineticBodyRegistry Bodies = new();
             public readonly FakePlayerTarget Target = FakePlayerTarget.At(0f, 0f);
@@ -30,7 +31,7 @@ namespace Asteroids.Enemies.Tests
             }
 
             public UfoController CreateController() =>
-                new(Views.Create(Config.Type), Config, Target, Loop, Damage, Bodies, new RecordingDeathHandler());
+                new(Views.Create(Config.Type), Config, Target, Loop, Wrap, Damage, Bodies, new RecordingDeathHandler());
 
             public Vector2 LatestPosition => Views.Views[Views.Views.Count - 1].Entity.Pose.Position;
             public Vector2 LatestVelocity => Bodies.Registrations[Bodies.Registrations.Count - 1].Body.Velocity;

@@ -16,6 +16,7 @@ namespace Asteroids.Enemies.Tests
                     new FakeEnemyView(),
                     new TestAsteroidType(id),
                     new FakeSimulationLoop(),
+                    new FakeWrapRegistry(),
                     new FakeDamageRegistry(),
                     new FakeKineticBodyRegistry(),
                     new RecordingDeathHandler()),

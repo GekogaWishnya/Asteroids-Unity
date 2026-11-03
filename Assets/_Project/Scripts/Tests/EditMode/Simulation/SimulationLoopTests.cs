@@ -72,10 +72,11 @@ namespace Asteroids.Simulation.Tests
             _loop.Register(SimulationPhase.Collision, new Step("collision", _log));
             _loop.Register(SimulationPhase.Input, new Step("input 2", _log));
             _loop.Register(SimulationPhase.Motion, new Step("motion", _log));
+            _loop.Register(SimulationPhase.Constraint, new Step("constraint", _log));
 
             _loop.Tick();
 
-            Assert.That(_log, Is.EqualTo(new[] { "input 1", "input 2", "motion", "collision", "logic" }));
+            Assert.That(_log, Is.EqualTo(new[] { "input 1", "input 2", "motion", "constraint", "collision", "logic" }));
         }
 
         [Test]

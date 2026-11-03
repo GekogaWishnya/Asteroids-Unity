@@ -13,6 +13,7 @@ namespace Asteroids.Weapons.Tests
 
         private TestWeaponConfig _config;
         private FakeSimulationLoop _loop;
+        private FakeWrapRegistry _wrap;
         private FakeProjectileViewFactory _views;
         private ProjectilePool _pool;
         private TestEntity _carrier;
@@ -26,8 +27,9 @@ namespace Asteroids.Weapons.Tests
                 FireInterval = 0.25f, MuzzleOffset = 0.5f, ProjectileSpeed = 10f, ProjectileLifetime = 5f
             };
             _loop = new FakeSimulationLoop();
+            _wrap = new FakeWrapRegistry();
             _views = new FakeProjectileViewFactory();
-            _pool = new ProjectilePool(_config, _views, _loop, new FakeDamageRegistry(), new ProjectileRegistry());
+            _pool = new ProjectilePool(_config, _views, _loop, _wrap, new FakeDamageRegistry(), new ProjectileRegistry());
             _carrier = new TestEntity();
             _trigger = new TestTrigger();
         }

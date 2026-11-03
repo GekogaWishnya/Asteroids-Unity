@@ -16,5 +16,5 @@ MonoBehaviour:
   ramDamage: 1
   invulnerabilitySeconds: 3
   controlLossSeconds: 3
-  ignoredLayers: 10
+  keptLayers: 0
   waveStartProtectionSeconds: 1.2

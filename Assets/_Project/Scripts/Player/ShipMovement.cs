@@ -16,6 +16,7 @@ namespace Asteroids.Player
         private readonly IMovementInput _input;
         private readonly IShipMovementConfig _config;
         private readonly ISimulationLoop _loop;
+        private readonly IWrapRegistry _wrap;
         private readonly IKineticBodyRegistry _bodies;
         private readonly InertialMotion _motion;
         private readonly KineticBody _body;
@@ -27,12 +28,14 @@ namespace Asteroids.Player
             IShipControlLock controlLock,
             IShipMovementConfig config,
             ISimulationLoop loop,
+            IWrapRegistry wrap,
             IKineticBodyRegistry bodies)
         {
             if (input == null) throw new ArgumentNullException(nameof(input));
             if (controlLock == null) throw new ArgumentNullException(nameof(controlLock));
             _config = config ?? throw new ArgumentNullException(nameof(config));
             _loop = loop ?? throw new ArgumentNullException(nameof(loop));
+            _wrap = wrap ?? throw new ArgumentNullException(nameof(wrap));
             _bodies = bodies ?? throw new ArgumentNullException(nameof(bodies));
 
             _input = new GatedMovementInput(input, controlLock);
@@ -55,6 +58,7 @@ namespace Asteroids.Player
             {
                 () => _loop.Register(SimulationPhase.Input, controlStep),
                 () => _loop.Register(SimulationPhase.Motion, motionStep),
+                () => _wrap.Register(pose),
                 () => _bodies.Register(ship, _body)
             });
         }

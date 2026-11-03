@@ -13,6 +13,7 @@ namespace Asteroids.Player.Tests
         private const float Tolerance = 1e-4f;
 
         private FakeSimulationLoop _loop;
+        private FakeWrapRegistry _wrap;
         private TestShipInput _input;
         private TestControlLock _lock;
         private FakeKineticBodyRegistry _bodies;
@@ -24,6 +25,7 @@ namespace Asteroids.Player.Tests
         public void SetUp()
         {
             _loop = new FakeSimulationLoop();
+            _wrap = new FakeWrapRegistry();
             _input = new TestShipInput();
             _lock = new TestControlLock();
             _bodies = new FakeKineticBodyRegistry();
@@ -32,7 +34,7 @@ namespace Asteroids.Player.Tests
             _ship = new Entity(_pose);
         }
 
-        private ShipMovement Create() => new(_input, _lock, _config, _loop, _bodies);
+        private ShipMovement Create() => new(_input, _lock, _config, _loop, _wrap, _bodies);
 
         [Test]
         public void Construct_RegistersNothing()
@@ -51,6 +53,18 @@ namespace Asteroids.Player.Tests
             Assert.That(_bodies.LiveCount, Is.EqualTo(1));
             Assert.That(_bodies.Registrations[0].Entity, Is.SameAs(_ship));
             Assert.That(_bodies.Registrations[0].Body.MinKnockbackSpeed, Is.EqualTo(_config.MinKnockbackSpeed));
+        }
+
+        [Test]
+        public void Attach_WrapsTheShipsPoseUntilDetached()
+        {
+            var attachment = Create().Attach(_ship);
+
+            Assert.That(_wrap.Poses, Is.EqualTo(new[] { _ship.Pose }));
+
+            attachment.Dispose();
+
+            Assert.That(_wrap.Poses, Is.Empty);
         }
 
         [Test]
@@ -224,11 +238,12 @@ namespace Asteroids.Player.Tests
         [Test]
         public void Construct_NullArguments_Throw()
         {
-            Assert.Throws<ArgumentNullException>(() => new ShipMovement(null, _lock, _config, _loop, _bodies));
-            Assert.Throws<ArgumentNullException>(() => new ShipMovement(_input, null, _config, _loop, _bodies));
-            Assert.Throws<ArgumentNullException>(() => new ShipMovement(_input, _lock, null, _loop, _bodies));
-            Assert.Throws<ArgumentNullException>(() => new ShipMovement(_input, _lock, _config, null, _bodies));
-            Assert.Throws<ArgumentNullException>(() => new ShipMovement(_input, _lock, _config, _loop, null));
+            Assert.Throws<ArgumentNullException>(() => new ShipMovement(null, _lock, _config, _loop, _wrap, _bodies));
+            Assert.Throws<ArgumentNullException>(() => new ShipMovement(_input, null, _config, _loop, _wrap, _bodies));
+            Assert.Throws<ArgumentNullException>(() => new ShipMovement(_input, _lock, null, _loop, _wrap, _bodies));
+            Assert.Throws<ArgumentNullException>(() => new ShipMovement(_input, _lock, _config, null, _wrap, _bodies));
+            Assert.Throws<ArgumentNullException>(() => new ShipMovement(_input, _lock, _config, _loop, null, _bodies));
+            Assert.Throws<ArgumentNullException>(() => new ShipMovement(_input, _lock, _config, _loop, _wrap, null));
         }
     }
 }

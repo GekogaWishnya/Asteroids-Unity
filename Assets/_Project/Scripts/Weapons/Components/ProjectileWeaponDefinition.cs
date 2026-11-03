@@ -57,7 +57,12 @@ namespace Asteroids.Weapons.Components
             var loop = container.Resolve<ISimulationLoop>();
             var views = new PrefabProjectileViewFactory(container, this);
             var pool = new ProjectilePool(
-                this, views, loop, container.Resolve<IDamageRegistry>(), container.Resolve<IProjectileRegistry>());
+                this,
+                views,
+                loop,
+                container.Resolve<IWrapRegistry>(),
+                container.Resolve<IDamageRegistry>(),
+                container.Resolve<IProjectileRegistry>());
 
             pool.Prewarm();
             return new ProjectileWeapon(this, loop, pool);

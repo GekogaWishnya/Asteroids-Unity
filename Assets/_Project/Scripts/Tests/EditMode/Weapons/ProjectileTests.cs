@@ -14,6 +14,7 @@ namespace Asteroids.Weapons.Tests
         private FakeProjectileView _view;
         private TestWeaponConfig _config;
         private FakeSimulationLoop _loop;
+        private FakeWrapRegistry _wrap;
         private FakeDamageRegistry _damage;
         private ProjectileRegistry _projectiles;
 
@@ -23,11 +24,12 @@ namespace Asteroids.Weapons.Tests
             _view = new FakeProjectileView();
             _config = new TestWeaponConfig { ProjectileLifetime = 1f, ProjectileSpeed = 10f, ProjectileDamage = 2 };
             _loop = new FakeSimulationLoop();
+            _wrap = new FakeWrapRegistry();
             _damage = new FakeDamageRegistry();
             _projectiles = new ProjectileRegistry();
         }
 
-        private Projectile Create() => new(_view, _config, _loop, _damage, _projectiles);
+        private Projectile Create() => new(_view, _config, _loop, _wrap, _damage, _projectiles);
 
         private static ProjectileLaunch Launch(Vector2 position, Vector2 velocity, float angle = 0f) =>
             new(position, angle, velocity);
@@ -67,6 +69,18 @@ namespace Asteroids.Weapons.Tests
             Assert.That(source, Is.SameAs(projectile));
             Assert.That(_projectiles.TryGet(_view.Entity, out var registered), Is.True);
             Assert.That(registered, Is.SameAs(projectile));
+        }
+
+        [Test]
+        public void Launch_WrapsThePoseUntilTheProjectileRetires()
+        {
+            var projectile = Create();
+
+            projectile.Launch(Launch(Vector2.zero, Vector2.up));
+            Assert.That(_wrap.Poses, Is.EqualTo(new[] { _view.Entity.Pose }));
+
+            _loop.Tick(2f);
+            Assert.That(_wrap.Poses, Is.Empty);
         }
 
         [Test]
@@ -223,11 +237,12 @@ namespace Asteroids.Weapons.Tests
         [Test]
         public void Construct_NullArguments_Throw()
         {
-            Assert.Throws<ArgumentNullException>(() => new Projectile(null, _config, _loop, _damage, _projectiles));
-            Assert.Throws<ArgumentNullException>(() => new Projectile(_view, null, _loop, _damage, _projectiles));
-            Assert.Throws<ArgumentNullException>(() => new Projectile(_view, _config, null, _damage, _projectiles));
-            Assert.Throws<ArgumentNullException>(() => new Projectile(_view, _config, _loop, null, _projectiles));
-            Assert.Throws<ArgumentNullException>(() => new Projectile(_view, _config, _loop, _damage, null));
+            Assert.Throws<ArgumentNullException>(() => new Projectile(null, _config, _loop, _wrap, _damage, _projectiles));
+            Assert.Throws<ArgumentNullException>(() => new Projectile(_view, null, _loop, _wrap, _damage, _projectiles));
+            Assert.Throws<ArgumentNullException>(() => new Projectile(_view, _config, null, _wrap, _damage, _projectiles));
+            Assert.Throws<ArgumentNullException>(() => new Projectile(_view, _config, _loop, null, _damage, _projectiles));
+            Assert.Throws<ArgumentNullException>(() => new Projectile(_view, _config, _loop, _wrap, null, _projectiles));
+            Assert.Throws<ArgumentNullException>(() => new Projectile(_view, _config, _loop, _wrap, _damage, null));
         }
     }
 }

@@ -23,6 +23,7 @@ namespace Asteroids.Player.Tests
             public readonly FakeSimulationLoop Loop = new();
             public readonly FakeDamageRegistry Registry = new();
             public readonly FakeKineticBodyRegistry Bodies = new();
+            public readonly FakeWrapRegistry Wrap = new();
             public readonly FakeWeapon Weapon = new();
             public readonly FakeCollisionIgnore Collider = new();
             public readonly FakeProtectionView View = new();
@@ -45,6 +46,7 @@ namespace Asteroids.Player.Tests
                 Container.Bind<ISimulationLoop>().FromInstance(Loop);
                 Container.Bind<IDamageRegistry>().FromInstance(Registry);
                 Container.Bind<IKineticBodyRegistry>().FromInstance(Bodies);
+                Container.Bind<IWrapRegistry>().FromInstance(Wrap);
                 Container.Bind<IShipLoadout>().FromInstance(new FakeLoadout { Primary = Weapon });
 
                 PlayerInstaller.Install(Container);
@@ -74,6 +76,7 @@ namespace Asteroids.Player.Tests
             Assert.That(rig.Loop.LiveCount(SimulationPhase.Logic), Is.EqualTo(2));
             Assert.That(rig.Bodies.LiveCount, Is.EqualTo(1));
             Assert.That(rig.Bodies.Registrations[0].Entity, Is.SameAs(rig.Entity));
+            Assert.That(rig.Wrap.Poses, Is.EqualTo(new[] { rig.Pose }));
             Assert.That(rig.Registry.LiveDamageables, Is.EqualTo(1));
             Assert.That(rig.Registry.LiveSources, Is.EqualTo(1));
             Assert.That(rig.Weapon.LiveCount, Is.EqualTo(1));

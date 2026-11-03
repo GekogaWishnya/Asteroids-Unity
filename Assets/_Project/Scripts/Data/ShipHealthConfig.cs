@@ -21,9 +21,8 @@ namespace Asteroids.Data
         [Tooltip("Seconds after a hit during which the ship cannot be steered, thrust or fired. 0 effectively turns it off")]
         [SerializeField, Min(0f)] private float controlLossSeconds = 3f;
 
-        [Tooltip("The only layers the ship's colliders still react to while protected. Everything else is " +
-                 "ignored. Keep Boundary or the ship will stop wrapping around the world.")]
-        [SerializeField] private CollisionLayer keptLayers = CollisionLayer.Boundary;
+        [Tooltip("The only layers the ship's colliders still react to while protected. Everything else is ignored")]
+        [SerializeField] private CollisionLayer keptLayers = CollisionLayer.None;
 
         [Tooltip("Seconds the ship is protected when a wave starts. 0 turns it off")]
         [SerializeField, Min(0f)] private float waveStartProtectionSeconds = 2f;
@@ -37,11 +36,6 @@ namespace Asteroids.Data
 
         private void OnValidate()
         {
-            if (InvulnerabilityConfigRules.DropsBoundary(keptLayers))
-                Debug.LogWarning(
-                    $"{nameof(ShipHealthConfig)} '{name}' does not keep the Boundary layer while protected, " +
-                    "so the ship is not wrapped around the world during that time.", this);
-
             if (controlLossSeconds > invulnerabilitySeconds)
                 Debug.LogWarning(
                     $"{nameof(ShipHealthConfig)} '{name}': control loss ({controlLossSeconds} s) outlasts " +

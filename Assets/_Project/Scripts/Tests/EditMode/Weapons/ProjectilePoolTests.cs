@@ -11,6 +11,7 @@ namespace Asteroids.Weapons.Tests
         private TestWeaponConfig _config;
         private FakeProjectileViewFactory _views;
         private FakeSimulationLoop _loop;
+        private FakeWrapRegistry _wrap;
 
         [SetUp]
         public void SetUp()
@@ -18,10 +19,11 @@ namespace Asteroids.Weapons.Tests
             _config = new TestWeaponConfig { ProjectileLifetime = 1f, PoolPrewarm = 3, PoolMaxIdle = 16 };
             _views = new FakeProjectileViewFactory();
             _loop = new FakeSimulationLoop();
+            _wrap = new FakeWrapRegistry();
         }
 
         private ProjectilePool Create() =>
-            new(_config, _views, _loop, new FakeDamageRegistry(), new ProjectileRegistry());
+            new(_config, _views, _loop, _wrap, new FakeDamageRegistry(), new ProjectileRegistry());
 
         private static ProjectileLaunch AnyLaunch => new(Vector2.zero, 0f, Vector2.up);
 

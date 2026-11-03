@@ -10,6 +10,7 @@ namespace Asteroids.Weapons.Projectiles
         private readonly IProjectileWeaponConfig _config;
         private readonly IProjectileViewFactory _views;
         private readonly ISimulationLoop _loop;
+        private readonly IWrapRegistry _wrap;
         private readonly IDamageRegistry _damageRegistry;
         private readonly IProjectileRegistry _projectiles;
         private readonly ObjectPool<Projectile> _pool;
@@ -20,12 +21,14 @@ namespace Asteroids.Weapons.Projectiles
             IProjectileWeaponConfig config,
             IProjectileViewFactory views,
             ISimulationLoop loop,
+            IWrapRegistry wrap,
             IDamageRegistry damageRegistry,
             IProjectileRegistry projectiles)
         {
             _config = config ?? throw new ArgumentNullException(nameof(config));
             _views = views ?? throw new ArgumentNullException(nameof(views));
             _loop = loop ?? throw new ArgumentNullException(nameof(loop));
+            _wrap = wrap ?? throw new ArgumentNullException(nameof(wrap));
             _damageRegistry = damageRegistry ?? throw new ArgumentNullException(nameof(damageRegistry));
             _projectiles = projectiles ?? throw new ArgumentNullException(nameof(projectiles));
 
@@ -53,7 +56,7 @@ namespace Asteroids.Weapons.Projectiles
 
         private Projectile CreateInstance()
         {
-            var projectile = new Projectile(_views.Create(), _config, _loop, _damageRegistry, _projectiles);
+            var projectile = new Projectile(_views.Create(), _config, _loop, _wrap, _damageRegistry, _projectiles);
             projectile.Finished += OnFinished;
             return projectile;
         }

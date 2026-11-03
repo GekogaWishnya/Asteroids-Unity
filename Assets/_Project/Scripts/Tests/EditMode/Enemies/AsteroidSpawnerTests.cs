@@ -16,6 +16,7 @@ namespace Asteroids.Enemies.Tests
         {
             public readonly FakeEnemyViewFactory Views = new();
             public readonly FakeSimulationLoop Loop = new();
+            public readonly FakeWrapRegistry Wrap = new();
             public readonly AsteroidPopulation Population;
             public readonly AsteroidSpawner Spawner;
 
@@ -30,7 +31,7 @@ namespace Asteroids.Enemies.Tests
                 Population = new AsteroidPopulation(
                     config,
                     () => new AsteroidController(
-                        Views.Create(config.Type), config, Loop, damage, new FakeKineticBodyRegistry(),
+                        Views.Create(config.Type), config, Loop, Wrap, damage, new FakeKineticBodyRegistry(),
                         new RecordingDeathHandler()),
                     random);
                 Spawner = new AsteroidSpawner(Population, new TestWorldBounds(Area), random);

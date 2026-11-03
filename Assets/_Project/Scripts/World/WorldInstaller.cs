@@ -1,14 +1,15 @@
-using Asteroids.Collisions;
 using Asteroids.Core;
+using Asteroids.Core.IConfigs;
 using Asteroids.Physics;
 using Zenject;
 
 namespace Asteroids.World
 {
     /// <summary>
-    /// Requires <see cref="Asteroids.Core.IConfigs.IWorldLayout"/> and <see cref="Asteroids.Core.IConfigs.IHudLayout"/>
-    /// to be bound by the host installer and <see cref="CollisionInstaller"/> to be installed.
-    /// Binds <see cref="IWorldBounds"/> (the gameplay area) and <see cref="IViewLayout"/>.
+    /// Requires <see cref="IWorldLayout"/> and <see cref="IHudLayout"/> to be bound by
+    /// the host installer and <see cref="ISimulationLoop"/>.
+    /// Binds <see cref="IWorldBounds"/>, <see cref="IViewLayout"/> and <see cref="IWrapRegistry"/>, and
+    /// wraps registered poses in the <see cref="SimulationPhase.Constraint"/>.
     /// </summary>
     public sealed class WorldInstaller : Installer<WorldInstaller>
     {
@@ -16,15 +17,10 @@ namespace Asteroids.World
         {
             Container.Bind<IWorldBounds>().To<WorldBounds>().AsSingle();
             Container.Bind<IViewLayout>().To<ViewLayout>().AsSingle();
-            Container.BindInterfacesTo<WorldBoundary>().AsSingle();
 
-            Container.Bind<WorldWrapHandler>().AsSingle();
-            Container.BindSignal<CollisionEntered>()
-                .ToMethod<WorldWrapHandler>(handler => handler.OnCollisionEntered)
-                .FromResolve();
-            Container.BindSignal<CollisionStayed>()
-                .ToMethod<WorldWrapHandler>(handler => handler.OnCollisionStayed)
-                .FromResolve();
+            Container.Bind<WorldWrap>().AsSingle();
+            Container.Bind<IWrapRegistry>().To<WorldWrap>().FromResolve();
+            Container.BindInterfacesTo<WorldWrapRegistration>().AsSingle();
         }
     }
 }

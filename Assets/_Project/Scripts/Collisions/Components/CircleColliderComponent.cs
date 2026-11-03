@@ -22,17 +22,6 @@ namespace Asteroids.Collisions.Components
             return new ShapeCollider(entity, Layer, Mask, new CircleShape(entity.Pose, offset, radius));
         }
 
-        protected override void OnValidate()
-        {
-            base.OnValidate();
-
-            if (ColliderSetupRules.OffsetReachesRadius(offset, radius))
-                Debug.LogWarning(
-                    $"{nameof(CircleColliderComponent)} on '{name}': offset length {offset.magnitude:0.###} is not " +
-                    $"smaller than radius {radius:0.###}. An entity that wraps around the world needs the collider " +
-                    "centre offset to be smaller than the radius.", this);
-        }
-
         protected override void DrawShape()
         {
             var current = transform;

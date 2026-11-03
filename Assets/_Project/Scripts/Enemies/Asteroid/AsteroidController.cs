@@ -32,6 +32,7 @@ namespace Asteroids.Enemies
             IEnemyView view,
             IAsteroidTypeConfig config,
             ISimulationLoop loop,
+            IWrapRegistry wrap,
             IDamageRegistry damageRegistry,
             IKineticBodyRegistry bodyRegistry,
             IEnemyDeathHandler death)
@@ -40,6 +41,7 @@ namespace Asteroids.Enemies
             _config = config ?? throw new ArgumentNullException(nameof(config));
             if (death == null) throw new ArgumentNullException(nameof(death));
             if (loop == null) throw new ArgumentNullException(nameof(loop));
+            if (wrap == null) throw new ArgumentNullException(nameof(wrap));
             if (damageRegistry == null) throw new ArgumentNullException(nameof(damageRegistry));
             if (bodyRegistry == null) throw new ArgumentNullException(nameof(bodyRegistry));
 
@@ -55,6 +57,7 @@ namespace Asteroids.Enemies
             _life = new EnemyLife("asteroid", view, health, death, new Func<IDisposable>[]
             {
                 () => loop.Register(SimulationPhase.Motion, motionStep),
+                () => wrap.Register(entity.Pose),
                 () => loop.Register(SimulationPhase.Motion, spinStep),
                 () => damageRegistry.RegisterDamageable(entity, health),
                 () => damageRegistry.RegisterSource(entity, this),

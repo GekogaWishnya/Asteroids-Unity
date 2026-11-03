@@ -26,12 +26,14 @@ namespace Asteroids.Weapons.Projectiles
             IProjectileView view,
             IProjectileWeaponConfig config,
             ISimulationLoop loop,
+            IWrapRegistry wrap,
             IDamageRegistry damageRegistry,
             IProjectileRegistry projectiles)
         {
             _view = view ?? throw new ArgumentNullException(nameof(view));
             _config = config ?? throw new ArgumentNullException(nameof(config));
             if (loop == null) throw new ArgumentNullException(nameof(loop));
+            if (wrap == null) throw new ArgumentNullException(nameof(wrap));
             if (damageRegistry == null) throw new ArgumentNullException(nameof(damageRegistry));
             if (projectiles == null) throw new ArgumentNullException(nameof(projectiles));
 
@@ -44,6 +46,7 @@ namespace Asteroids.Weapons.Projectiles
             _registrations = new RegistrationScope(new Func<IDisposable>[]
             {
                 () => loop.Register(SimulationPhase.Motion, motionStep),
+                () => wrap.Register(entity.Pose),
                 () => loop.Register(SimulationPhase.Logic, lifetimeStep),
                 () => damageRegistry.RegisterSource(entity, this),
                 () => projectiles.Register(entity, this)

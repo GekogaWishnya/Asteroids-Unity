@@ -24,6 +24,7 @@ namespace Asteroids.Enemies
             IUfoTypeConfig config,
             IPlayerTarget target,
             ISimulationLoop loop,
+            IWrapRegistry wrap,
             IDamageRegistry damageRegistry,
             IKineticBodyRegistry bodyRegistry,
             IEnemyDeathHandler death)
@@ -33,6 +34,7 @@ namespace Asteroids.Enemies
             if (death == null) throw new ArgumentNullException(nameof(death));
             if (target == null) throw new ArgumentNullException(nameof(target));
             if (loop == null) throw new ArgumentNullException(nameof(loop));
+            if (wrap == null) throw new ArgumentNullException(nameof(wrap));
             if (damageRegistry == null) throw new ArgumentNullException(nameof(damageRegistry));
             if (bodyRegistry == null) throw new ArgumentNullException(nameof(bodyRegistry));
 
@@ -49,6 +51,7 @@ namespace Asteroids.Enemies
             {
                 () => loop.Register(SimulationPhase.Input, _steering),
                 () => loop.Register(SimulationPhase.Motion, motionStep),
+                () => wrap.Register(entity.Pose),
                 () => damageRegistry.RegisterDamageable(entity, health),
                 () => damageRegistry.RegisterSource(entity, this),
                 () => bodyRegistry.Register(entity, body)
