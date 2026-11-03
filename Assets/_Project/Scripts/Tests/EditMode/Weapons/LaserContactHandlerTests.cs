@@ -23,36 +23,65 @@ namespace Asteroids.Weapons.Tests
             _registry.Register(_beam, _contacts);
         }
 
-        private static CollisionEntered Entered(object self, object other) =>
-            new(new FakeCollider(self), new FakeCollider(other), default);
+        private void Entered(object first, object second) =>
+            _handler.Entered(new FakeCollider(first), new FakeCollider(second), default);
 
-        private static CollisionExited Exited(object self, object other) =>
-            new(new FakeCollider(self), new FakeCollider(other));
+        private void Exited(object first, object second) =>
+            _handler.Exited(new FakeCollider(first), new FakeCollider(second));
 
         [Test]
         public void Entered_FromTheBeamsSide_TellsTheBeam()
         {
             var target = new TestEntity();
 
-            _handler.OnCollisionEntered(Entered(_beam, target));
+            Entered(_beam, target);
 
             Assert.That(_contacts.EnteredTargets, Is.EqualTo(new[] { target }));
         }
 
         [Test]
-        public void Entered_FromTheTargetsSide_IsIgnored()
+        public void Entered_BeamIsTheSecondCollider_TellsTheBeam()
         {
-            _handler.OnCollisionEntered(Entered(new TestEntity(), _beam));
+            var target = new TestEntity();
 
-            Assert.That(_contacts.EnteredTargets, Is.Empty);
+            Entered(target, _beam);
+
+            Assert.That(_contacts.EnteredTargets, Is.EqualTo(new[] { target }));
         }
+
+        [Test]
+        public void Exited_BeamIsTheSecondCollider_TellsTheBeam()
+        {
+            var target = new TestEntity();
+
+            Exited(target, _beam);
+
+            Assert.That(_contacts.ExitedTargets, Is.EqualTo(new[] { target }));
+        }
+
+        [Test]
+        public void Entered_TwoBeams_TellsEachAboutTheOther()
+        {
+            var otherBeam = new TestEntity();
+            var otherContacts = new RecordingBeamContacts();
+            _registry.Register(otherBeam, otherContacts);
+
+            Entered(_beam, otherBeam);
+
+            Assert.That(_contacts.EnteredTargets, Is.EqualTo(new[] { otherBeam }));
+            Assert.That(otherContacts.EnteredTargets, Is.EqualTo(new[] { _beam }));
+        }
+
+        [Test]
+        public void Order_IsLaserContact() =>
+            Assert.That(_handler.Order, Is.EqualTo(CollisionResponseOrder.LaserContact));
 
         [Test]
         public void Exited_FromTheBeamsSide_TellsTheBeam()
         {
             var target = new TestEntity();
 
-            _handler.OnCollisionExited(Exited(_beam, target));
+            Exited(_beam, target);
 
             Assert.That(_contacts.ExitedTargets, Is.EqualTo(new[] { target }));
         }
@@ -60,8 +89,8 @@ namespace Asteroids.Weapons.Tests
         [Test]
         public void Contact_WithSomethingThatIsNotAnEntity_IsIgnored()
         {
-            _handler.OnCollisionEntered(Entered(_beam, new object()));
-            _handler.OnCollisionExited(Exited(_beam, new object()));
+            Entered(_beam, new object());
+            Exited(_beam, new object());
 
             Assert.That(_contacts.EnteredTargets, Is.Empty);
             Assert.That(_contacts.ExitedTargets, Is.Empty);
@@ -70,7 +99,7 @@ namespace Asteroids.Weapons.Tests
         [Test]
         public void Contact_OfAnEntityThatIsNotABeam_IsIgnored()
         {
-            Assert.DoesNotThrow(() => _handler.OnCollisionEntered(Entered(new TestEntity(), new TestEntity())));
+            Assert.DoesNotThrow(() => Entered(new TestEntity(), new TestEntity()));
         }
 
         [Test]

@@ -23,42 +23,80 @@ namespace Asteroids.Weapons.Tests
             _registry.Register(_projectileEntity, _projectile);
         }
 
-        private static CollisionEntered Contact(object self, object other) =>
-            new(new FakeCollider(self), new FakeCollider(other), default);
+        private void Touch(object first, object second) =>
+            _handler.Entered(new FakeCollider(first), new FakeCollider(second), default);
 
         [Test]
-        public void OnCollisionEntered_ProjectileTouchesAnEntity_Impacts()
+        public void Entered_ProjectileTouchesAnEntity_Impacts()
         {
-            _handler.OnCollisionEntered(Contact(_projectileEntity, new TestEntity()));
+            Touch(_projectileEntity, new TestEntity());
 
             Assert.That(_projectile.Count, Is.EqualTo(1));
         }
 
         [Test]
-        public void OnCollisionEntered_ProjectileTouchesSomethingThatIsNotAnEntity_DoesNothing()
+        public void Entered_ProjectileTouchesSomethingThatIsNotAnEntity_DoesNothing()
         {
             // The world's walls are owned by the bounds object, which is not an entity.
-            _handler.OnCollisionEntered(Contact(_projectileEntity, new object()));
+            Touch(_projectileEntity, new object());
 
             Assert.That(_projectile.Count, Is.EqualTo(0));
         }
 
         [Test]
-        public void OnCollisionEntered_SideOfTheOtherEntity_DoesNothing()
+        public void Entered_ProjectileIsTheSecondCollider_Impacts()
         {
-            _handler.OnCollisionEntered(Contact(new TestEntity(), _projectileEntity));
+            Touch(new TestEntity(), _projectileEntity);
+
+            Assert.That(_projectile.Count, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void Entered_TwoProjectilesMeet_BothImpact()
+        {
+            var otherEntity = new TestEntity();
+            var other = new RecordingImpact();
+            _registry.Register(otherEntity, other);
+
+            Touch(_projectileEntity, otherEntity);
+
+            Assert.That(_projectile.Count, Is.EqualTo(1));
+            Assert.That(other.Count, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void Entered_NeitherSideIsAProjectile_DoesNothing()
+        {
+            Assert.DoesNotThrow(() => Touch(new TestEntity(), new TestEntity()));
+            Assert.That(_projectile.Count, Is.EqualTo(0));
+        }
+
+        [Test]
+        public void StayedAndExited_DoNothing()
+        {
+            var first = new FakeCollider(_projectileEntity);
+            var second = new FakeCollider(new TestEntity());
+
+            _handler.Stayed(first, second, default);
+            _handler.Exited(first, second);
 
             Assert.That(_projectile.Count, Is.EqualTo(0));
         }
 
         [Test]
-        public void OnCollisionEntered_AfterTheProjectileLeftPlay_DoesNothing()
+        public void Order_IsProjectileImpact()
+        {
+            Assert.That(_handler.Order, Is.EqualTo(CollisionResponseOrder.ProjectileImpact));
+        }
+
+        [Test]
+        public void Entered_AfterTheProjectileLeftPlay_DoesNothing()
         {
             var entity = new TestEntity();
             var projectile = new RecordingImpact();
             _registry.Register(entity, projectile).Dispose();
 
-            _handler.OnCollisionEntered(Contact(entity, new TestEntity()));
+            Touch(entity, new TestEntity());
 
             Assert.That(projectile.Count, Is.EqualTo(0));
         }

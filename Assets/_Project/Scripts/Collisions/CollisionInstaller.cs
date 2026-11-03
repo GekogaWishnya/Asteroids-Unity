@@ -18,17 +18,25 @@ namespace Asteroids.Collisions
             Container.DeclareSignal<CollisionExited>().OptionalSubscriber();
 
             Container.BindInterfacesTo<KineticBodyRegistry>().AsSingle();
-            Container.Bind<BounceResolver>().AsSingle();
+            Container.Bind<ICollisionResponse>().To<BounceResolver>().AsSingle();
             Container.Bind<SignalBusCollisionEventSink>().AsSingle();
-            Container.Bind<ICollisionEventSink>()
-                .FromMethod(context => new CompositeCollisionEventSink(
-                    context.Container.Resolve<BounceResolver>(),
-                    context.Container.Resolve<SignalBusCollisionEventSink>()))
-                .AsSingle();
+            Container.Bind<ICollisionEventSink>().FromMethod(CreateSink).AsSingle();
 
             Container.Bind<IShapeContactTester>().FromInstance(ShapeContacts.CreateTable());
             Container.Bind<ICollisionSystem>().To<CollisionSystem>().AsSingle();
             Container.BindInterfacesTo<CollisionStepRegistration>().AsSingle();
+        }
+
+        /// <summary>
+        /// Called on first resolve, after every installer ran.
+        /// </summary>
+        private static ICollisionEventSink CreateSink(InjectContext context)
+        {
+            var responses = CollisionResponses.InOrder(context.Container.ResolveAll<ICollisionResponse>());
+            var sinks = new ICollisionEventSink[responses.Length + 1];
+            responses.CopyTo(sinks, 0);
+            sinks[responses.Length] = context.Container.Resolve<SignalBusCollisionEventSink>();
+            return new CompositeCollisionEventSink(sinks);
         }
     }
 }

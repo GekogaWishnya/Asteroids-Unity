@@ -5,9 +5,9 @@ using Asteroids.Core;
 namespace Asteroids.Weapons.Projectiles
 {
     /// <summary>
-    /// Stops a projectile when it touches another entity. The world's walls are not entities, so a projectile wraps.
+    /// Stops a projectile when it touches another entity.
     /// </summary>
-    public sealed class ProjectileImpactHandler
+    public sealed class ProjectileImpactHandler : ICollisionResponse
     {
         private readonly IProjectileLookup _lookup;
 
@@ -15,13 +15,30 @@ namespace Asteroids.Weapons.Projectiles
         public ProjectileImpactHandler(IProjectileLookup lookup) =>
             _lookup = lookup ?? throw new ArgumentNullException(nameof(lookup));
 
-        public void OnCollisionEntered(CollisionEntered signal)
-        {
-            if (signal.Self?.Owner is not IEntity self) return;
-            if (signal.Other?.Owner is not IEntity) return;
-            if (!_lookup.TryGet(self, out var projectile)) return;
+        public CollisionResponseOrder Order => CollisionResponseOrder.ProjectileImpact;
 
-            projectile.Impact();
+        public void Entered(ICollider first, ICollider second, in Contact contact)
+        {
+            if (first?.Owner is not IEntity firstEntity) return;
+            if (second?.Owner is not IEntity secondEntity) return;
+
+            try
+            {
+                ImpactIfProjectile(firstEntity);
+            }
+            finally
+            {
+                ImpactIfProjectile(secondEntity);
+            }
+        }
+
+        public void Stayed(ICollider first, ICollider second, in Contact contact) { }
+
+        public void Exited(ICollider first, ICollider second) { }
+
+        private void ImpactIfProjectile(IEntity entity)
+        {
+            if (_lookup.TryGet(entity, out var projectile)) projectile.Impact();
         }
     }
 }

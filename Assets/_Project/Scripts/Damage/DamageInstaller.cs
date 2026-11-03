@@ -12,13 +12,7 @@ namespace Asteroids.Damage
         {
             Container.BindInterfacesTo<DamageRegistry>().AsSingle();
 
-            Container.Bind<ContactDamageHandler>().AsSingle();
-            Container.BindSignal<CollisionEntered>()
-                .ToMethod<ContactDamageHandler>(handler => handler.OnCollisionEntered)
-                .FromResolve();
-            Container.BindSignal<CollisionExited>()
-                .ToMethod<ContactDamageHandler>(handler => handler.OnCollisionExited)
-                .FromResolve();
+            Container.Bind<ICollisionResponse>().To<ContactDamageHandler>().AsSingle();
         }
     }
 }

@@ -28,21 +28,11 @@ namespace Asteroids.Damage.Tests
             _victimHealth = new RecordingDamageable();
         }
 
-        private static CollisionEntered Entered(ICollider self, ICollider other) =>
-            new(self, other, new Contact(Vector2.up, 1f));
-
         /// <summary>Both signals of a new contact, in the order the collision system sends them.</summary>
-        private void Touch(ICollider first, ICollider second)
-        {
-            _handler.OnCollisionEntered(Entered(first, second));
-            _handler.OnCollisionEntered(Entered(second, first));
-        }
+        private void Touch(ICollider first, ICollider second) =>
+            _handler.Entered(first, second, new Contact(Vector2.up, 1f));
 
-        private void Separate(ICollider first, ICollider second)
-        {
-            _handler.OnCollisionExited(new CollisionExited(first, second));
-            _handler.OnCollisionExited(new CollisionExited(second, first));
-        }
+        private void Separate(ICollider first, ICollider second) => _handler.Exited(first, second);
 
         [Test]
         public void Touch_DamageableTouchesSource_TakesTheSourceDamageOnce()
@@ -61,7 +51,7 @@ namespace Asteroids.Damage.Tests
             _registry.RegisterDamageable(_victim, _victimHealth);
             _registry.RegisterSource(_attacker, new TestSource(2));
 
-            _handler.OnCollisionEntered(Entered(_attackerCollider, _victimCollider));
+            Touch(_attackerCollider, _victimCollider);
 
             Assert.That(_victimHealth.Hits, Is.EqualTo(new[] { 2 }));
         }
@@ -110,21 +100,116 @@ namespace Asteroids.Damage.Tests
             _registry.RegisterDamageable(_attacker, attackerHealth);
             _registry.RegisterSource(_attacker, new TestSource(2));
 
-            Assert.Throws<InvalidOperationException>(() =>
-                _handler.OnCollisionEntered(Entered(_victimCollider, _attackerCollider)));
+            Assert.Throws<InvalidOperationException>(() => Touch(_victimCollider, _attackerCollider));
             Assert.That(attackerHealth.Hits, Is.EqualTo(new[] { 3 }));
         }
 
         [Test]
-        public void Touch_AgainWithoutSeparating_DoesNothing()
+        public void Stayed_DoesNothing()
         {
             _registry.RegisterDamageable(_victim, _victimHealth);
             _registry.RegisterSource(_attacker, new TestSource(2));
 
-            Touch(_victimCollider, _attackerCollider);
+            _handler.Stayed(_victimCollider, _attackerCollider, new Contact(Vector2.up, 1f));
+
+            Assert.That(_victimHealth.Hits, Is.Empty);
+        }
+
+        [Test]
+        public void Touch_TwoCollidersOfTheSameEntity_DoesNothing()
+        {
+            _registry.RegisterDamageable(_victim, _victimHealth);
+            _registry.RegisterSource(_victim, new TestSource(2));
+
+            Touch(_victimCollider, new TestCollider(_victim));
+
+            Assert.That(_victimHealth.Hits, Is.Empty);
+        }
+
+        [Test]
+        public void Touch_SingleUseSource_HurtsAndIsSpent()
+        {
+            var source = new TestSingleUseSource(2);
+            _registry.RegisterDamageable(_victim, _victimHealth);
+            _registry.RegisterSource(_attacker, source);
+
             Touch(_victimCollider, _attackerCollider);
 
             Assert.That(_victimHealth.Hits, Is.EqualTo(new[] { 2 }));
+            Assert.That(source.SpendCalls, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void Touch_SingleUseSourceTouchesTwoVictims_OnlyTheFirstIsHurt()
+        {
+            var secondVictim = new TestEntity();
+            var secondHealth = new RecordingDamageable();
+            _registry.RegisterDamageable(_victim, _victimHealth);
+            _registry.RegisterDamageable(secondVictim, secondHealth);
+            _registry.RegisterSource(_attacker, new TestSingleUseSource(1));
+
+            Touch(_victimCollider, _attackerCollider);
+            Touch(_attackerCollider, new TestCollider(secondVictim));
+
+            Assert.That(_victimHealth.Hits, Is.EqualTo(new[] { 1 }));
+            Assert.That(secondHealth.Hits, Is.Empty);
+        }
+
+        [Test]
+        public void Touch_SourceThatIsNotSingleUseTouchesTwoVictims_HurtsBoth()
+        {
+            var secondVictim = new TestEntity();
+            var secondHealth = new RecordingDamageable();
+            _registry.RegisterDamageable(_victim, _victimHealth);
+            _registry.RegisterDamageable(secondVictim, secondHealth);
+            _registry.RegisterSource(_attacker, new TestSource(1));
+
+            Touch(_victimCollider, _attackerCollider);
+            Touch(_attackerCollider, new TestCollider(secondVictim));
+
+            Assert.That(_victimHealth.Hits, Is.EqualTo(new[] { 1 }));
+            Assert.That(secondHealth.Hits, Is.EqualTo(new[] { 1 }));
+        }
+
+        [Test]
+        public void Touch_SpentSingleUseSource_DealsNothingAndIsNotSpentAgain()
+        {
+            var source = new TestSingleUseSource(2) { IsSpent = true };
+            _registry.RegisterDamageable(_victim, _victimHealth);
+            _registry.RegisterSource(_attacker, source);
+
+            Touch(_victimCollider, _attackerCollider);
+
+            Assert.That(_victimHealth.Hits, Is.Empty);
+            Assert.That(source.SpendCalls, Is.Zero);
+        }
+
+        [Test]
+        public void Touch_SingleUseSourceAndNothingToHurt_IsNotSpent()
+        {
+            var source = new TestSingleUseSource(2);
+            _registry.RegisterSource(_attacker, source);
+
+            Touch(_victimCollider, _attackerCollider);
+
+            Assert.That(source.SpendCalls, Is.Zero);
+        }
+
+        [Test]
+        public void Touch_SingleUseSourceWhoseVictimThrows_IsStillSpent()
+        {
+            var source = new TestSingleUseSource(2);
+            _registry.RegisterDamageable(_victim, new CallbackDamageable(() => throw new InvalidOperationException()));
+            _registry.RegisterSource(_attacker, source);
+
+            Assert.Throws<InvalidOperationException>(() => Touch(_victimCollider, _attackerCollider));
+            Assert.That(source.IsSpent, Is.True);
+        }
+
+        [Test]
+        public void Order_IsDamage()
+        {
+            Assert.That(_handler.Order, Is.EqualTo(CollisionResponseOrder.Damage));
         }
 
         [Test]

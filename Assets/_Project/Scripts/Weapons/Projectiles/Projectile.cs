@@ -12,7 +12,7 @@ namespace Asteroids.Weapons.Projectiles
     /// lifetime in <see cref="SimulationPhase.Logic"/>, the projectile as a damage source and the projectile
     /// itself in the <see cref="IProjectileRegistry"/> so hits can find it.
     /// </summary>
-    public sealed class Projectile : IDamageSource, IProjectileImpact, IDisposable
+    public sealed class Projectile : ISingleUseDamageSource, IProjectileImpact, IDisposable
     {
         private readonly IProjectileView _view;
         private readonly IProjectileWeaponConfig _config;
@@ -57,8 +57,12 @@ namespace Asteroids.Weapons.Projectiles
         public event Action<Projectile> Finished;
 
         public bool IsInPlay => _registrations.IsEnabled;
-        
+
         public int Damage => _config.ProjectileDamage;
+
+        public bool IsSpent => _hasHit;
+
+        public void Spend() => Impact();
 
         /// <exception cref="InvalidOperationException">The projectile is already in play.</exception>
         public void Launch(ProjectileLaunch launch)
@@ -89,12 +93,12 @@ namespace Asteroids.Weapons.Projectiles
                 throw;
             }
         }
-        
+
         public void Impact()
         {
             if (IsInPlay) _hasHit = true;
         }
-        
+
         public void Dispose()
         {
             Finished = null;

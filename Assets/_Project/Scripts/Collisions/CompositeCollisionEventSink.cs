@@ -19,14 +19,14 @@ namespace Asteroids.Collisions
                 throw new ArgumentException("Sinks must not contain null.", nameof(sinks));
         }
 
-        public void Entered(ICollider self, ICollider other, in Contact contact)
+        public void Entered(ICollider first, ICollider second, in Contact contact)
         {
             var failures = new FailureCollector();
             foreach (var sink in _sinks)
             {
                 try
                 {
-                    sink.Entered(self, other, contact);
+                    sink.Entered(first, second, contact);
                 }
                 catch (Exception e)
                 {
@@ -37,14 +37,14 @@ namespace Asteroids.Collisions
             failures.ThrowIfFailed();
         }
 
-        public void Stayed(ICollider self, ICollider other, in Contact contact)
+        public void Stayed(ICollider first, ICollider second, in Contact contact)
         {
             var failures = new FailureCollector();
             foreach (var sink in _sinks)
             {
                 try
                 {
-                    sink.Stayed(self, other, contact);
+                    sink.Stayed(first, second, contact);
                 }
                 catch (Exception e)
                 {
@@ -55,14 +55,14 @@ namespace Asteroids.Collisions
             failures.ThrowIfFailed();
         }
 
-        public void Exited(ICollider self, ICollider other)
+        public void Exited(ICollider first, ICollider second)
         {
             var failures = new FailureCollector();
             foreach (var sink in _sinks)
             {
                 try
                 {
-                    sink.Exited(self, other);
+                    sink.Exited(first, second);
                 }
                 catch (Exception e)
                 {

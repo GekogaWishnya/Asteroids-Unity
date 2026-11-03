@@ -2,41 +2,41 @@ namespace Asteroids.Collisions
 {
     public readonly struct CollisionEntered
     {
-        public CollisionEntered(ICollider self, ICollider other, Contact contact)
+        public CollisionEntered(ICollider first, ICollider second, Contact contact)
         {
-            Self = self;
-            Other = other;
+            First = first;
+            Second = second;
             Contact = contact;
         }
 
-        public ICollider Self { get; }
-        public ICollider Other { get; }
+        public ICollider First { get; }
+        public ICollider Second { get; }
         public Contact Contact { get; }
     }
 
     public readonly struct CollisionStayed
     {
-        public CollisionStayed(ICollider self, ICollider other, Contact contact)
+        public CollisionStayed(ICollider first, ICollider second, Contact contact)
         {
-            Self = self;
-            Other = other;
+            First = first;
+            Second = second;
             Contact = contact;
         }
 
-        public ICollider Self { get; }
-        public ICollider Other { get; }
+        public ICollider First { get; }
+        public ICollider Second { get; }
         public Contact Contact { get; }
     }
 
     public readonly struct CollisionExited
     {
-        public CollisionExited(ICollider self, ICollider other)
+        public CollisionExited(ICollider first, ICollider second)
         {
-            Self = self;
-            Other = other;
+            First = first;
+            Second = second;
         }
 
-        public ICollider Self { get; }
-        public ICollider Other { get; }
+        public ICollider First { get; }
+        public ICollider Second { get; }
     }
 }

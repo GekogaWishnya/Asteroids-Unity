@@ -45,6 +45,21 @@ namespace Asteroids.Damage.Tests
         public int Damage { get; set; }
     }
 
+    internal sealed class TestSingleUseSource : ISingleUseDamageSource
+    {
+        public TestSingleUseSource(int damage) => Damage = damage;
+
+        public int Damage { get; }
+        public bool IsSpent { get; set; }
+        public int SpendCalls { get; private set; }
+
+        public void Spend()
+        {
+            SpendCalls++;
+            IsSpent = true;
+        }
+    }
+
     /// <summary>Runs an action when hurt, after recording the hit.</summary>
     internal sealed class CallbackDamageable : IDamageable
     {

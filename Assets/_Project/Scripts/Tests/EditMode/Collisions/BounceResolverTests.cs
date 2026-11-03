@@ -32,11 +32,7 @@ namespace Asteroids.Collisions.Tests
         private static Contact LeftContact(float depth = 0.2f) => new(Vector2.left, depth);
 
         /// <summary>Both events of a new contact, in the order the collision system sends them.</summary>
-        private void Enter(Contact leftContact)
-        {
-            _resolver.Entered(_leftCollider, _rightCollider, leftContact);
-            _resolver.Entered(_rightCollider, _leftCollider, leftContact.Inverted);
-        }
+        private void Enter(Contact leftContact) => _resolver.Entered(_leftCollider, _rightCollider, leftContact);
 
         private (FakeKineticBody Left, FakeKineticBody Right) Register(FakeKineticBody left, FakeKineticBody right)
         {
@@ -123,7 +119,7 @@ namespace Asteroids.Collisions.Tests
         }
 
         [Test]
-        public void BothEventsOfAContact_ResolveItOnce()
+        public void Entered_ChangesEachBodyOnce()
         {
             var (left, right) = Register(
                 new FakeKineticBody(new Vector2(2f, 0f)), new FakeKineticBody(new Vector2(-2f, 0f)));
@@ -135,17 +131,32 @@ namespace Asteroids.Collisions.Tests
         }
 
         [Test]
-        public void InvertedEventFirst_GivesTheSameResult()
+        public void Entered_ReportedFromTheOtherSide_GivesTheSameResult()
         {
             var (left, right) = Register(
                 new FakeKineticBody(new Vector2(3f, 0f)), new FakeKineticBody(new Vector2(-1f, 0f)));
 
             _resolver.Entered(_rightCollider, _leftCollider, LeftContact().Inverted);
-            _resolver.Entered(_leftCollider, _rightCollider, LeftContact());
 
             AssertVector(left.Velocity, -3f, 0f);
             AssertVector(right.Velocity, 1f, 0f);
         }
+
+        [Test]
+        public void SameContactReportedAgain_DoesNothingMore()
+        {
+            var (left, right) = Register(
+                new FakeKineticBody(new Vector2(2f, 0f)), new FakeKineticBody(new Vector2(-2f, 0f)));
+
+            Enter(LeftContact());
+            _resolver.Stayed(_leftCollider, _rightCollider, LeftContact());
+
+            Assert.That(left.ChangeCount, Is.EqualTo(1));
+            Assert.That(right.ChangeCount, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void Order_IsBounce() => Assert.That(_resolver.Order, Is.EqualTo(CollisionResponseOrder.Bounce));
 
         [Test]
         public void Bounce_PushesTheBodiesApartByHalfTheDepthEach()

@@ -159,7 +159,7 @@ namespace Asteroids.Collisions.Tests
         // ---- Lifecycle ----
 
         [Test]
-        public void Tick_FirstOverlap_FiresEnteredOnBothSides()
+        public void Tick_FirstOverlap_FiresEnteredOncePerPair()
         {
             var a = CreateCollider("a", overlaps: true);
             var b = CreateCollider("b");
@@ -170,14 +170,14 @@ namespace Asteroids.Collisions.Tests
 
             Assert.That(_sink.For(a).Count, Is.EqualTo(1));
             Assert.That(_sink.For(a)[0].Kind, Is.EqualTo(NotificationKind.Entered));
-            Assert.That(_sink.For(a)[0].Other, Is.SameAs(b));
+            Assert.That(_sink.For(a)[0].OtherThan(a), Is.SameAs(b));
             Assert.That(_sink.For(b).Count, Is.EqualTo(1));
             Assert.That(_sink.For(b)[0].Kind, Is.EqualTo(NotificationKind.Entered));
-            Assert.That(_sink.For(b)[0].Other, Is.SameAs(a));
+            Assert.That(_sink.For(b)[0].OtherThan(b), Is.SameAs(a));
         }
 
         [Test]
-        public void Tick_FirstOverlap_FiresEnteredFirstThenSecondInRegistrationOrder()
+        public void Tick_FirstOverlap_ReportsThePairInRegistrationOrder()
         {
             var a = CreateCollider("a", overlaps: true);
             var b = CreateCollider("b");
@@ -186,11 +186,9 @@ namespace Asteroids.Collisions.Tests
 
             _system.Tick(0f);
 
-            Assert.That(_sink.Notifications.Count, Is.EqualTo(2));
-            Assert.That(_sink.Notifications[0].Self, Is.SameAs(a));
-            Assert.That(_sink.Notifications[0].Other, Is.SameAs(b));
-            Assert.That(_sink.Notifications[1].Self, Is.SameAs(b));
-            Assert.That(_sink.Notifications[1].Other, Is.SameAs(a));
+            Assert.That(_sink.Notifications.Count, Is.EqualTo(1));
+            Assert.That(_sink.Notifications[0].First, Is.SameAs(a));
+            Assert.That(_sink.Notifications[0].Second, Is.SameAs(b));
         }
 
         [Test]
@@ -205,17 +203,16 @@ namespace Asteroids.Collisions.Tests
 
             _system.Tick(0f);
 
-            Assert.That(_sink.Notifications.Count, Is.EqualTo(2));
+            Assert.That(_sink.Notifications.Count, Is.EqualTo(1));
             Assert.That(_sink.Notifications[0].Kind, Is.EqualTo(NotificationKind.Stayed));
-            Assert.That(_sink.Notifications[0].Self, Is.SameAs(a));
-            Assert.That(_sink.Notifications[1].Kind, Is.EqualTo(NotificationKind.Stayed));
-            Assert.That(_sink.Notifications[1].Self, Is.SameAs(b));
+            Assert.That(_sink.Notifications[0].First, Is.SameAs(a));
+            Assert.That(_sink.Notifications[0].Second, Is.SameAs(b));
             Assert.That(Count(a, NotificationKind.Entered), Is.EqualTo(0));
             Assert.That(Count(b, NotificationKind.Entered), Is.EqualTo(0));
         }
 
         [Test]
-        public void Tick_OverlapEnds_FiresExitedOnBothSides()
+        public void Tick_OverlapEnds_FiresExitedOncePerPairInEnteredOrder()
         {
             var a = CreateCollider("a", overlaps: true);
             var b = CreateCollider("b");
@@ -227,13 +224,10 @@ namespace Asteroids.Collisions.Tests
 
             _system.Tick(0f);
 
-            Assert.That(_sink.Notifications.Count, Is.EqualTo(2));
+            Assert.That(_sink.Notifications.Count, Is.EqualTo(1));
             Assert.That(_sink.Notifications[0].Kind, Is.EqualTo(NotificationKind.Exited));
-            Assert.That(_sink.Notifications[0].Self, Is.SameAs(a));
-            Assert.That(_sink.Notifications[0].Other, Is.SameAs(b));
-            Assert.That(_sink.Notifications[1].Kind, Is.EqualTo(NotificationKind.Exited));
-            Assert.That(_sink.Notifications[1].Self, Is.SameAs(b));
-            Assert.That(_sink.Notifications[1].Other, Is.SameAs(a));
+            Assert.That(_sink.Notifications[0].First, Is.SameAs(a));
+            Assert.That(_sink.Notifications[0].Second, Is.SameAs(b));
         }
 
         [Test]
@@ -268,7 +262,7 @@ namespace Asteroids.Collisions.Tests
         }
 
         [Test]
-        public void Tick_SecondSideReceivesInvertedContact()
+        public void Tick_ContactIsSeenFromTheFirstCollider()
         {
             var a = CreateCollider("a", overlaps: true);
             var b = CreateCollider("b");
@@ -278,8 +272,8 @@ namespace Asteroids.Collisions.Tests
 
             _system.Tick(0f);
 
-            var first = _sink.For(a)[0].Contact;
-            var second = _sink.For(b)[0].Contact;
+            var first = _sink.For(a)[0].ContactFor(a);
+            var second = _sink.For(b)[0].ContactFor(b);
             Assert.That(first.Normal.x, Is.EqualTo(1f).Within(Tolerance));
             Assert.That(first.Normal.y, Is.EqualTo(0f).Within(Tolerance));
             Assert.That(second.Normal.x, Is.EqualTo(-1f).Within(Tolerance));
@@ -302,9 +296,9 @@ namespace Asteroids.Collisions.Tests
 
             Assert.That(_sink.For(a), Is.Empty);
             Assert.That(_sink.For(b).Count, Is.EqualTo(1));
-            Assert.That(_sink.For(b)[0].Other, Is.SameAs(c));
+            Assert.That(_sink.For(b)[0].OtherThan(b), Is.SameAs(c));
             Assert.That(_sink.For(c).Count, Is.EqualTo(1));
-            Assert.That(_sink.For(c)[0].Other, Is.SameAs(b));
+            Assert.That(_sink.For(c)[0].OtherThan(c), Is.SameAs(b));
         }
 
         // ---- Filtering ----
@@ -432,7 +426,7 @@ namespace Asteroids.Collisions.Tests
         // ---- Unregister of an active pair ----
 
         [Test]
-        public void Unregister_ActivePair_BothSidesGetExited()
+        public void Unregister_ActivePair_FiresExitedOnce()
         {
             var a = CreateCollider("a", overlaps: true);
             var b = CreateCollider("b");
@@ -443,13 +437,10 @@ namespace Asteroids.Collisions.Tests
 
             _system.Unregister(a);
 
-            Assert.That(_sink.Notifications.Count, Is.EqualTo(2));
+            Assert.That(_sink.Notifications.Count, Is.EqualTo(1));
             Assert.That(_sink.Notifications[0].Kind, Is.EqualTo(NotificationKind.Exited));
-            Assert.That(_sink.Notifications[0].Self, Is.SameAs(a));
-            Assert.That(_sink.Notifications[0].Other, Is.SameAs(b));
-            Assert.That(_sink.Notifications[1].Kind, Is.EqualTo(NotificationKind.Exited));
-            Assert.That(_sink.Notifications[1].Self, Is.SameAs(b));
-            Assert.That(_sink.Notifications[1].Other, Is.SameAs(a));
+            Assert.That(_sink.Notifications[0].First, Is.SameAs(a));
+            Assert.That(_sink.Notifications[0].Second, Is.SameAs(b));
         }
 
         [Test]
@@ -464,9 +455,9 @@ namespace Asteroids.Collisions.Tests
 
             _system.Unregister(b);
 
-            Assert.That(_sink.Notifications.Count, Is.EqualTo(2));
-            Assert.That(_sink.Notifications[0].Self, Is.SameAs(a));
-            Assert.That(_sink.Notifications[1].Self, Is.SameAs(b));
+            Assert.That(_sink.Notifications.Count, Is.EqualTo(1));
+            Assert.That(_sink.Notifications[0].First, Is.SameAs(a));
+            Assert.That(_sink.Notifications[0].Second, Is.SameAs(b));
         }
 
         [Test]
@@ -485,7 +476,7 @@ namespace Asteroids.Collisions.Tests
             foreach (var other in others)
             {
                 Assert.That(Count(other, NotificationKind.Exited), Is.EqualTo(1), other.Name);
-                Assert.That(_sink.For(other)[_sink.For(other).Count - 1].Other, Is.SameAs(hub), other.Name);
+                Assert.That(_sink.For(other)[_sink.For(other).Count - 1].OtherThan(other), Is.SameAs(hub), other.Name);
             }
 
             _sink.Notifications.Clear();
@@ -494,7 +485,7 @@ namespace Asteroids.Collisions.Tests
         }
 
         [Test]
-        public void Unregister_DuringTickOfActivePair_BothSidesGetExitedAfterTick()
+        public void Unregister_DuringTickOfActivePair_PairGetsExitedAfterTick()
         {
             var a = CreateCollider("a", overlaps: true);
             var b = CreateCollider("b");
@@ -561,7 +552,7 @@ namespace Asteroids.Collisions.Tests
             var c = CreateCollider("c");
             _sink[a] = n =>
             {
-                if (ReferenceEquals(n.Other, b)) _system.Unregister(c);
+                if (n.Involves(b)) _system.Unregister(c);
             };
             _system.Register(a);
             _system.Register(b);
@@ -575,7 +566,7 @@ namespace Asteroids.Collisions.Tests
         }
 
         [Test]
-        public void Tick_ActivePairSkippedAsStale_EndsWithOneExitedPerSide()
+        public void Tick_ActivePairSkippedAsStale_EndsWithOneExited()
         {
             var a = CreateCollider("a", overlaps: true);
             var b = CreateCollider("b");
@@ -587,7 +578,7 @@ namespace Asteroids.Collisions.Tests
             _sink.Notifications.Clear();
             _sink[a] = n =>
             {
-                if (n.Kind == NotificationKind.Stayed && ReferenceEquals(n.Other, b)) _system.Unregister(c);
+                if (n.Kind == NotificationKind.Stayed && n.Involves(b)) _system.Unregister(c);
             };
 
             _system.Tick(0f);
@@ -595,19 +586,19 @@ namespace Asteroids.Collisions.Tests
 
             Assert.That(Count(c, NotificationKind.Stayed), Is.Zero);
             Assert.That(Count(c, NotificationKind.Exited), Is.EqualTo(1));
-            Assert.That(_sink.For(a).FindAll(n => n.Kind == NotificationKind.Exited && ReferenceEquals(n.Other, c)).Count,
+            Assert.That(_sink.For(a).FindAll(n => n.Kind == NotificationKind.Exited && n.Involves(c)).Count,
                 Is.EqualTo(1));
         }
 
         [Test]
-        public void Tick_HandlerThrowsOnTheFirstSide_SecondSideAndLaterPairsStillGetTheirEvents()
+        public void Tick_HandlerThrowsOnAPair_LaterPairsStillGetTheirEvents()
         {
             var a = CreateCollider("a", overlaps: true);
             var b = CreateCollider("b");
             var c = CreateCollider("c");
             _sink[a] = n =>
             {
-                if (ReferenceEquals(n.Other, b)) throw new InvalidOperationException("boom");
+                if (n.Involves(b)) throw new InvalidOperationException("boom");
             };
             _system.Register(a);
             _system.Register(b);
@@ -638,7 +629,7 @@ namespace Asteroids.Collisions.Tests
         }
 
         [Test]
-        public void Unregister_ExitedHandlerThrows_OtherSidesStillExitAndFailureIsRethrown()
+        public void Unregister_ExitedHandlerThrows_OtherPairsStillExitAndFailureIsRethrown()
         {
             var a = CreateCollider("a", overlaps: true);
             var b = CreateCollider("b");

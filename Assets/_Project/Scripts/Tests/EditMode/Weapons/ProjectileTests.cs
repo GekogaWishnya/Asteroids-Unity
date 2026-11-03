@@ -147,6 +147,43 @@ namespace Asteroids.Weapons.Tests
         }
 
         [Test]
+        public void IsSpent_FalseOnLaunch_TrueAfterImpact()
+        {
+            var projectile = Create();
+            projectile.Launch(Launch(Vector2.zero, Vector2.up));
+            Assert.That(projectile.IsSpent, Is.False);
+
+            projectile.Impact();
+
+            Assert.That(projectile.IsSpent, Is.True);
+        }
+
+        [Test]
+        public void Spend_ActsLikeAnImpact()
+        {
+            var projectile = Create();
+            projectile.Launch(Launch(Vector2.zero, Vector2.up));
+
+            projectile.Spend();
+            _loop.Tick(0.01f);
+
+            Assert.That(projectile.IsInPlay, Is.False);
+        }
+
+        [Test]
+        public void IsSpent_ResetsOnTheNextLaunch()
+        {
+            var projectile = Create();
+            projectile.Launch(Launch(Vector2.zero, Vector2.up));
+            projectile.Spend();
+            _loop.Tick(0.01f);
+
+            projectile.Launch(Launch(Vector2.zero, Vector2.up));
+
+            Assert.That(projectile.IsSpent, Is.False);
+        }
+
+        [Test]
         public void Impact_LeavesPlayOnTheNextTick()
         {
             var projectile = Create();

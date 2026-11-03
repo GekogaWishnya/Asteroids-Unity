@@ -12,8 +12,10 @@ namespace Asteroids.Collisions
         private readonly List<DetectedContact> _detected = new();
         private readonly Dictionary<ColliderPair, int> _active = new();
         private readonly List<ColliderPair> _expired = new();
+
         /// <summary>Pool of available lists of <see cref="ColliderPair"/> for allocation used in <see cref="Detach"/>.</summary>
         private readonly Stack<List<ColliderPair>> _scratchLists = new();
+
         private readonly ICollisionEventSink _sink;
         private readonly IShapeContactTester _contacts;
         private readonly Dictionary<Type, int> _shapeTypeCounts = new();
@@ -40,7 +42,7 @@ namespace Asteroids.Collisions
             _registered.Add(collider);
             _shapeTypeCounts[shapeType] = _shapeTypeCounts.TryGetValue(shapeType, out var count) ? count + 1 : 1;
             _colliders.Add(collider);
-            
+
             return new Registration(this, collider);
         }
 
@@ -53,7 +55,7 @@ namespace Asteroids.Collisions
             _colliders.Remove(collider);
             return true;
         }
-        
+
         private void EnsureSupported(Type shapeType)
         {
             if (!_contacts.Supports(shapeType, shapeType))
@@ -64,14 +66,14 @@ namespace Asteroids.Collisions
                     throw new NotSupportedException(
                         $"No contact rule between {shapeType.Name} and {present.Name}.");
         }
-        
+
         private void ReleaseShapeType(Type shapeType)
         {
             var left = _shapeTypeCounts[shapeType] - 1;
             if (left > 0) _shapeTypeCounts[shapeType] = left;
             else _shapeTypeCounts.Remove(shapeType);
         }
-        
+
         public void Tick(float _)
         {
             if (_colliders.IsLocked)
@@ -81,7 +83,11 @@ namespace Asteroids.Collisions
             _colliders.Lock();
             try
             {
-                unchecked { _stamp++; }
+                unchecked
+                {
+                    _stamp++;
+                }
+
                 Detect();
                 Dispatch(ref failures);
                 ExpireStalePairs(ref failures);
@@ -91,7 +97,7 @@ namespace Asteroids.Collisions
                 _detected.Clear();
                 _colliders.Unlock();
             }
-            
+
             failures.ThrowIfFailed();
         }
 
@@ -105,7 +111,8 @@ namespace Asteroids.Collisions
                 for (var j = i + 1; j < colliders.Count; j++)
                 {
                     var second = colliders[j];
-                    if (CanInteract(first, second) && _contacts.TryGetContact(first.Shape, second.Shape, out var contact))
+                    if (CanInteract(first, second) &&
+                        _contacts.TryGetContact(first.Shape, second.Shape, out var contact))
                         _detected.Add(new DetectedContact(first, second, contact));
                 }
             }
@@ -121,17 +128,8 @@ namespace Asteroids.Collisions
                 var isNew = !_active.ContainsKey(pair);
                 _active[pair] = _stamp;
 
-                var inverted = detected.Contact.Inverted;
-                if (isNew)
-                {
-                    NotifyEntered(detected.First, detected.Second, detected.Contact, ref failures);
-                    NotifyEntered(detected.Second, detected.First, inverted, ref failures);
-                }
-                else
-                {
-                    NotifyStayed(detected.First, detected.Second, detected.Contact, ref failures);
-                    NotifyStayed(detected.Second, detected.First, inverted, ref failures);
-                }
+                if (isNew) NotifyEntered(detected.First, detected.Second, detected.Contact, ref failures);
+                else NotifyStayed(detected.First, detected.Second, detected.Contact, ref failures);
             }
         }
 
@@ -139,21 +137,21 @@ namespace Asteroids.Collisions
         {
             _expired.Clear();
             foreach (var entry in _active)
-                if (entry.Value != _stamp) _expired.Add(entry.Key);
+                if (entry.Value != _stamp)
+                    _expired.Add(entry.Key);
 
             foreach (var pair in _expired)
             {
                 _active.Remove(pair);
                 NotifyExited(pair.First, pair.Second, ref failures);
-                NotifyExited(pair.Second, pair.First, ref failures);
             }
         }
 
-        private void NotifyEntered(ICollider self, ICollider other, in Contact contact, ref FailureCollector failures)
+        private void NotifyEntered(ICollider first, ICollider second, in Contact contact, ref FailureCollector failures)
         {
             try
             {
-                _sink.Entered(self, other, contact);
+                _sink.Entered(first, second, contact);
             }
             catch (Exception e)
             {
@@ -161,11 +159,11 @@ namespace Asteroids.Collisions
             }
         }
 
-        private void NotifyStayed(ICollider self, ICollider other, in Contact contact, ref FailureCollector failures)
+        private void NotifyStayed(ICollider first, ICollider second, in Contact contact, ref FailureCollector failures)
         {
             try
             {
-                _sink.Stayed(self, other, contact);
+                _sink.Stayed(first, second, contact);
             }
             catch (Exception e)
             {
@@ -173,11 +171,11 @@ namespace Asteroids.Collisions
             }
         }
 
-        private void NotifyExited(ICollider self, ICollider other, ref FailureCollector failures)
+        private void NotifyExited(ICollider first, ICollider second, ref FailureCollector failures)
         {
             try
             {
-                _sink.Exited(self, other);
+                _sink.Exited(first, second);
             }
             catch (Exception e)
             {
@@ -195,7 +193,8 @@ namespace Asteroids.Collisions
             try
             {
                 foreach (var entry in _active)
-                    if (entry.Key.Contains(collider)) ended.Add(entry.Key);
+                    if (entry.Key.Contains(collider))
+                        ended.Add(entry.Key);
 
                 for (var i = 0; i < ended.Count; i++) _active.Remove(ended[i]);
 
@@ -204,7 +203,6 @@ namespace Asteroids.Collisions
                 {
                     var pair = ended[i];
                     NotifyExited(pair.First, pair.Second, ref failures);
-                    NotifyExited(pair.Second, pair.First, ref failures);
                 }
 
                 failures.ThrowIfFailed();
@@ -253,7 +251,7 @@ namespace Asteroids.Collisions
             public override int GetHashCode() =>
                 RuntimeHelpers.GetHashCode(First) ^ RuntimeHelpers.GetHashCode(Second);
         }
-        
+
         private sealed class Registration : IDisposable
         {
             private readonly CollisionSystem _owner;
