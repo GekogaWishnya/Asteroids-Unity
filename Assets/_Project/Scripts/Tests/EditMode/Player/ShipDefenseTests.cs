@@ -153,16 +153,17 @@ namespace Asteroids.Player.Tests
         }
 
         [Test]
-        public void Hit_MakesTheCollidersIgnoreTheConfiguredLayersUntilTheWindowEnds()
+        public void Hit_MakesTheCollidersIgnoreEverythingButTheKeptLayersUntilTheWindowEnds()
         {
-            _combat.IgnoredLayers = CollisionLayer.Enemy | CollisionLayer.PlayerProjectile;
+            _combat.KeptLayers = CollisionLayer.Boundary;
+            const CollisionLayer ignored = CollisionLayer.All & ~CollisionLayer.Boundary;
             Create().Attach(_ship);
 
             RegisteredShip.TakeDamage(1);
-            Assert.That(_collider.Ignored, Is.EqualTo(CollisionLayer.Enemy | CollisionLayer.PlayerProjectile));
+            Assert.That(_collider.Ignored, Is.EqualTo(ignored));
 
             _loop.Tick(1.4f);
-            Assert.That(_collider.Ignored, Is.EqualTo(CollisionLayer.Enemy | CollisionLayer.PlayerProjectile));
+            Assert.That(_collider.Ignored, Is.EqualTo(ignored));
 
             _loop.Tick(0.2f);
             Assert.That(_collider.Ignored, Is.EqualTo(CollisionLayer.None));
@@ -236,7 +237,7 @@ namespace Asteroids.Player.Tests
             RegisteredShip.TakeDamage(1);
 
             Assert.That(_health.Current.Value, Is.EqualTo(3));
-            Assert.That(_collider.Ignored, Is.EqualTo(CollisionLayer.Enemy));
+            Assert.That(_collider.Ignored, Is.EqualTo(CollisionLayer.All & ~CollisionLayer.Boundary));
             Assert.That(_view.Calls, Is.EqualTo(new[] { true }));
 
             _loop.Tick(2f);
