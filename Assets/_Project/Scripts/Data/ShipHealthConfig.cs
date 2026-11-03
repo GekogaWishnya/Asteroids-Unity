@@ -21,9 +21,9 @@ namespace Asteroids.Data
         [Tooltip("Seconds after a hit during which the ship cannot be steered, thrust or fired. 0 effectively turns it off")]
         [SerializeField, Min(0f)] private float controlLossSeconds = 3f;
 
-        [Tooltip("Layers the ship's collider ignores while protected. Do not include Boundary: " +
-                 "the ship would stop wrapping around the world.")]
-        [SerializeField] private CollisionLayer ignoredLayers = CollisionLayer.Enemy;
+        [Tooltip("The only layers the ship's colliders still react to while protected. Everything else is " +
+                 "ignored, including layers added later. Keep Boundary, or the ship stops wrapping around the world.")]
+        [SerializeField] private CollisionLayer keptLayers = CollisionLayer.Boundary;
 
         [Tooltip("Seconds the ship is protected when a wave starts. 0 turns it off")]
         [SerializeField, Min(0f)] private float waveStartProtectionSeconds = 2f;
@@ -32,14 +32,14 @@ namespace Asteroids.Data
         public int RamDamage => ramDamage;
         public float InvulnerabilitySeconds => invulnerabilitySeconds;
         public float ControlLossSeconds => controlLossSeconds;
-        public CollisionLayer IgnoredLayers => ignoredLayers;
+        public CollisionLayer KeptLayers => keptLayers;
         public float WaveStartProtectionSeconds => waveStartProtectionSeconds;
 
         private void OnValidate()
         {
-            if (InvulnerabilityConfigRules.IgnoresBoundary(ignoredLayers))
+            if (InvulnerabilityConfigRules.DropsBoundary(keptLayers))
                 Debug.LogWarning(
-                    $"{nameof(ShipHealthConfig)} '{name}' ignores the Boundary layer while protected, " +
+                    $"{nameof(ShipHealthConfig)} '{name}' does not keep the Boundary layer while protected, " +
                     "so the ship is not wrapped around the world during that time.", this);
 
             if (controlLossSeconds > invulnerabilitySeconds)
