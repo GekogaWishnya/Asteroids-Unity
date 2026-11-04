@@ -71,7 +71,7 @@ namespace Asteroids.Installers
             Container.Bind<EnemyPrefabCatalog>().FromInstance(CreatePrefabCatalog());
             Container.Bind<IEnemyViewFactory>().To<PrefabEnemyViewFactory>().AsSingle();
 
-            ShipLoadoutDefinition.Install(Container, shipLoadout);
+            ShipLoadoutInstaller.Install(Container, shipLoadout);
         }
 
         private EnemyPrefabCatalog CreatePrefabCatalog()

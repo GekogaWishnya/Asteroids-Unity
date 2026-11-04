@@ -15,15 +15,15 @@ namespace Asteroids.Weapons.Components
     /// </summary>
     public sealed class PrefabProjectileViewFactory : IProjectileViewFactory
     {
-        private readonly DiContainer _container;
+        private readonly IInstantiator _instantiator;
         private readonly ProjectileWeaponDefinition _definition;
         private Transform _idleRoot;
         private Transform _activeRoot;
 
         /// <exception cref="ArgumentNullException">Any argument is null.</exception>
-        public PrefabProjectileViewFactory(DiContainer container, ProjectileWeaponDefinition definition)
+        public PrefabProjectileViewFactory(IInstantiator instantiator, ProjectileWeaponDefinition definition)
         {
-            _container = container ?? throw new ArgumentNullException(nameof(container));
+            _instantiator = instantiator ?? throw new ArgumentNullException(nameof(instantiator));
             _definition = definition ? definition : throw new ArgumentNullException(nameof(definition));
         }
 
@@ -33,12 +33,13 @@ namespace Asteroids.Weapons.Components
         public IProjectileView Create()
         {
             var prefab = _definition.ProjectilePrefab;
-            if (prefab == null)
-                throw new InvalidOperationException($"Projectile weapon '{_definition.name}' has no projectile prefab.");
+            if (!prefab)
+                throw new InvalidOperationException(
+                    $"Projectile weapon '{_definition.name}' has no projectile prefab.");
 
             EnsureRoots();
 
-            var instance = _container.InstantiatePrefab(prefab, _idleRoot);
+            var instance = _instantiator.InstantiatePrefab(prefab, _idleRoot);
             if (instance.TryGetComponent<IEntityProvider>(out var provider))
                 return new PooledProjectileView(instance.transform, provider.Entity, _idleRoot, _activeRoot);
 
@@ -50,7 +51,7 @@ namespace Asteroids.Weapons.Components
 
         private void EnsureRoots()
         {
-            if (_idleRoot != null && _activeRoot != null) return;
+            if (_idleRoot && _activeRoot) return;
 
             var idle = new GameObject($"Projectile pool of {_definition.name} (idle)");
             idle.SetActive(false);

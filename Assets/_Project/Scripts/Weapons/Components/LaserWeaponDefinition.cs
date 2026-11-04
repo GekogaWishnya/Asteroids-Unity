@@ -2,11 +2,7 @@ using System;
 using System.Collections.Generic;
 using Asteroids.Core;
 using Asteroids.Core.IConfigs;
-using Asteroids.Damage;
-using Asteroids.Weapons.Laser;
 using UnityEngine;
-using Zenject;
-using Object = UnityEngine.Object;
 
 namespace Asteroids.Weapons.Components
 {
@@ -26,27 +22,34 @@ namespace Asteroids.Weapons.Components
     {
         [Header("Beam")]
         [Tooltip("What the beam is made of. The root needs an EntityComponent and a collider")]
-        [SerializeField] private GameObject beamPrefab;
-        [Tooltip("Distance from the carrier's position where the beam starts")]
-        [SerializeField, Min(0f)] private float muzzleOffset = 0.5f;
+        [SerializeField]
+        private GameObject beamPrefab;
 
-        [Header("Energy")]
-        [Tooltip("Energy of a full tank. The tank starts empty")]
-        [SerializeField, Min(0.01f)] private float maxEnergy = 100f;
-        [Tooltip("Energy the beam uses per second")]
-        [SerializeField, Min(0.01f)] private float drainPerSecond = 50f;
+        [Tooltip("Distance from the carrier's position where the beam starts")] [SerializeField, Min(0f)]
+        private float muzzleOffset = 0.5f;
+
+        [Header("Energy")] [Tooltip("Energy of a full tank. The tank starts empty")] [SerializeField, Min(0.01f)]
+        private float maxEnergy = 100f;
+
+        [Tooltip("Energy the beam uses per second")] [SerializeField, Min(0.01f)]
+        private float drainPerSecond = 50f;
+
         [Tooltip("Energy regained per second while refilling. The beam never refills while firing")]
-        [SerializeField, Min(0.01f)] private float refillPerSecond = 5f;
-        [Tooltip("Seconds after the beam stops before the tank starts refilling")]
-        [SerializeField, Min(0f)] private float refillDelay = 1f;
-        [Tooltip("Energy a press needs to start the beam")]
-        [SerializeField, Min(0.01f)] private float minEnergyToFire = 20f;
+        [SerializeField, Min(0.01f)]
+        private float refillPerSecond = 5f;
 
-        [Header("Damage")]
-        [Tooltip("Damage of one hit")]
-        [SerializeField, Min(1)] private int hitDamage = 1;
+        [Tooltip("Seconds after the beam stops before the tank starts refilling")] [SerializeField, Min(0f)]
+        private float refillDelay = 1f;
+
+        [Tooltip("Energy a press needs to start the beam")] [SerializeField, Min(0.01f)]
+        private float minEnergyToFire = 20f;
+
+        [Header("Damage")] [Tooltip("Damage of one hit")] [SerializeField, Min(1)]
+        private int hitDamage = 1;
+
         [Tooltip("Seconds between two hits on a target that stays in the beam. The first hit lands on contact")]
-        [SerializeField, Min(0.01f)] private float hitInterval = 0.1f;
+        [SerializeField, Min(0.01f)]
+        private float hitInterval = 0.1f;
 
         public float MaxEnergy => maxEnergy;
         public float DrainPerSecond => drainPerSecond;
@@ -57,57 +60,12 @@ namespace Asteroids.Weapons.Components
         public float HitInterval => hitInterval;
         public float MuzzleOffset => muzzleOffset;
 
-        public override IWeapon Create(DiContainer container)
-        {
-            if (container == null) throw new ArgumentNullException(nameof(container));
+        /// <summary>The laser shows its energy on the HUD.</summary>
+        public override IReadOnlyList<Type> StatusContracts { get; } = new[] { typeof(ILaserStatus) };
 
-            ConfigValidation.ThrowIfInvalid($"Laser weapon '{name}'", FindProblems());
+        public GameObject BeamPrefab => beamPrefab;
 
-            return new LaserWeapon(
-                this,
-                container.Resolve<ISimulationLoop>(),
-                CreateBeam(container),
-                container.Resolve<ILaserBeamRegistry>(),
-                container.Resolve<IDamageLookup>());
-        }
-
-        /// <summary>Binds the laser as <see cref="ILaserStatus"/> for the HUD.</summary>
-        /// <exception cref="InvalidOperationException">The container already has a laser status.</exception>
-        public override void BindStatus(DiContainer container, Func<DiContainer, IWeapon> weapon)
-        {
-            base.BindStatus(container, weapon);
-
-            if (container.HasBinding<ILaserStatus>())
-                throw new InvalidOperationException(
-                    $"Laser weapon '{name}' cannot be bound: a loadout can carry one laser at most.");
-
-            container.Bind<ILaserStatus>()
-                .FromMethod(context => weapon(context.Container) as ILaserStatus
-                                       ?? throw new InvalidOperationException(
-                                           $"Laser weapon '{name}' built a weapon that has no laser status."))
-                .AsSingle();
-        }
-
-        /// <exception cref="InvalidOperationException">The prefab has no component implementing <see cref="IEntityProvider"/>.</exception>
-        private ILaserBeamView CreateBeam(DiContainer container)
-        {
-            var idle = new GameObject($"Laser beam of {name} (idle)");
-            idle.SetActive(false);
-            var active = new GameObject($"Laser beam of {name}");
-
-            var instance = container.InstantiatePrefab(beamPrefab, idle.transform);
-            if (instance.TryGetComponent<IEntityProvider>(out var provider))
-                return new LaserBeamView(instance.transform, provider.Entity, idle.transform, active.transform);
-
-            Object.Destroy(instance);
-            Object.Destroy(idle);
-            Object.Destroy(active);
-            throw new InvalidOperationException(
-                $"The beam prefab '{beamPrefab.name}' of laser weapon '{name}' needs a component " +
-                $"implementing {nameof(IEntityProvider)} (add EntityComponent).");
-        }
-
-        private IReadOnlyList<string> FindProblems()
+        public override IReadOnlyList<string> FindProblems()
         {
             var problems = new List<string>(LaserWeaponConfigValidator.Validate(this));
             if (!beamPrefab) problems.Add("has no beam prefab.");
