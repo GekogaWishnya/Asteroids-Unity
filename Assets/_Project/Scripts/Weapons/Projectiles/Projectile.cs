@@ -1,8 +1,8 @@
 using System;
-using Asteroids.Common;
 using Asteroids.Core;
 using Asteroids.Core.IConfigs;
 using Asteroids.Physics;
+using Asteroids.Pooling;
 
 namespace Asteroids.Weapons.Projectiles
 {
@@ -14,23 +14,22 @@ namespace Asteroids.Weapons.Projectiles
     /// </summary>
     public sealed class Projectile : ISingleUseDamageSource, IProjectileImpact, IDisposable
     {
-        private readonly IProjectileView _view;
         private readonly IProjectileWeaponConfig _config;
         private readonly InertialMotion _motion;
-        private readonly RegistrationScope _registrations;
+        private readonly PooledLife _life;
         private float _remaining;
         private bool _hasHit;
 
         /// <exception cref="ArgumentNullException">Any argument (or the view's entity) is null.</exception>
         public Projectile(
-            IProjectileView view,
+            IPooledView view,
             IProjectileWeaponConfig config,
             ISimulationLoop loop,
             IWrapRegistry wrap,
             IDamageRegistry damageRegistry,
             IProjectileRegistry projectiles)
         {
-            _view = view ?? throw new ArgumentNullException(nameof(view));
+            if (view == null) throw new ArgumentNullException(nameof(view));
             _config = config ?? throw new ArgumentNullException(nameof(config));
             if (loop == null) throw new ArgumentNullException(nameof(loop));
             if (wrap == null) throw new ArgumentNullException(nameof(wrap));
@@ -43,7 +42,7 @@ namespace Asteroids.Weapons.Projectiles
             var motionStep = new MotionStep(entity.Pose, _motion);
             var lifetimeStep = new LifetimeStep(this);
 
-            _registrations = new RegistrationScope(new Func<IDisposable>[]
+            _life = new PooledLife("projectile", view, new Func<IDisposable>[]
             {
                 () => loop.Register(SimulationPhase.Motion, motionStep),
                 () => wrap.Register(entity.Pose),
@@ -51,12 +50,13 @@ namespace Asteroids.Weapons.Projectiles
                 () => damageRegistry.RegisterSource(entity, this),
                 () => projectiles.Register(entity, this)
             });
+            _life.Finished += () => Finished?.Invoke(this);
         }
 
         /// <summary>Raised once per shot, when the projectile is out of play again and can be reused.</summary>
         public event Action<Projectile> Finished;
 
-        public bool IsInPlay => _registrations.IsEnabled;
+        public bool IsInPlay => _life.IsInPlay;
 
         public int Damage => _config.ProjectileDamage;
 
@@ -67,31 +67,13 @@ namespace Asteroids.Weapons.Projectiles
         /// <exception cref="InvalidOperationException">The projectile is already in play.</exception>
         public void Launch(ProjectileLaunch launch)
         {
-            if (_registrations.IsEnabled)
+            if (_life.IsInPlay)
                 throw new InvalidOperationException("The projectile is already in play.");
 
             _remaining = _config.ProjectileLifetime;
             _hasHit = false;
-            _registrations.Enable();
-
-            try
-            {
-                _view.Show(launch.Position, launch.Angle);
-                _motion.AddVelocity(launch.Velocity - _motion.Velocity);
-            }
-            catch
-            {
-                try
-                {
-                    Leave();
-                }
-                catch
-                {
-                    // The failure that led here matters more.
-                }
-
-                throw;
-            }
+            _life.Enter(launch.Position, launch.Angle,
+                () => _motion.AddVelocity(launch.Velocity - _motion.Velocity));
         }
 
         public void Impact()
@@ -102,45 +84,13 @@ namespace Asteroids.Weapons.Projectiles
         public void Dispose()
         {
             Finished = null;
-
-            try
-            {
-                _registrations.Dispose();
-            }
-            finally
-            {
-                _view.Dispose();
-            }
+            _life.Dispose();
         }
 
         private void Tick(float deltaTime)
         {
             _remaining -= deltaTime;
-            if (_hasHit || _remaining <= 0f) Retire();
-        }
-
-        private void Retire()
-        {
-            try
-            {
-                Leave();
-            }
-            finally
-            {
-                Finished?.Invoke(this);
-            }
-        }
-
-        private void Leave()
-        {
-            try
-            {
-                _registrations.Disable();
-            }
-            finally
-            {
-                _view.Hide();
-            }
+            if (_hasHit || _remaining <= 0f) _life.Retire();
         }
 
         /// <summary>No damping, and the speed cap is the projectile speed.</summary>

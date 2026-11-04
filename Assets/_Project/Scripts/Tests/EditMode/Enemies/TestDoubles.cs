@@ -21,7 +21,7 @@ namespace Asteroids.Enemies.Tests
         public IPose Pose { get; } = new TestPose();
     }
 
-    internal sealed class FakeEnemyView : IEnemyView
+    internal sealed class FakeEnemyView : IPooledView
     {
         /// <param name="entity">Defaults to a <see cref="TestEntity"/>, whose pose always faces +Y.</param>
         public FakeEnemyView(IEntity entity = null) => Entity = entity ?? new TestEntity();
@@ -49,6 +49,26 @@ namespace Asteroids.Enemies.Tests
             HideCount++;
         }
 
+        /// <summary>Collider registrations held right now.</summary>
+        public int LiveColliders { get; private set; }
+        public int ColliderRegistrations { get; private set; }
+        public bool FailOnRegisterColliders { get; set; }
+
+        public IDisposable RegisterColliders()
+        {
+            if (FailOnRegisterColliders) throw new InvalidOperationException("colliders failed");
+
+            ColliderRegistrations++;
+            LiveColliders++;
+            var released = false;
+            return new Asteroids.Common.DisposableAction(() =>
+            {
+                if (released) return;
+                released = true;
+                LiveColliders--;
+            });
+        }
+
         public void Dispose() => IsDisposed = true;
     }
 
@@ -60,7 +80,7 @@ namespace Asteroids.Enemies.Tests
         /// <summary>Makes the entity of every new view. Null for a <see cref="TestEntity"/>.</summary>
         public Func<IEntity> CreateEntity { get; set; }
 
-        public IEnemyView Create(EnemyTypeId type)
+        public IPooledView Create(EnemyTypeId type)
         {
             var view = new FakeEnemyView(CreateEntity?.Invoke());
             Views.Add(view);

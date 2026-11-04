@@ -1,5 +1,6 @@
 using System;
 using Asteroids.Core;
+using Asteroids.Pooling.Components;
 using Asteroids.Weapons.Projectiles;
 using UnityEngine;
 using Zenject;
@@ -30,7 +31,7 @@ namespace Asteroids.Weapons.Components
         /// <exception cref="InvalidOperationException">
         /// The definition has no prefab or the prefab has no component implementing <see cref="IEntityProvider"/>.
         /// </exception>
-        public IProjectileView Create()
+        public IPooledView Create()
         {
             var prefab = _definition.ProjectilePrefab;
             if (!prefab)
@@ -41,7 +42,7 @@ namespace Asteroids.Weapons.Components
 
             var instance = _instantiator.InstantiatePrefab(prefab, _idleRoot);
             if (instance.TryGetComponent<IEntityProvider>(out var provider))
-                return new PooledProjectileView(instance.transform, provider.Entity, _idleRoot, _activeRoot);
+                return new PooledObjectView(instance.transform, provider.Entity, _idleRoot, _activeRoot);
 
             Object.Destroy(instance);
             throw new InvalidOperationException(

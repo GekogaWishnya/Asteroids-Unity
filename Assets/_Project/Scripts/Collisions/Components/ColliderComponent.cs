@@ -15,20 +15,23 @@ namespace Asteroids.Collisions.Components
     /// <see cref="Ignore"/> is the exception. It narrows the live collider's mask and is kept while collider is
     /// disabled. <see cref="Restore"/> restores the original mask.
     /// </summary>
-    public abstract class ColliderComponent : MonoBehaviour, ICollisionIgnore
+    public abstract class ColliderComponent : MonoBehaviour, ICollisionIgnore, IManagedCollider
     {
-        [Tooltip("Layers this collider belongs to.")]
-        [SerializeField] private CollisionLayer layer = CollisionLayer.None;
-        [Tooltip("Layers this collider reacts to. A pair interacts only if both masks accept the other's layer.")]
-        [SerializeField] private CollisionLayer mask = CollisionLayer.All;
+        [Tooltip("Layers this collider belongs to.")] [SerializeField]
+        private CollisionLayer layer = CollisionLayer.None;
 
-        [Header("Debug")]
-        [SerializeField] private bool drawGizmos = false;
+        [Tooltip("Layers this collider reacts to. A pair interacts only if both masks accept the other's layer.")]
+        [SerializeField]
+        private CollisionLayer mask = CollisionLayer.All;
+
+        [Header("Debug")] [SerializeField] private bool drawGizmos = false;
 
         private ICollisionSystem _system;
         private RegistrationScope _registration;
         private ShapeCollider _collider;
         private CollisionLayer _ignored = CollisionLayer.None;
+        private bool _managed;
+        private int _generation;
 
         protected CollisionLayer Layer => layer;
 
@@ -50,17 +53,50 @@ namespace Asteroids.Collisions.Components
 
         public void Restore() => Ignore(CollisionLayer.None);
 
+        public void TakeOverRegistration()
+        {
+            _managed = true;
+            _registration?.Disable();
+        }
+
+        public IDisposable Register()
+        {
+            if (!_managed)
+                throw new InvalidOperationException(
+                    $"{GetType().Name} on '{name}' registers itself; call {nameof(TakeOverRegistration)} first.");
+            if (_registration == null)
+                throw new InvalidOperationException($"{GetType().Name} on '{name}' is not injected yet.");
+            if (_registration.IsEnabled)
+                throw new InvalidOperationException($"{GetType().Name} on '{name}' is already registered.");
+
+            _registration.Enable();
+
+            // A late dispose of an older handle must not take down a newer registration.
+            var generation = ++_generation;
+            return new DisposableAction(() =>
+            {
+                if (generation == _generation) _registration.Disable();
+            });
+        }
+
         [Inject]
         private void Construct(ICollisionSystem system)
         {
             _system = system;
             _registration = new RegistrationScope(new Func<IDisposable>[] { RegisterCollider });
 
-            if (isActiveAndEnabled) _registration.Enable();
+            if (isActiveAndEnabled && !_managed) _registration.Enable();
         }
 
-        private void OnEnable() => _registration?.Enable();
-        private void OnDisable() => _registration?.Disable();
+        private void OnEnable()
+        {
+            if (!_managed) _registration?.Enable();
+        }
+
+        private void OnDisable()
+        {
+            if (!_managed) _registration?.Disable();
+        }
 
         protected virtual void OnValidate()
         {

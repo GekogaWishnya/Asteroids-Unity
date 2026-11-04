@@ -12,7 +12,8 @@ namespace Asteroids.Weapons.Laser
     {
         private readonly ILaserWeaponConfig _config;
         private readonly ISimulationLoop _loop;
-        private readonly ILaserBeamView _beam;
+        private readonly IPooledView _beam;
+        private IDisposable _beamColliders;
         private readonly ILaserBeamRegistry _beams;
         private readonly LaserEnergy _energy;
         private readonly LaserHitTable _hits;
@@ -22,7 +23,7 @@ namespace Asteroids.Weapons.Laser
         public LaserWeapon(
             ILaserWeaponConfig config,
             ISimulationLoop loop,
-            ILaserBeamView beam,
+            IPooledView beam,
             ILaserBeamRegistry beams,
             IDamageLookup damage)
         {
@@ -39,7 +40,7 @@ namespace Asteroids.Weapons.Laser
 
         public IObservableValue<float> Energy => _energy.Energy;
         public IObservableValue<float> SecondsToFull => _energy.SecondsToFull;
-        
+
         public bool IsBeamOn { get; private set; }
 
         public IDisposable Attach(IEntity carrier, IFireInput trigger)
@@ -81,10 +82,20 @@ namespace Asteroids.Weapons.Laser
             try
             {
                 _beam.Show(position, angle);
+                _beamColliders = _beam.RegisterColliders();
             }
             catch
             {
                 IsBeamOn = false;
+                try
+                {
+                    _beam.Hide();
+                }
+                catch
+                {
+                    // The failure that turned the beam off matters more.
+                }
+
                 _energy.Interrupt();
                 throw;
             }
@@ -95,13 +106,22 @@ namespace Asteroids.Weapons.Laser
             if (!IsBeamOn) return;
 
             IsBeamOn = false;
+            var colliders = _beamColliders;
+            _beamColliders = null;
             try
             {
-                _beam.Hide();
+                colliders?.Dispose();
             }
             finally
             {
-                _hits.Clear();
+                try
+                {
+                    _beam.Hide();
+                }
+                finally
+                {
+                    _hits.Clear();
+                }
             }
         }
 

@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
-using Asteroids.Common;
 using Asteroids.Core;
 using Asteroids.Health;
+using Asteroids.Pooling;
 using UnityEngine;
 
 namespace Asteroids.Enemies
@@ -14,17 +14,17 @@ namespace Asteroids.Enemies
     internal sealed class EnemyLife : IDisposable
     {
         private readonly string _name;
-        private readonly IEnemyView _view;
+        private readonly IPooledView _view;
         private readonly HealthModel _health;
         private readonly IEnemyDeathHandler _death;
-        private readonly RegistrationScope _registrations;
+        private readonly PooledLife _life;
 
         /// <param name="name">What the enemy is called in error messages, such as "asteroid".</param>
         /// <param name="registrations">What the enemy registers while in play, in order. Copied.</param>
         /// <exception cref="ArgumentNullException">Any argument (or the view's entity, or a registration) is null.</exception>
         public EnemyLife(
             string name,
-            IEnemyView view,
+            IPooledView view,
             HealthModel health,
             IEnemyDeathHandler death,
             IEnumerable<Func<IDisposable>> registrations)
@@ -38,13 +38,14 @@ namespace Asteroids.Enemies
 
             // Last, so it is the first to go when the enemy leaves play.
             var all = new List<Func<IDisposable>>(registrations) { ListenForDepletion };
-            _registrations = new RegistrationScope(all);
+            _life = new PooledLife(name, view, all);
+            _life.Finished += () => Finished?.Invoke();
         }
 
         /// <summary>Raised once per life, when the enemy is out of play again and can be reused.</summary>
         public event Action Finished;
 
-        public bool IsInPlay => _registrations.IsEnabled;
+        public bool IsInPlay => _life.IsInPlay;
 
         /// <summary>Puts the enemy in play.</summary>
         /// <param name="angle">Degrees, same convention as <see cref="Asteroids.Core.IPose.Angle"/>.</param>
@@ -52,47 +53,23 @@ namespace Asteroids.Enemies
         /// <exception cref="InvalidOperationException">The enemy is already in play.</exception>
         public void Enter(Vector2 position, float angle, Action afterShown = null)
         {
-            if (_registrations.IsEnabled)
+            if (_life.IsInPlay)
                 throw new InvalidOperationException($"The {_name} is already in play.");
 
             _health.Reset();
-            _registrations.Enable();
-
-            try
-            {
-                _view.Show(position, angle);
-                afterShown?.Invoke();
-            }
-            catch
-            {
-                try
-                {
-                    Leave();
-                }
-                catch
-                {
-                    // The failure that led here matters more than a failure of the cleanup.
-                }
-
-                throw;
-            }
+            _life.Enter(position, angle, afterShown);
         }
 
-        /// <summary>Takes the enemy out of play without a death event.</summary>
-        public void Despawn() => Retire();
+        /// <summary>
+        /// Takes the enemy out of play without a death event.
+        /// Raises <see cref="Finished"/>. Does nothing when the enemy isn't in play.
+        /// </summary>
+        public void Despawn() => _life.Retire();
 
         public void Dispose()
         {
             Finished = null;
-
-            try
-            {
-                _registrations.Dispose();
-            }
-            finally
-            {
-                _view.Dispose();
-            }
+            _life.Dispose();
         }
 
         private IDisposable ListenForDepletion() => _health.SubscribeDepleted(OnDepleted);
@@ -107,33 +84,7 @@ namespace Asteroids.Enemies
             }
             finally
             {
-                Retire();
-            }
-        }
-
-        private void Retire()
-        {
-            if (!_registrations.IsEnabled) return;
-
-            try
-            {
-                Leave();
-            }
-            finally
-            {
-                Finished?.Invoke();
-            }
-        }
-
-        private void Leave()
-        {
-            try
-            {
-                _registrations.Disable();
-            }
-            finally
-            {
-                _view.Hide();
+                _life.Retire();
             }
         }
     }

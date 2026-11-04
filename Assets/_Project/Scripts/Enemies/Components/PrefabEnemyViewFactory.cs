@@ -1,6 +1,7 @@
 using System;
 using Asteroids.Core;
 using Asteroids.Core.IConfigs;
+using Asteroids.Pooling.Components;
 using UnityEngine;
 using Zenject;
 
@@ -24,7 +25,7 @@ namespace Asteroids.Enemies.Components
             _prefabs = prefabs ?? throw new ArgumentNullException(nameof(prefabs));
         }
 
-        public IEnemyView Create(EnemyTypeId type)
+        public IPooledView Create(EnemyTypeId type)
         {
             var prefab = _prefabs.Get(type);
             EnsureRoots();

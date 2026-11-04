@@ -1,0 +1,18 @@
+{
+    "name": "Asteroids.Pooling.Components",
+    "rootNamespace": "Asteroids.Pooling.Components",
+    "references": [
+        "GUID:31bcc358e6045d947b3683abd9e9f1ba",
+        "GUID:b1f71dfdd58f5054383b5415c9007cf3",
+        "GUID:b6151fc1b773b514581357cc20484cc5"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -157,6 +157,30 @@ namespace Asteroids.Enemies.Tests
         }
 
         [Test]
+        public void Enter_RegistersTheCollidersFirstAndLeaveReleasesThem()
+        {
+            var rig = new Rig();
+
+            rig.Life.Enter(Vector2.zero, 0f);
+            Assert.That(rig.View.ColliderRegistrations, Is.EqualTo(1));
+            Assert.That(rig.View.LiveColliders, Is.EqualTo(1));
+
+            rig.Health.TakeDamage(2);
+            Assert.That(rig.View.LiveColliders, Is.Zero);
+        }
+
+        [Test]
+        public void Enter_CollidersFail_LeavesPlayAndRethrows()
+        {
+            var rig = new Rig();
+            rig.View.FailOnRegisterColliders = true;
+
+            Assert.Throws<InvalidOperationException>(() => rig.Life.Enter(Vector2.zero, 0f));
+            Assert.That(rig.Life.IsInPlay, Is.False);
+            Assert.That(rig.View.IsShown, Is.False);
+        }
+
+        [Test]
         public void Despawn_NotInPlay_DoesNothing()
         {
             var rig = new Rig();

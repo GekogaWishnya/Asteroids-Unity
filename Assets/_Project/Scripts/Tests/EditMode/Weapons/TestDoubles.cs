@@ -30,7 +30,7 @@ namespace Asteroids.Weapons.Tests
         public bool IsFiring { get; set; }
     }
 
-    internal sealed class FakeProjectileView : IProjectileView
+    internal sealed class FakeProjectileView : IPooledView
     {
         public IEntity Entity { get; } = new TestEntity();
         public bool IsShown { get; private set; }
@@ -50,6 +50,26 @@ namespace Asteroids.Weapons.Tests
 
         public void Hide() => IsShown = false;
 
+        /// <summary>Collider registrations held right now.</summary>
+        public int LiveColliders { get; private set; }
+        public int ColliderRegistrations { get; private set; }
+        public bool FailOnRegisterColliders { get; set; }
+
+        public IDisposable RegisterColliders()
+        {
+            if (FailOnRegisterColliders) throw new InvalidOperationException("colliders failed");
+
+            ColliderRegistrations++;
+            LiveColliders++;
+            var released = false;
+            return new Asteroids.Common.DisposableAction(() =>
+            {
+                if (released) return;
+                released = true;
+                LiveColliders--;
+            });
+        }
+
         public void Dispose() => IsDisposed = true;
     }
 
@@ -57,7 +77,7 @@ namespace Asteroids.Weapons.Tests
     {
         public List<FakeProjectileView> Views { get; } = new();
 
-        public IProjectileView Create()
+        public IPooledView Create()
         {
             var view = new FakeProjectileView();
             Views.Add(view);

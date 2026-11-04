@@ -29,7 +29,7 @@ namespace Asteroids.Enemies
 
         /// <exception cref="ArgumentNullException">Any argument (or the view's entity) is null.</exception>
         public AsteroidController(
-            IEnemyView view,
+            IPooledView view,
             IAsteroidTypeConfig config,
             ISimulationLoop loop,
             IWrapRegistry wrap,

@@ -1,9 +1,10 @@
+using Asteroids.Core;
 using Asteroids.Core.IConfigs;
 
 namespace Asteroids.Enemies
 {
     public interface IEnemyViewFactory
     {
-        IEnemyView Create(EnemyTypeId type);
+        IPooledView Create(EnemyTypeId type);
     }
 }

@@ -248,6 +248,45 @@ namespace Asteroids.Weapons.Tests
         }
 
         [Test]
+        public void Tick_BeamOn_RegistersItsCollidersUntilItGoesOut()
+        {
+            CreateCharged();
+            Assert.That(_beam.LiveColliders, Is.Zero);
+
+            Press();
+            Assert.That(_beam.LiveColliders, Is.EqualTo(1));
+
+            _trigger.IsFiring = false;
+            _loop.Tick(0.01f);
+            Assert.That(_beam.LiveColliders, Is.Zero);
+        }
+
+        [Test]
+        public void Tick_RegisteringTheBeamCollidersFails_HidesTheBeamAndPropagates()
+        {
+            var weapon = CreateCharged();
+            _beam.FailOnRegisterColliders = true;
+            _trigger.IsFiring = true;
+
+            Assert.Throws<InvalidOperationException>(() => _loop.Tick(0.01f));
+            Assert.That(weapon.IsBeamOn, Is.False);
+            Assert.That(_beam.IsShown, Is.False);
+        }
+
+        [Test]
+        public void Detach_WhileFiring_ReleasesTheBeamColliders()
+        {
+            var weapon = Create();
+            var attachment = weapon.Attach(_carrier, _trigger);
+            _loop.Tick(5f);
+            Press();
+
+            attachment.Dispose();
+
+            Assert.That(_beam.LiveColliders, Is.Zero);
+        }
+
+        [Test]
         public void Attach_Twice_Throws()
         {
             var weapon = Create();

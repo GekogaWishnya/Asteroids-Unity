@@ -20,7 +20,7 @@ namespace Asteroids.Enemies
         /// <exception cref="ArgumentNullException">Any argument (or the view's entity) is null.</exception>
         /// <exception cref="ArgumentOutOfRangeException">The config's max health is not positive or its stun is invalid.</exception>
         public UfoController(
-            IEnemyView view,
+            IPooledView view,
             IUfoTypeConfig config,
             IPlayerTarget target,
             ISimulationLoop loop,

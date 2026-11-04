@@ -20,7 +20,7 @@ namespace Asteroids.Weapons.Tests
         public float MuzzleOffset { get; set; } = 0.5f;
     }
 
-    internal sealed class FakeBeamView : ILaserBeamView
+    internal sealed class FakeBeamView : IPooledView
     {
         public IEntity Entity { get; } = new TestEntity();
         public bool IsShown { get; private set; }
@@ -47,6 +47,26 @@ namespace Asteroids.Weapons.Tests
             HideCount++;
             OnHide?.Invoke();
             IsShown = false;
+        }
+
+        /// <summary>Collider registrations held right now.</summary>
+        public int LiveColliders { get; private set; }
+        public int ColliderRegistrations { get; private set; }
+        public bool FailOnRegisterColliders { get; set; }
+
+        public IDisposable RegisterColliders()
+        {
+            if (FailOnRegisterColliders) throw new InvalidOperationException("colliders failed");
+
+            ColliderRegistrations++;
+            LiveColliders++;
+            var released = false;
+            return new Asteroids.Common.DisposableAction(() =>
+            {
+                if (released) return;
+                released = true;
+                LiveColliders--;
+            });
         }
 
         public void Dispose() => IsDisposed = true;

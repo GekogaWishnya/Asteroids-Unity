@@ -2,6 +2,7 @@ using System;
 using Asteroids.Core;
 using Asteroids.Core.IConfigs;
 using Asteroids.Damage;
+using Asteroids.Pooling.Components;
 using Asteroids.Weapons.Laser;
 using UnityEngine;
 using Zenject;
@@ -34,7 +35,7 @@ namespace Asteroids.Weapons.Components
         }
 
         /// <exception cref="InvalidOperationException">The prefab has no component implementing <see cref="IEntityProvider"/>.</exception>
-        private ILaserBeamView CreateBeam(LaserWeaponDefinition definition)
+        private IPooledView CreateBeam(LaserWeaponDefinition definition)
         {
             var idle = new GameObject($"Laser beam of {definition.name} (idle)");
             idle.SetActive(false);
@@ -43,7 +44,8 @@ namespace Asteroids.Weapons.Components
             var prefab = definition.BeamPrefab;
             var instance = _instantiator.InstantiatePrefab(prefab, idle.transform);
             if (instance.TryGetComponent<IEntityProvider>(out var provider))
-                return new LaserBeamView(instance.transform, provider.Entity, idle.transform, active.transform);
+                return new PooledObjectView(
+                    instance.transform, provider.Entity, idle.transform, active.transform, ownsRoots: true);
 
             Object.Destroy(instance);
             Object.Destroy(idle);

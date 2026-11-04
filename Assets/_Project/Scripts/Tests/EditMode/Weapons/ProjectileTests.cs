@@ -135,6 +135,20 @@ namespace Asteroids.Weapons.Tests
         }
 
         [Test]
+        public void Launch_RegistersTheCollidersUntilTheProjectileRetires()
+        {
+            var projectile = Create();
+            Assert.That(_view.LiveColliders, Is.Zero);
+
+            projectile.Launch(Launch(Vector2.zero, Vector2.up));
+            Assert.That(_view.LiveColliders, Is.EqualTo(1));
+
+            projectile.Impact();
+            _loop.Tick(0.01f);
+            Assert.That(_view.LiveColliders, Is.Zero);
+        }
+
+        [Test]
         public void Impact_StaysRegisteredUntilTheLogicPhase()
         {
             var projectile = Create();
