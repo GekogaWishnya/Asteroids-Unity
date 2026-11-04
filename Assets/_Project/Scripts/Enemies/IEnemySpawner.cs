@@ -3,7 +3,7 @@ using Asteroids.Core.IConfigs;
 namespace Asteroids.Enemies
 {
     /// <summary>Spawns one type of enemy and knows how many of them are alive.</summary>
-    public interface IEnemySpawner
+    internal interface IEnemySpawner
     {
         EnemyTypeId Type { get; }
 
@@ -12,5 +12,8 @@ namespace Asteroids.Enemies
 
         /// <summary>Puts one enemy in play. The enemy chooses its own place.</summary>
         void Spawn();
+
+        /// <summary>Takes every enemy of this type out of play without triggering death events.</summary>
+        void DespawnAll();
     }
 }

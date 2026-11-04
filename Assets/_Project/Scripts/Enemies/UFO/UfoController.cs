@@ -10,7 +10,7 @@ namespace Asteroids.Enemies
     /// <summary>
     /// Lifecycle of one UFO object, reused for many lives. <see cref="Launch"/> starts a life.
     /// </summary>
-    public sealed class UfoController : IDamageSource, IDisposable
+    internal sealed class UfoController : IDamageSource, IPooledEnemy<UfoController>
     {
         private readonly IUfoTypeConfig _config;
         private readonly InertialMotion _motion;
@@ -65,7 +65,7 @@ namespace Asteroids.Enemies
         public bool IsInPlay => _life.IsInPlay;
 
         public bool IsStunned => _steering.IsStunned;
-        
+
         public int Damage => _config.ContactDamage;
 
         /// <summary>
@@ -86,7 +86,10 @@ namespace Asteroids.Enemies
             _life.Enter(position, UfoSteering.AngleOf(heading),
                 () => _motion.AddVelocity(heading * _config.LaunchSpeed - _motion.Velocity));
         }
-        
+
+        /// <inheritdoc cref="EnemyLife.Despawn"/>
+        public void Despawn() => _life.Despawn();
+
         public void Dispose()
         {
             Finished = null;

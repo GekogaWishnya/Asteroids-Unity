@@ -6,7 +6,7 @@ using UnityEngine;
 namespace Asteroids.Enemies
 {
     /// <summary>Finds the population of a type, so an asteroid can split into any other type.</summary>
-    public sealed class AsteroidLauncher : IAsteroidLauncher
+    internal sealed class AsteroidLauncher : IAsteroidLauncher
     {
         private readonly Dictionary<EnemyTypeId, AsteroidPopulation> _populations = new();
 

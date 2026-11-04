@@ -11,7 +11,7 @@ namespace Asteroids.Enemies
     /// The time in play of one pooled enemy object, shared by every enemy controller. <see cref="Enter"/> refills
     /// the health, creates the enemy's registrations and shows the view.
     /// </summary>
-    public sealed class EnemyLife : IDisposable
+    internal sealed class EnemyLife : IDisposable
     {
         private readonly string _name;
         private readonly IEnemyView _view;
@@ -77,7 +77,10 @@ namespace Asteroids.Enemies
                 throw;
             }
         }
-        
+
+        /// <summary>Takes the enemy out of play without a death event.</summary>
+        public void Despawn() => Retire();
+
         public void Dispose()
         {
             Finished = null;
@@ -110,6 +113,8 @@ namespace Asteroids.Enemies
 
         private void Retire()
         {
+            if (!_registrations.IsEnabled) return;
+
             try
             {
                 Leave();

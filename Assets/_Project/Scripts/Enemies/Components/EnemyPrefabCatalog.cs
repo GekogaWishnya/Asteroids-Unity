@@ -20,7 +20,7 @@ namespace Asteroids.Enemies.Components
             {
                 if (!pair.Key.IsValid)
                     throw new ArgumentException("An enemy type definition has no id.", nameof(prefabs));
-                if (pair.Value == null)
+                if (!pair.Value)
                     throw new ArgumentException($"Enemy type '{pair.Key}' has no prefab.", nameof(prefabs));
                 if (!_prefabs.TryAdd(pair.Key, pair.Value))
                     throw new ArgumentException(
@@ -34,7 +34,7 @@ namespace Asteroids.Enemies.Components
             if (!type.IsValid || !_prefabs.TryGetValue(type, out var prefab))
                 throw new InvalidOperationException(
                     $"No prefab is known for enemy type '{type}'. " +
-                    "Add its enemy type definition to the list on the gameplay installer.");
+                    "Add the type to the asteroid or UFO config of the gameplay installer.");
 
             return prefab;
         }

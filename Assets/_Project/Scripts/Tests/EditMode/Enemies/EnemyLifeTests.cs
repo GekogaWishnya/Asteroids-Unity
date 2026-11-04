@@ -141,6 +141,74 @@ namespace Asteroids.Enemies.Tests
         }
 
         [Test]
+        public void Despawn_InPlay_LeavesWithoutADeathAndFinishesOnce()
+        {
+            var rig = new Rig();
+            rig.Life.Enter(Vector2.zero, 0f);
+            rig.Log.Clear();
+
+            rig.Life.Despawn();
+
+            Assert.That(rig.Death.Deaths, Is.Empty);
+            Assert.That(rig.Life.IsInPlay, Is.False);
+            Assert.That(rig.View.IsShown, Is.False);
+            Assert.That(rig.FinishedCount, Is.EqualTo(1));
+            Assert.That(rig.Log, Is.EqualTo(new[] { "-b", "-a", "finished" }));
+        }
+
+        [Test]
+        public void Despawn_NotInPlay_DoesNothing()
+        {
+            var rig = new Rig();
+            rig.Life.Enter(Vector2.zero, 0f);
+            rig.Life.Despawn();
+
+            rig.Life.Despawn();
+
+            Assert.That(rig.FinishedCount, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void Despawn_ThenDepleted_DoesNothing()
+        {
+            var rig = new Rig();
+            rig.Life.Enter(Vector2.zero, 0f);
+            rig.Life.Despawn();
+
+            rig.Health.TakeDamage(2);
+
+            Assert.That(rig.Death.Deaths, Is.Empty);
+            Assert.That(rig.FinishedCount, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void Despawn_FromTheDeathHandler_FinishesOnce()
+        {
+            var view = new FakeEnemyView();
+            var health = new HealthModel(1);
+            EnemyLife life = null;
+            var death = new CallbackDeathHandler(() => life.Despawn());
+            life = new EnemyLife("thing", view, health, death, Array.Empty<Func<IDisposable>>());
+            var finished = 0;
+            life.Finished += () => finished++;
+            life.Enter(Vector2.zero, 0f);
+
+            health.TakeDamage(1);
+
+            Assert.That(finished, Is.EqualTo(1));
+            Assert.That(life.IsInPlay, Is.False);
+        }
+
+        private sealed class CallbackDeathHandler : IEnemyDeathHandler
+        {
+            private readonly Action _onDied;
+
+            public CallbackDeathHandler(Action onDied) => _onDied = onDied;
+
+            public void Died(Vector2 position) => _onDied();
+        }
+
+        [Test]
         public void Dispose_RemovesRegistrationsAndDestroysTheViewWithoutFinishing()
         {
             var rig = new Rig();

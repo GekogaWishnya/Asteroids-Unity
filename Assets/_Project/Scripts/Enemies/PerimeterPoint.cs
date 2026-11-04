@@ -3,7 +3,7 @@ using UnityEngine;
 namespace Asteroids.Enemies
 {
     /// <summary>A point on the edge of the gameplay area.</summary>
-    public readonly struct PerimeterPoint
+    internal readonly struct PerimeterPoint
     {
         public PerimeterPoint(Vector2 origin, Vector2 tangent, Vector2 inward, float length, float along)
         {

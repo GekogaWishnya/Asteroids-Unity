@@ -13,7 +13,7 @@ namespace Asteroids.Enemies
     /// The config is validated first and everything wrong with it is reported in a single exception.
     /// The spawners are built on first access, pools prewarmed, and the same list is returned afterwards.
     /// </summary>
-    public sealed class AsteroidSpawnerBuilder
+    internal sealed class AsteroidSpawnerBuilder
     {
         private readonly IAsteroidConfig _config;
         private readonly IEnemyViewFactory _views;

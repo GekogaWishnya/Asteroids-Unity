@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace Asteroids.Enemies
 {
-    public readonly struct AsteroidLaunch
+    internal readonly struct AsteroidLaunch
     {
         public AsteroidLaunch(Vector2 position, float angle, Vector2 velocity, float spinSpeed)
         {

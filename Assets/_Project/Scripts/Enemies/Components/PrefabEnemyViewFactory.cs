@@ -32,17 +32,16 @@ namespace Asteroids.Enemies.Components
             var instance = _container.InstantiatePrefab(prefab, _idleRoot);
             if (instance.TryGetComponent<IEntityProvider>(out var provider))
                 return new PooledObjectView(instance.transform, provider.Entity, _idleRoot, _activeRoot);
-            
+
             UnityEngine.Object.Destroy(instance);
             throw new InvalidOperationException(
                 $"The prefab of enemy type '{type}' needs a component implementing " +
                 $"{nameof(IEntityProvider)} (add EntityComponent).");
-
         }
 
         private void EnsureRoots()
         {
-            if (_idleRoot != null && _activeRoot != null) return;
+            if (_idleRoot && _activeRoot) return;
 
             var idle = new GameObject("Enemy pool (idle)");
             idle.SetActive(false);

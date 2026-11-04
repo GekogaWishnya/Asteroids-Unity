@@ -11,7 +11,7 @@ namespace Asteroids.Enemies
     /// inside the half-open rect that <see cref="IWorldBounds.Wrap"/> works with.
     /// Spawn does NOT avoid ship collision.
     /// </summary>
-    public sealed class AsteroidSpawner : IEnemySpawner
+    internal sealed class AsteroidSpawner : IEnemySpawner
     {
         /// <summary>Widest a heading may turn away from straight into the area, in degrees.</summary>
         public const float MaxTiltFromInward = PerimeterSpawnPoints.MaxTiltFromInward;
@@ -35,6 +35,8 @@ namespace Asteroids.Enemies
 
         public EnemyTypeId Type => _population.Type;
         public int AliveCount => _population.AliveCount;
+
+        public void DespawnAll() => _population.DespawnAll();
 
         public void Spawn()
         {

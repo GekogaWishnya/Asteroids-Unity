@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Asteroids.Enemies
 {
-    public sealed class SplitOnDeath : IEnemyDeathHandler
+    internal sealed class SplitOnDeath : IEnemyDeathHandler
     {
         private readonly IAsteroidLauncher _launcher;
         private readonly EnemyTypeId _childType;

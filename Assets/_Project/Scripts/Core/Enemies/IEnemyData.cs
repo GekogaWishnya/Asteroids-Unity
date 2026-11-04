@@ -17,5 +17,8 @@ namespace Asteroids.Core
 
         /// <exception cref="System.InvalidOperationException">No spawner is registered for <paramref name="type"/>.</exception>
         void Spawn(EnemyTypeId type);
+
+        /// <summary>Takes every enemy out of play without a triggering death events.</summary>
+        void DespawnAll();
     }
 }

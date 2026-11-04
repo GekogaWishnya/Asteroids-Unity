@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Asteroids.Common;
 using Asteroids.Core;
 using Asteroids.Core.IConfigs;
 
@@ -9,7 +10,7 @@ namespace Asteroids.Enemies
     /// Holds data about enemies on the level: one spawner per enemy type and total of what is alive.
     /// Does not know what kinds of enemies exist.
     /// </summary>
-    public sealed class EnemyData: IEnemyData
+    internal sealed class EnemyData : IEnemyData
     {
         private readonly Dictionary<EnemyTypeId, IEnemySpawner> _byType = new();
         private readonly IEnemySpawner[] _all;
@@ -57,6 +58,24 @@ namespace Asteroids.Enemies
                 throw new InvalidOperationException($"No spawner is registered for enemy type '{type}'.");
 
             spawner.Spawn();
+        }
+
+        public void DespawnAll()
+        {
+            var failures = new FailureCollector();
+            foreach (var spawner in _all)
+            {
+                try
+                {
+                    spawner.DespawnAll();
+                }
+                catch (Exception e)
+                {
+                    failures.Record(e);
+                }
+            }
+
+            failures.ThrowIfFailed();
         }
     }
 }

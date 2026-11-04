@@ -31,11 +31,16 @@ namespace Asteroids.Installers
         [SerializeField] private AsteroidConfig asteroidConfig;
         [SerializeField] private UfoConfig ufoConfig;
         [SerializeField] private LevelConfig levelConfig;
-        [SerializeField] private EnemyTypeDefinition[] enemyTypes;
         [SerializeField] private ShipLoadoutDefinition shipLoadout;
 
         public override void InstallBindings()
         {
+            Require(shipMovement, nameof(shipMovement));
+            Require(shipHealth, nameof(shipHealth));
+            Require(worldConfig, nameof(worldConfig));
+            Require(hudConfig, nameof(hudConfig));
+            Require(levelConfig, nameof(levelConfig));
+
             SimulationInstaller.Install(Container);
             CollisionInstaller.Install(Container);
             DamageInstaller.Install(Container);
@@ -71,24 +76,19 @@ namespace Asteroids.Installers
 
         private EnemyPrefabCatalog CreatePrefabCatalog()
         {
-            var prefabs = new List<KeyValuePair<EnemyTypeId, GameObject>>();
-            var seen = new HashSet<EnemyTypeId>();
+            var sources = new List<IEnemyTypeSource>();
+            if (asteroidConfig) sources.Add(asteroidConfig);
+            if (ufoConfig) sources.Add(ufoConfig);
 
-            foreach (var type in enemyTypes ?? Array.Empty<EnemyTypeDefinition>())
-            {
-                if (!type)
-                    throw new InvalidOperationException(
-                        "The list of enemy types on the gameplay installer has an empty entry.");
-                if (!type.Id.IsValid)
-                    throw new InvalidOperationException($"Enemy type '{type.name}' has no name.");
-                if (!seen.Add(type.Id))
-                    throw new InvalidOperationException(
-                        $"Two enemy types are named '{type.name}'. Names must be unique.");
+            return new EnemyPrefabCatalog(EnemyPrefabs.Collect(sources));
+        }
 
-                prefabs.Add(new KeyValuePair<EnemyTypeId, GameObject>(type.Id, type.Prefab));
-            }
-
-            return new EnemyPrefabCatalog(prefabs);
+        /// <exception cref="InvalidOperationException">The field is not assigned.</exception>
+        private void Require(UnityEngine.Object value, string field)
+        {
+            if (!value)
+                throw new InvalidOperationException(
+                    $"{nameof(GameplayInstaller)} on '{name}': '{field}' is not assigned.");
         }
     }
 }

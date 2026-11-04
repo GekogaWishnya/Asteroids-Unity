@@ -11,7 +11,7 @@ namespace Asteroids.Enemies
     /// so a point stays inside the <see cref="IWorldBounds.Wrap"/>.
     /// Shared by every enemy that enters from the edge. Does NOT avoid the ship.
     /// </summary>
-    public sealed class PerimeterSpawnPoints
+    internal sealed class PerimeterSpawnPoints
     {
         /// <summary>Widest an object may turn away from straight into the area in degrees.</summary>
         public const float MaxTiltFromInward = 60f;

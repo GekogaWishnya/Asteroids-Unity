@@ -32,6 +32,14 @@ namespace Asteroids.Waves.Tests
         }
 
         public void KillAll() => AliveCount = 0;
+
+        public int DespawnAllCalls { get; private set; }
+
+        public void DespawnAll()
+        {
+            DespawnAllCalls++;
+            AliveCount = 0;
+        }
     }
 
     internal sealed class RecordingWaveEvents : IWaveEventSink

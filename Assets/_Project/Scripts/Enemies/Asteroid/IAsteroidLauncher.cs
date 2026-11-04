@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Asteroids.Enemies
 {
-    public interface IAsteroidLauncher
+    internal interface IAsteroidLauncher
     {
         void Launch(EnemyTypeId type, Vector2 position);
     }

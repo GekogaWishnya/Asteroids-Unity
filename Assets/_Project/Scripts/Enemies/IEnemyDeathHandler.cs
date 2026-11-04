@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace Asteroids.Enemies
 {
-    public interface IEnemyDeathHandler
+    internal interface IEnemyDeathHandler
     {
         void Died(Vector2 position);
     }

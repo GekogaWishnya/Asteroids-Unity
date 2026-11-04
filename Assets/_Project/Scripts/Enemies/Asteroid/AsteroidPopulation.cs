@@ -11,12 +11,11 @@ namespace Asteroids.Enemies
     /// A finished asteroid goes back to the pool by itself. The pool grows on demand, so
     /// <see cref="Launch"/> never fails for lack of an idle asteroid.
     /// </summary>
-    public sealed class AsteroidPopulation
+    internal sealed class AsteroidPopulation
     {
         private readonly IAsteroidTypeConfig _config;
-        private readonly Func<AsteroidController> _createController;
         private readonly IRandom _random;
-        private readonly ObjectPool<AsteroidController> _pool;
+        private readonly EnemyPool<AsteroidController> _pool;
 
         /// <param name="createController">Creates one idle asteroid, object included.</param>
         /// <exception cref="ArgumentNullException">Any argument is null.</exception>
@@ -24,17 +23,16 @@ namespace Asteroids.Enemies
             IAsteroidTypeConfig config, Func<AsteroidController> createController, IRandom random)
         {
             _config = config ?? throw new ArgumentNullException(nameof(config));
-            _createController = createController ?? throw new ArgumentNullException(nameof(createController));
+            if (createController == null) throw new ArgumentNullException(nameof(createController));
             _random = random ?? throw new ArgumentNullException(nameof(random));
 
-            _pool = new ObjectPool<AsteroidController>(
-                CreateInstance, onDestroy: DestroyInstance, maxIdle: config.PoolMaxIdle);
+            _pool = new EnemyPool<AsteroidController>(createController, config.PoolMaxIdle);
         }
 
         public EnemyTypeId Type => _config.Type;
 
         /// <summary>Asteroids launched and not finished yet.</summary>
-        public int AliveCount { get; private set; }
+        public int AliveCount => _pool.AliveCount;
 
         /// <summary>Creates the idle asteroids the config asks for.</summary>
         public void Prewarm() => _pool.Prewarm(_config.PoolPrewarm);
@@ -50,20 +48,12 @@ namespace Asteroids.Enemies
         /// </summary>
         public void Launch(Vector2 position, float headingDegrees)
         {
-            var controller = _pool.Get();
-
-            try
-            {
-                controller.Launch(Roll(position, headingDegrees));
-            }
-            catch
-            {
-                _pool.Release(controller);
-                throw;
-            }
-
-            AliveCount++;
+            var launch = Roll(position, headingDegrees);
+            _pool.Launch(controller => controller.Launch(launch));
         }
+
+        /// <inheritdoc cref="EnemyPool{T}.DespawnAll"/>
+        public void DespawnAll() => _pool.DespawnAll();
 
         private AsteroidLaunch Roll(Vector2 position, float headingDegrees)
         {
@@ -75,25 +65,6 @@ namespace Asteroids.Enemies
 
             var velocity = new Vector2(Mathf.Cos(heading), Mathf.Sin(heading)) * speed;
             return new AsteroidLaunch(position, angle, velocity, spin);
-        }
-
-        private AsteroidController CreateInstance()
-        {
-            var controller = _createController();
-            controller.Finished += OnFinished;
-            return controller;
-        }
-
-        private void DestroyInstance(AsteroidController controller)
-        {
-            controller.Finished -= OnFinished;
-            controller.Dispose();
-        }
-
-        private void OnFinished(AsteroidController controller)
-        {
-            AliveCount--;
-            _pool.Release(controller);
         }
     }
 }

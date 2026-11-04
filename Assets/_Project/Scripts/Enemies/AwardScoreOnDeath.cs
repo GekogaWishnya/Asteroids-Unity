@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Asteroids.Enemies
 {
-    public sealed class AwardScoreOnDeath : IEnemyDeathHandler
+    internal sealed class AwardScoreOnDeath : IEnemyDeathHandler
     {
         private readonly IScoreSink _score;
         private readonly int _points;

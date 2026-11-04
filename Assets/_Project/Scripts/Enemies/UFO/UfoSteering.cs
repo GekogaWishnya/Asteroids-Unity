@@ -16,7 +16,7 @@ namespace Asteroids.Enemies
     /// While stunned it does the same, and the stun counts down.
     /// </para>
     /// </summary>
-    public sealed class UfoSteering : ISimulationStep, IStunnable
+    internal sealed class UfoSteering : ISimulationStep, IStunnable
     {
         private const float MinAimDistanceSqr = 1e-6f;
 
@@ -33,7 +33,7 @@ namespace Asteroids.Enemies
             _driver = driver ?? throw new ArgumentNullException(nameof(driver));
             _target = target ?? throw new ArgumentNullException(nameof(target));
         }
-        
+
         public float StunRemaining { get; private set; }
 
         public bool IsStunned => StunRemaining > 0f;
@@ -46,7 +46,7 @@ namespace Asteroids.Enemies
 
             StunRemaining = Math.Max(StunRemaining, seconds);
         }
-        
+
         public void Reset() => StunRemaining = 0f;
 
         public void Tick(float deltaTime)
@@ -65,7 +65,7 @@ namespace Asteroids.Enemies
 
             _driver.Accelerate(_pose.Up * _config.Thrust);
         }
-        
+
         public static float AngleOf(Vector2 direction) => Mathf.Atan2(-direction.x, direction.y) * Mathf.Rad2Deg;
     }
 }

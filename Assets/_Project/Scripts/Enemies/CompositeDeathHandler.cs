@@ -6,10 +6,10 @@ using UnityEngine;
 namespace Asteroids.Enemies
 {
     /// <summary>
-    /// Runs several death handlers in the order given. If one throws, the others still run and
-    /// the first exception is rethrown afterward.
+    /// Runs several death handlers in the order given. If one throws, the exception propagates and the
+    /// handlers after it are skipped.
     /// </summary>
-    public sealed class CompositeDeathHandler : IEnemyDeathHandler
+    internal sealed class CompositeDeathHandler : IEnemyDeathHandler
     {
         private readonly IEnemyDeathHandler[] _handlers;
 

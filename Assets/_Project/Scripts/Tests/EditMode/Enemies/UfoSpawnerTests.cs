@@ -127,6 +127,20 @@ namespace Asteroids.Enemies.Tests
         }
 
         [Test]
+        public void DespawnAll_TakesEveryUfoOutOfPlay()
+        {
+            var rig = new Rig(new SystemRandom(2));
+            rig.Spawner.Spawn();
+            rig.Spawner.Spawn();
+
+            rig.Spawner.DespawnAll();
+
+            Assert.That(rig.Spawner.AliveCount, Is.Zero);
+            Assert.That(rig.Views.ShownCount, Is.Zero);
+            Assert.That(rig.Damage.LiveDamageables, Is.Zero);
+        }
+
+        [Test]
         public void Spawn_AfterADeath_ReusesThePooledUfo()
         {
             var rig = new Rig(new SystemRandom(3));

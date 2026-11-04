@@ -20,7 +20,7 @@ namespace Asteroids.Enemies
     /// throws. What death results in (points, fragments) is the handler's business, not the controller's.
     /// </para>
     /// </summary>
-    public sealed class AsteroidController : IDamageSource, IDisposable
+    internal sealed class AsteroidController : IDamageSource, IPooledEnemy<AsteroidController>
     {
         private readonly IAsteroidTypeConfig _config;
         private readonly InertialMotion _motion;
@@ -82,7 +82,9 @@ namespace Asteroids.Enemies
                 _spin.Velocity = launch.SpinSpeed;
             });
 
-        /// <summary>Takes the asteroid out of play if needed and destroys its object. Not reusable afterwards.</summary>
+        /// <inheritdoc cref="EnemyLife.Despawn"/>
+        public void Despawn() => _life.Despawn();
+
         public void Dispose()
         {
             Finished = null;

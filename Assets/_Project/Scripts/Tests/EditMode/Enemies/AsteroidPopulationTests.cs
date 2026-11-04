@@ -138,6 +138,23 @@ namespace Asteroids.Enemies.Tests
         }
 
         [Test]
+        public void DespawnAll_TakesEveryAsteroidOutOfPlayAndReusesThem()
+        {
+            var rig = new Rig();
+            rig.Population.Launch(Vector2.zero);
+            rig.Population.Launch(Vector2.one);
+
+            rig.Population.DespawnAll();
+
+            Assert.That(rig.Population.AliveCount, Is.Zero);
+            Assert.That(rig.Views.ShownCount, Is.Zero);
+            Assert.That(rig.Damage.LiveDamageables, Is.Zero);
+
+            rig.Population.Launch(Vector2.zero);
+            Assert.That(rig.Views.Views.Count, Is.EqualTo(2));
+        }
+
+        [Test]
         public void Launch_ManyAtOnce_NeverRefuses()
         {
             var rig = new Rig(new TestAsteroidType("A") { PoolMaxIdle = 1 });

@@ -7,7 +7,7 @@ using Asteroids.Physics;
 
 namespace Asteroids.Enemies
 {
-    public sealed class UfoSpawnerBuilder
+    internal sealed class UfoSpawnerBuilder
     {
         private readonly IUfoConfig _config;
         private readonly IEnemyViewFactory _views;
