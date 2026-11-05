@@ -120,9 +120,11 @@ namespace Asteroids.Enemies.Tests
 
             rig.Controller.Launch(Vector2.zero, Vector2.up);
             Assert.That(rig.Wrap.Poses, Is.EqualTo(new[] { rig.Pose }));
+            Assert.That(rig.Wrap.Entering, Is.EqualTo(new[] { rig.Pose }), "Registered as entering");
 
             rig.Damage.HitLatest(rig.Config.MaxHealth);
             Assert.That(rig.Wrap.Poses, Is.Empty);
+            Assert.That(rig.Wrap.Entering, Is.Empty);
         }
 
         [Test]

@@ -57,7 +57,7 @@ namespace Asteroids.Enemies
             _life = new EnemyLife("asteroid", view, health, death, new Func<IDisposable>[]
             {
                 () => loop.Register(SimulationPhase.Motion, motionStep),
-                () => wrap.Register(entity.Pose),
+                () => wrap.RegisterEntering(entity.Pose),
                 () => loop.Register(SimulationPhase.Motion, spinStep),
                 () => damageRegistry.RegisterDamageable(entity, health),
                 () => damageRegistry.RegisterSource(entity, this),

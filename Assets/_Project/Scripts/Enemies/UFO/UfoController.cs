@@ -51,7 +51,7 @@ namespace Asteroids.Enemies
             {
                 () => loop.Register(SimulationPhase.Input, _steering),
                 () => loop.Register(SimulationPhase.Motion, motionStep),
-                () => wrap.Register(entity.Pose),
+                () => wrap.RegisterEntering(entity.Pose),
                 () => damageRegistry.RegisterDamageable(entity, health),
                 () => damageRegistry.RegisterSource(entity, this),
                 () => bodyRegistry.Register(entity, body)

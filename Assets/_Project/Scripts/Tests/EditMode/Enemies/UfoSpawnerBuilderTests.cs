@@ -20,10 +20,12 @@ namespace Asteroids.Enemies.Tests
             public readonly FakeScoreSink Score = new();
             public readonly TestWorldBounds Bounds = new(new Rect(-8f, -8f, 16f, 16f));
             public readonly SystemRandom Random = new(5);
+            public readonly TestSpawnEntryConfig Entry = new() { SpawnMargin = 1f };
             public readonly UfoSpawnerBuilder Builder;
 
             public Rig(TestUfoConfig config) =>
-                Builder = new UfoSpawnerBuilder(config, Views, Target, Loop, Wrap, Damage, Bodies, Score, Bounds, Random);
+                Builder = new UfoSpawnerBuilder(
+                    config, Views, Target, Loop, Wrap, Damage, Bodies, Score, Bounds, Random, Entry);
         }
 
         [Test]
@@ -33,25 +35,27 @@ namespace Asteroids.Enemies.Tests
             var config = new TestUfoConfig(new TestUfoType());
 
             Assert.Throws<ArgumentNullException>(() => new UfoSpawnerBuilder(
-                null, rig.Views, rig.Target, rig.Loop, rig.Wrap, rig.Damage, rig.Bodies, rig.Score, rig.Bounds, rig.Random));
+                null, rig.Views, rig.Target, rig.Loop, rig.Wrap, rig.Damage, rig.Bodies, rig.Score, rig.Bounds, rig.Random, rig.Entry));
             Assert.Throws<ArgumentNullException>(() => new UfoSpawnerBuilder(
-                config, null, rig.Target, rig.Loop, rig.Wrap, rig.Damage, rig.Bodies, rig.Score, rig.Bounds, rig.Random));
+                config, null, rig.Target, rig.Loop, rig.Wrap, rig.Damage, rig.Bodies, rig.Score, rig.Bounds, rig.Random, rig.Entry));
             Assert.Throws<ArgumentNullException>(() => new UfoSpawnerBuilder(
-                config, rig.Views, null, rig.Loop, rig.Wrap, rig.Damage, rig.Bodies, rig.Score, rig.Bounds, rig.Random));
+                config, rig.Views, null, rig.Loop, rig.Wrap, rig.Damage, rig.Bodies, rig.Score, rig.Bounds, rig.Random, rig.Entry));
             Assert.Throws<ArgumentNullException>(() => new UfoSpawnerBuilder(
-                config, rig.Views, rig.Target, null, rig.Wrap, rig.Damage, rig.Bodies, rig.Score, rig.Bounds, rig.Random));
+                config, rig.Views, rig.Target, null, rig.Wrap, rig.Damage, rig.Bodies, rig.Score, rig.Bounds, rig.Random, rig.Entry));
             Assert.Throws<ArgumentNullException>(() => new UfoSpawnerBuilder(
-                config, rig.Views, rig.Target, rig.Loop, null, rig.Damage, rig.Bodies, rig.Score, rig.Bounds, rig.Random));
+                config, rig.Views, rig.Target, rig.Loop, null, rig.Damage, rig.Bodies, rig.Score, rig.Bounds, rig.Random, rig.Entry));
             Assert.Throws<ArgumentNullException>(() => new UfoSpawnerBuilder(
-                config, rig.Views, rig.Target, rig.Loop, rig.Wrap, null, rig.Bodies, rig.Score, rig.Bounds, rig.Random));
+                config, rig.Views, rig.Target, rig.Loop, rig.Wrap, null, rig.Bodies, rig.Score, rig.Bounds, rig.Random, rig.Entry));
             Assert.Throws<ArgumentNullException>(() => new UfoSpawnerBuilder(
-                config, rig.Views, rig.Target, rig.Loop, rig.Wrap, rig.Damage, null, rig.Score, rig.Bounds, rig.Random));
+                config, rig.Views, rig.Target, rig.Loop, rig.Wrap, rig.Damage, null, rig.Score, rig.Bounds, rig.Random, rig.Entry));
             Assert.Throws<ArgumentNullException>(() => new UfoSpawnerBuilder(
-                config, rig.Views, rig.Target, rig.Loop, rig.Wrap, rig.Damage, rig.Bodies, null, rig.Bounds, rig.Random));
+                config, rig.Views, rig.Target, rig.Loop, rig.Wrap, rig.Damage, rig.Bodies, null, rig.Bounds, rig.Random, rig.Entry));
             Assert.Throws<ArgumentNullException>(() => new UfoSpawnerBuilder(
-                config, rig.Views, rig.Target, rig.Loop, rig.Wrap, rig.Damage, rig.Bodies, rig.Score, null, rig.Random));
+                config, rig.Views, rig.Target, rig.Loop, rig.Wrap, rig.Damage, rig.Bodies, rig.Score, null, rig.Random, rig.Entry));
             Assert.Throws<ArgumentNullException>(() => new UfoSpawnerBuilder(
-                config, rig.Views, rig.Target, rig.Loop, rig.Wrap, rig.Damage, rig.Bodies, rig.Score, rig.Bounds, null));
+                config, rig.Views, rig.Target, rig.Loop, rig.Wrap, rig.Damage, rig.Bodies, rig.Score, rig.Bounds, null, rig.Entry));
+            Assert.Throws<ArgumentNullException>(() => new UfoSpawnerBuilder(
+                config, rig.Views, rig.Target, rig.Loop, rig.Wrap, rig.Damage, rig.Bodies, rig.Score, rig.Bounds, rig.Random, null));
         }
 
         [Test]
@@ -100,6 +104,39 @@ namespace Asteroids.Enemies.Tests
             rig.Damage.HitLatest();
 
             Assert.That(rig.Score.Awarded, Is.Empty);
+        }
+
+        [Test]
+        public void Spawn_StartsOutsideTheAreaByTheMargin()
+        {
+            var rig = new Rig(new TestUfoConfig(new TestUfoType { PoolMaxIdle = 100 }));
+
+            for (var i = 0; i < 100; i++) rig.Builder.Spawners[0].Spawn();
+
+            // PerimeterSpawnPoints insets the right and top edges by 0.001, so a start there is 0.001 short of
+            // the full margin. The tolerance must be well above that, or float rounding decides the result.
+            const float margin = 1f, epsilon = 1e-2f;
+            var area = rig.Bounds.Rect;
+            foreach (var view in rig.Views.Views)
+            {
+                var p = view.Entity.Pose.Position;
+                var outside = p.x <= area.xMin - margin + epsilon
+                              || p.x >= area.xMax + margin - epsilon
+                              || p.y <= area.yMin - margin + epsilon
+                              || p.y >= area.yMax + margin - epsilon;
+                Assert.That(outside, Is.True, $"({p.x}, {p.y}) starts less than the margin outside the area");
+            }
+        }
+
+        [Test]
+        public void Spawners_InvalidEntryConfig_Throws()
+        {
+            var rig = new Rig(new TestUfoConfig(new TestUfoType()));
+            rig.Entry.MaxEnteringSeconds = 0f;
+
+            var error = Assert.Throws<InvalidOperationException>(() => _ = rig.Builder.Spawners);
+
+            StringAssert.Contains("Max entering seconds", error.Message);
         }
     }
 }

@@ -24,6 +24,7 @@ namespace Asteroids.Enemies
         private readonly IScoreSink _score;
         private readonly IWorldBounds _bounds;
         private readonly IRandom _random;
+        private readonly ISpawnEntryConfig _entry;
 
         private IReadOnlyList<IEnemySpawner> _spawners;
 
@@ -37,7 +38,8 @@ namespace Asteroids.Enemies
             IKineticBodyRegistry bodyRegistry,
             IScoreSink score,
             IWorldBounds bounds,
-            IRandom random)
+            IRandom random,
+            ISpawnEntryConfig entry)
         {
             _config = config ?? throw new ArgumentNullException(nameof(config));
             _views = views ?? throw new ArgumentNullException(nameof(views));
@@ -48,6 +50,7 @@ namespace Asteroids.Enemies
             _score = score ?? throw new ArgumentNullException(nameof(score));
             _bounds = bounds ?? throw new ArgumentNullException(nameof(bounds));
             _random = random ?? throw new ArgumentNullException(nameof(random));
+            _entry = entry ?? throw new ArgumentNullException(nameof(entry));
         }
 
         /// <exception cref="InvalidOperationException">The asteroid config is invalid.</exception>
@@ -57,6 +60,7 @@ namespace Asteroids.Enemies
         {
             ConfigValidation.ThrowIfInvalid("The asteroid config", AsteroidConfigValidator.Validate(_config));
 
+            var offscreen = OffscreenEntry.OutsideView(_entry);
             var launcher = new AsteroidLauncher();
             var populations = new List<AsteroidPopulation>();
             var spawners = new List<IEnemySpawner>();
@@ -69,7 +73,7 @@ namespace Asteroids.Enemies
 
                 launcher.Register(population);
                 populations.Add(population);
-                spawners.Add(new AsteroidSpawner(population, _bounds, _random));
+                spawners.Add(new AsteroidSpawner(population, _bounds, _random, offscreen));
             }
 
             foreach (var population in populations) population.Prewarm();

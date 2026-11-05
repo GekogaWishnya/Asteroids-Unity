@@ -12,6 +12,9 @@ namespace Asteroids.Enemies.Tests
         private const float Tolerance = 1e-3f;
         private static readonly Rect Area = new(-8f, -8f, 16f, 16f);
 
+        /// <summary>No distance outside the edge, so enemies start on the edge itself.</summary>
+        private static readonly OffscreenEntry OnTheEdge = new(0f);
+
         private sealed class Rig
         {
             public readonly FakeEnemyViewFactory Views = new();
@@ -20,7 +23,7 @@ namespace Asteroids.Enemies.Tests
             public readonly AsteroidPopulation Population;
             public readonly AsteroidSpawner Spawner;
 
-            public Rig(IRandom random)
+            public Rig(IRandom random, OffscreenEntry entry = null)
             {
                 var config = new TestAsteroidType("AsteroidBig")
                 {
@@ -34,7 +37,7 @@ namespace Asteroids.Enemies.Tests
                         Views.Create(config.Type), config, Loop, Wrap, damage, new FakeKineticBodyRegistry(),
                         new RecordingDeathHandler()),
                     random);
-                Spawner = new AsteroidSpawner(Population, new TestWorldBounds(Area), random);
+                Spawner = new AsteroidSpawner(Population, new TestWorldBounds(Area), random, entry ?? OnTheEdge);
             }
 
             public Vector2 FirstPosition => Views.Views[0].Entity.Pose.Position;
@@ -69,9 +72,12 @@ namespace Asteroids.Enemies.Tests
             var bounds = new TestWorldBounds(Area);
             var random = new SystemRandom(1);
 
-            Assert.Throws<ArgumentNullException>(() => new AsteroidSpawner(null, bounds, random));
-            Assert.Throws<ArgumentNullException>(() => new AsteroidSpawner(rig.Population, null, random));
-            Assert.Throws<ArgumentNullException>(() => new AsteroidSpawner(rig.Population, bounds, null));
+            Assert.Throws<ArgumentNullException>(() => new AsteroidSpawner(null, bounds, random, OnTheEdge));
+            Assert.Throws<ArgumentNullException>(
+                () => new AsteroidSpawner(rig.Population, null, random, OnTheEdge));
+            Assert.Throws<ArgumentNullException>(
+                () => new AsteroidSpawner(rig.Population, bounds, null, OnTheEdge));
+            Assert.Throws<ArgumentNullException>(() => new AsteroidSpawner(rig.Population, bounds, random, null));
         }
 
         [TestCase(AsteroidSpawner.MinTravel, 10f)]
@@ -82,7 +88,7 @@ namespace Asteroids.Enemies.Tests
             var bounds = new TestWorldBounds(new Rect(0f, 0f, width, height));
 
             Assert.Throws<ArgumentException>(
-                () => new AsteroidSpawner(rig.Population, bounds, new SystemRandom(1)));
+                () => new AsteroidSpawner(rig.Population, bounds, new SystemRandom(1), OnTheEdge));
         }
 
         [Test]
@@ -230,6 +236,42 @@ namespace Asteroids.Enemies.Tests
                     Is.GreaterThanOrEqualTo(AsteroidSpawner.MinTravel - Tolerance),
                     $"spawn {i} at ({starts[i].x}, {starts[i].y}) heading ({heading.x}, {heading.y})");
             }
+        }
+
+        [Test]
+        public void Spawn_WithAnEntryDistance_StartsThatFarOutsideTheEdge()
+        {
+            // Bottom edge, mid, no tilt: the heading is straight up, so the start is right below the point.
+            var rig = new Rig(new ScriptedRandom(0.125f, 0.5f), new OffscreenEntry(2f));
+
+            rig.Spawner.Spawn();
+
+            Assert.That(rig.FirstPosition.x, Is.EqualTo(0f).Within(Tolerance));
+            Assert.That(rig.FirstPosition.y, Is.EqualTo(-10f).Within(Tolerance));
+        }
+
+        [Test]
+        public void Spawn_TiltedWithAnEntryDistance_StillCrossesTheEdgeAtThePoint()
+        {
+            var rig = new Rig(new ScriptedRandom(0.125f, 1f), new OffscreenEntry(2f));
+
+            rig.Spawner.Spawn();
+            var start = rig.FirstPosition;
+            var heading = rig.FirstHeading();
+            var crossing = start + heading * ((-8f - start.y) / heading.y);
+
+            Assert.That(start.y, Is.EqualTo(-10f).Within(Tolerance));
+            Assert.That(crossing.x, Is.EqualTo(0f).Within(Tolerance));
+        }
+
+        [Test]
+        public void Spawn_RegistersTheAsteroidAsEntering()
+        {
+            var rig = new Rig(new SystemRandom(2));
+
+            rig.Spawner.Spawn();
+
+            Assert.That(rig.Wrap.Entering, Is.EqualTo(new[] { rig.Views.Views[0].Entity.Pose }));
         }
     }
 }

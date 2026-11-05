@@ -19,6 +19,7 @@ namespace Asteroids.Enemies
         private readonly IScoreSink _score;
         private readonly IWorldBounds _bounds;
         private readonly IRandom _random;
+        private readonly ISpawnEntryConfig _entry;
 
         private IReadOnlyList<IEnemySpawner> _spawners;
 
@@ -33,7 +34,8 @@ namespace Asteroids.Enemies
             IKineticBodyRegistry bodyRegistry,
             IScoreSink score,
             IWorldBounds bounds,
-            IRandom random)
+            IRandom random,
+            ISpawnEntryConfig entry)
         {
             _config = config ?? throw new ArgumentNullException(nameof(config));
             _views = views ?? throw new ArgumentNullException(nameof(views));
@@ -45,6 +47,7 @@ namespace Asteroids.Enemies
             _score = score ?? throw new ArgumentNullException(nameof(score));
             _bounds = bounds ?? throw new ArgumentNullException(nameof(bounds));
             _random = random ?? throw new ArgumentNullException(nameof(random));
+            _entry = entry ?? throw new ArgumentNullException(nameof(entry));
         }
 
         /// <exception cref="InvalidOperationException">The UFO config is invalid.</exception>
@@ -54,13 +57,15 @@ namespace Asteroids.Enemies
         {
             ConfigValidation.ThrowIfInvalid("The UFO config", UfoConfigValidator.Validate(_config));
 
+            var offscreen = OffscreenEntry.OutsideView(_entry);
             var perimeter = new PerimeterSpawnPoints(_bounds, _random);
             var spawners = new List<UfoSpawner>();
 
             foreach (var type in _config.Types)
             {
                 var typeConfig = type;
-                spawners.Add(new UfoSpawner(typeConfig, () => CreateController(typeConfig), perimeter, _target));
+                spawners.Add(new UfoSpawner(
+                    typeConfig, () => CreateController(typeConfig), perimeter, _target, offscreen));
             }
 
             foreach (var spawner in spawners) spawner.Prewarm();

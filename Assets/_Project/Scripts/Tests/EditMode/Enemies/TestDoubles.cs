@@ -376,4 +376,10 @@ namespace Asteroids.Enemies.Tests
 
         public IReadOnlyList<IUfoTypeConfig> Types { get; }
     }
+
+    internal sealed class TestSpawnEntryConfig : ISpawnEntryConfig
+    {
+        public float SpawnMargin { get; set; } = 1f;
+        public float MaxEnteringSeconds { get; set; } = 5f;
+    }
 }

@@ -8,6 +8,8 @@ namespace Asteroids.Enemies.Tests
     [TestFixture]
     public sealed class AsteroidSpawnerBuilderTests
     {
+        private static readonly Rect Area = new(-8f, -8f, 16f, 16f);
+
         private sealed class Rig
         {
             public readonly FakeEnemyViewFactory Views = new();
@@ -16,6 +18,7 @@ namespace Asteroids.Enemies.Tests
             public readonly FakeDamageRegistry Damage = new();
             public readonly FakeKineticBodyRegistry Bodies = new();
             public readonly FakeScoreSink Score = new();
+            public readonly TestSpawnEntryConfig Entry = new() { SpawnMargin = 1f };
             public readonly AsteroidSpawnerBuilder Builder;
 
             public Rig(TestAsteroidConfig config) =>
@@ -27,8 +30,9 @@ namespace Asteroids.Enemies.Tests
                     Damage,
                     Bodies,
                     Score,
-                    new TestWorldBounds(new Rect(-8f, -8f, 16f, 16f)),
-                    new SystemRandom(9));
+                    new TestWorldBounds(Area),
+                    new SystemRandom(9),
+                    Entry);
 
             public int TotalAlive
             {
@@ -58,25 +62,28 @@ namespace Asteroids.Enemies.Tests
             var score = new FakeScoreSink();
             var bounds = new TestWorldBounds(new Rect(-8f, -8f, 16f, 16f));
             var random = new SystemRandom(1);
+            var entry = new TestSpawnEntryConfig();
 
             Assert.Throws<ArgumentNullException>(() =>
-                new AsteroidSpawnerBuilder(null, views, loop, wrap, damage, bodies, score, bounds, random));
+                new AsteroidSpawnerBuilder(null, views, loop, wrap, damage, bodies, score, bounds, random, entry));
             Assert.Throws<ArgumentNullException>(() =>
-                new AsteroidSpawnerBuilder(config, null, loop, wrap, damage, bodies, score, bounds, random));
+                new AsteroidSpawnerBuilder(config, null, loop, wrap, damage, bodies, score, bounds, random, entry));
             Assert.Throws<ArgumentNullException>(() =>
-                new AsteroidSpawnerBuilder(config, views, null, wrap, damage, bodies, score, bounds, random));
+                new AsteroidSpawnerBuilder(config, views, null, wrap, damage, bodies, score, bounds, random, entry));
             Assert.Throws<ArgumentNullException>(() =>
-                new AsteroidSpawnerBuilder(config, views, loop, null, damage, bodies, score, bounds, random));
+                new AsteroidSpawnerBuilder(config, views, loop, null, damage, bodies, score, bounds, random, entry));
             Assert.Throws<ArgumentNullException>(() =>
-                new AsteroidSpawnerBuilder(config, views, loop, wrap, null, bodies, score, bounds, random));
+                new AsteroidSpawnerBuilder(config, views, loop, wrap, null, bodies, score, bounds, random, entry));
             Assert.Throws<ArgumentNullException>(() =>
-                new AsteroidSpawnerBuilder(config, views, loop, wrap, damage, null, score, bounds, random));
+                new AsteroidSpawnerBuilder(config, views, loop, wrap, damage, null, score, bounds, random, entry));
             Assert.Throws<ArgumentNullException>(() =>
-                new AsteroidSpawnerBuilder(config, views, loop, wrap, damage, bodies, null, bounds, random));
+                new AsteroidSpawnerBuilder(config, views, loop, wrap, damage, bodies, null, bounds, random, entry));
             Assert.Throws<ArgumentNullException>(() =>
-                new AsteroidSpawnerBuilder(config, views, loop, wrap, damage, bodies, score, null, random));
+                new AsteroidSpawnerBuilder(config, views, loop, wrap, damage, bodies, score, null, random, entry));
             Assert.Throws<ArgumentNullException>(() =>
-                new AsteroidSpawnerBuilder(config, views, loop, wrap, damage, bodies, score, bounds, null));
+                new AsteroidSpawnerBuilder(config, views, loop, wrap, damage, bodies, score, bounds, null, entry));
+            Assert.Throws<ArgumentNullException>(() =>
+                new AsteroidSpawnerBuilder(config, views, loop, wrap, damage, bodies, score, bounds, random, null));
         }
 
         [Test]
@@ -192,6 +199,38 @@ namespace Asteroids.Enemies.Tests
 
             Assert.That(rig.Views.Views, Has.Count.EqualTo(created));
             Assert.That(rig.TotalAlive, Is.EqualTo(0));
+        }
+
+        [Test]
+        public void Spawn_StartsOutsideTheAreaByTheMargin()
+        {
+            var rig = new Rig(new TestAsteroidConfig(new TestAsteroidType("A") { PoolMaxIdle = 100 }));
+
+            for (var i = 0; i < 100; i++) rig.Builder.Spawners[0].Spawn();
+
+            // PerimeterSpawnPoints insets the right and top edges by 0.001, so a start there is 0.001 short of
+            // the full margin. The tolerance must be well above that, or float rounding decides the result.
+            const float margin = 1f, epsilon = 1e-2f;
+            foreach (var view in rig.Views.Views)
+            {
+                var p = view.Entity.Pose.Position;
+                var outside = p.x <= Area.xMin - margin + epsilon
+                              || p.x >= Area.xMax + margin - epsilon
+                              || p.y <= Area.yMin - margin + epsilon
+                              || p.y >= Area.yMax + margin - epsilon;
+                Assert.That(outside, Is.True, $"({p.x}, {p.y}) starts less than the margin outside the area");
+            }
+        }
+
+        [Test]
+        public void Spawners_InvalidEntryConfig_Throws()
+        {
+            var rig = new Rig(ThreeSizes());
+            rig.Entry.SpawnMargin = -1f;
+
+            var ex = Assert.Throws<InvalidOperationException>(() => { _ = rig.Builder.Spawners; });
+
+            StringAssert.Contains("Spawn margin", ex.Message);
         }
     }
 }

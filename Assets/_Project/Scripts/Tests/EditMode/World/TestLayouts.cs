@@ -26,4 +26,16 @@ namespace Asteroids.World.Tests
         public int TopHeightPixels { get; }
         public int BottomHeightPixels { get; }
     }
+
+    internal sealed class TestSpawnEntryConfig : ISpawnEntryConfig
+    {
+        public TestSpawnEntryConfig(float spawnMargin, float maxEnteringSeconds)
+        {
+            SpawnMargin = spawnMargin;
+            MaxEnteringSeconds = maxEnteringSeconds;
+        }
+
+        public float SpawnMargin { get; }
+        public float MaxEnteringSeconds { get; }
+    }
 }

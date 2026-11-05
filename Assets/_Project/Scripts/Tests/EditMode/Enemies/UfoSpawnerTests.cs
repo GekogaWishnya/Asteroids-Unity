@@ -12,6 +12,9 @@ namespace Asteroids.Enemies.Tests
         private const float Tolerance = 1e-3f;
         private static readonly Rect Area = new(-8f, -8f, 16f, 16f);
 
+        /// <summary>No distance outside the edge, so enemies start on the edge itself.</summary>
+        private static readonly OffscreenEntry OnTheEdge = new(0f);
+
         private sealed class Rig
         {
             public readonly FakeEnemyViewFactory Views = new() { CreateEntity = () => new Entity(new BodyPose()) };
@@ -24,10 +27,10 @@ namespace Asteroids.Enemies.Tests
             public readonly PerimeterSpawnPoints Perimeter;
             public readonly UfoSpawner Spawner;
 
-            public Rig(IRandom random)
+            public Rig(IRandom random, OffscreenEntry entry = null)
             {
                 Perimeter = new PerimeterSpawnPoints(new TestWorldBounds(Area), random);
-                Spawner = new UfoSpawner(Config, CreateController, Perimeter, Target);
+                Spawner = new UfoSpawner(Config, CreateController, Perimeter, Target, entry ?? OnTheEdge);
             }
 
             public UfoController CreateController() =>
@@ -49,13 +52,16 @@ namespace Asteroids.Enemies.Tests
         {
             var rig = new Rig(new SystemRandom(1));
 
-            Assert.Throws<ArgumentNullException>(
-                () => new UfoSpawner(null, rig.CreateController, rig.Perimeter, rig.Target));
-            Assert.Throws<ArgumentNullException>(() => new UfoSpawner(rig.Config, null, rig.Perimeter, rig.Target));
-            Assert.Throws<ArgumentNullException>(
-                () => new UfoSpawner(rig.Config, rig.CreateController, null, rig.Target));
-            Assert.Throws<ArgumentNullException>(
-                () => new UfoSpawner(rig.Config, rig.CreateController, rig.Perimeter, null));
+            Assert.Throws<ArgumentNullException>(() =>
+                new UfoSpawner(null, rig.CreateController, rig.Perimeter, rig.Target, OnTheEdge));
+            Assert.Throws<ArgumentNullException>(() =>
+                new UfoSpawner(rig.Config, null, rig.Perimeter, rig.Target, OnTheEdge));
+            Assert.Throws<ArgumentNullException>(() =>
+                new UfoSpawner(rig.Config, rig.CreateController, null, rig.Target, OnTheEdge));
+            Assert.Throws<ArgumentNullException>(() =>
+                new UfoSpawner(rig.Config, rig.CreateController, rig.Perimeter, null, OnTheEdge));
+            Assert.Throws<ArgumentNullException>(() =>
+                new UfoSpawner(rig.Config, rig.CreateController, rig.Perimeter, rig.Target, null));
         }
 
         [Test]
@@ -152,6 +158,30 @@ namespace Asteroids.Enemies.Tests
             Assert.That(rig.Views.Views, Has.Count.EqualTo(1));
             Assert.That(rig.Views.ShownCount, Is.EqualTo(1));
             Assert.That(rig.Spawner.AliveCount, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void Spawn_WithAnEntryDistance_StartsOutsideOnTheLineToTheShip()
+        {
+            // Bottom edge at (-4, -8), aimed at (2, 0): along (0.6, 0.8), so a depth of 2 is 2.5 back.
+            var rig = new Rig(new ScriptedRandom(4f / 64f), new OffscreenEntry(2f));
+            rig.Target.Position = new Vector2(2f, 0f);
+
+            rig.Spawner.Spawn();
+
+            AssertVector(rig.LatestPosition, -5.5f, -10f);
+            AssertVector(rig.LatestVelocity, 1.2f, 1.6f);
+        }
+
+        [Test]
+        public void Spawn_RegistersTheUfoAsEntering()
+        {
+            var rig = new Rig(new SystemRandom(2));
+
+            rig.Spawner.Spawn();
+
+            Assert.That(rig.Wrap.Entering, Has.Count.EqualTo(1));
+            Assert.That(rig.Wrap.Entering[0], Is.SameAs(rig.Views.Views[0].Entity.Pose));
         }
     }
 }

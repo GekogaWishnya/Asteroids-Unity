@@ -62,6 +62,7 @@ namespace Asteroids.Installers
             Container.Bind<IControlLossConfig>().FromInstance(shipHealth);
             Container.Bind<IWorldLayout>().FromInstance(worldConfig);
             Container.Bind<IWorldAppearance>().FromInstance(worldConfig);
+            Container.Bind<ISpawnEntryConfig>().FromInstance(worldConfig);
             Container.Bind<IHudLayout>().FromInstance(hudConfig);
             Container.Bind<IAsteroidConfig>().FromInstance(asteroidConfig);
             Container.Bind<IUfoConfig>().FromInstance(ufoConfig);

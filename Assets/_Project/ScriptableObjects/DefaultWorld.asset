@@ -15,4 +15,6 @@ MonoBehaviour:
   referenceWidth: 256
   referenceHeight: 256
   pixelsPerUnit: 16
+  spawnMargin: 1
+  maxEnteringSeconds: 10
   backgroundColor: {r: 0.26666668, g: 0.15686275, b: 0.23137257, a: 1}

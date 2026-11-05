@@ -213,9 +213,11 @@ namespace Asteroids.Enemies.Tests
 
             rig.Controller.Launch(Launch());
             Assert.That(rig.Wrap.Poses, Is.EqualTo(new[] { rig.View.Entity.Pose }));
+            Assert.That(rig.Wrap.Entering, Is.EqualTo(new[] { rig.View.Entity.Pose }), "Registered as entering");
 
             rig.Damage.HitLatest();
             Assert.That(rig.Wrap.Poses, Is.Empty);
+            Assert.That(rig.Wrap.Entering, Is.Empty);
         }
 
         [Test]
