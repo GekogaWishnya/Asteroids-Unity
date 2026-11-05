@@ -12,7 +12,7 @@ namespace Asteroids.Player
     /// <see cref="Asteroids.Core.ISimulationLoop"/>, <see cref="Asteroids.Core.IDamageRegistry"/> and
     /// <see cref="Asteroids.Core.IKineticBodyRegistry"/> to be bound by the host installer, and
     /// <see cref="SignalBus"/> to be installed. Subscribes to <see cref="WaveStarted"/>, which another installer
-    /// declares and binds <see cref="IPlayerTarget"/>.
+    /// declares and binds <see cref="IPlayerTarget"/> and <see cref="IShipTelemetry"/>.
     /// </summary>
     public sealed class PlayerInstaller : Installer<PlayerInstaller>
     {
@@ -22,14 +22,16 @@ namespace Asteroids.Player
 
             Container.Bind<PlayerHealth>().AsSingle();
             Container.Bind<IPlayerHealth>().To<PlayerHealth>().FromResolve();
-            
+
             Container.Bind(typeof(ShipControlLoss), typeof(IShipControlLock)).To<ShipControlLoss>().AsSingle();
             Container.Bind<IDamageable>().To<LoseControlOnHit>().AsSingle().WhenInjectedInto<ShipDefense>();
             Container.Bind<IDamageable>().To<PlayerHealth>().FromResolve().WhenInjectedInto<LoseControlOnHit>();
 
             Container.Bind<IShipEventSink>().To<SignalBusShipEventSink>().AsSingle();
 
-            Container.Bind(typeof(ShipTarget), typeof(IPlayerTarget)).To<ShipTarget>().AsSingle();
+            Container.Bind<ShipTracker>().AsSingle();
+            Container.Bind<IPlayerTarget>().To<ShipTarget>().AsSingle();
+            Container.Bind<IShipTelemetry>().To<ShipTelemetry>().AsSingle();
 
             Container.Bind<WaveStartProtection>().AsSingle();
             Container.BindSignal<WaveStarted>()

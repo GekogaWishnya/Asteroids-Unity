@@ -115,14 +115,29 @@ namespace Asteroids.Player.Tests
         }
 
         [Test]
-        public void Hit_TheShipIsNoTargetWhileProtected()
+        public void Enable_TheTelemetryReadsTheShip()
+        {
+            var rig = new Rig();
+            rig.Pose.Position = new UnityEngine.Vector2(1f, 2f);
+            var telemetry = rig.Container.Resolve<IShipTelemetry>();
+
+            rig.CreateShip().Enable();
+
+            Assert.That(telemetry.HasShip, Is.True);
+            Assert.That(telemetry.Position, Is.EqualTo(new UnityEngine.Vector2(1f, 2f)));
+        }
+
+        [Test]
+        public void Hit_TheShipIsNoTargetWhileProtectedButTheTelemetryKeepsReading()
         {
             var rig = new Rig();
             var target = rig.Container.Resolve<IPlayerTarget>();
+            var telemetry = rig.Container.Resolve<IShipTelemetry>();
             rig.CreateShip().Enable();
 
             rig.RegisteredShip.TakeDamage(1);
             var targetedWhileProtected = target.HasTarget;
+            Assert.That(telemetry.HasShip, Is.True, "telemetry while protected");
             rig.Loop.Tick(1.5f);
             rig.Loop.Tick(1.5f);
 

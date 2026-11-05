@@ -9,7 +9,7 @@ namespace Asteroids.Player
     /// </summary>
     public sealed class ShipTargetBeacon : IShipPart
     {
-        private readonly ShipTarget _target;
+        private readonly ShipTracker _tracker;
         private readonly IMotionState _motion;
         private readonly IShipProtectionState _protection;
         private readonly PartAttachment _attachment = new("ship target beacon");
@@ -17,9 +17,9 @@ namespace Asteroids.Player
         /// <param name="motion">The ship's motion.</param>
         /// <param name="protection">The ship's protection.</param>
         /// <exception cref="ArgumentNullException">Any argument is null.</exception>
-        public ShipTargetBeacon(ShipTarget target, IMotionState motion, IShipProtectionState protection)
+        public ShipTargetBeacon(ShipTracker tracker, IMotionState motion, IShipProtectionState protection)
         {
-            _target = target ?? throw new ArgumentNullException(nameof(target));
+            _tracker = tracker ?? throw new ArgumentNullException(nameof(tracker));
             _motion = motion ?? throw new ArgumentNullException(nameof(motion));
             _protection = protection ?? throw new ArgumentNullException(nameof(protection));
         }
@@ -28,7 +28,7 @@ namespace Asteroids.Player
         {
             if (ship == null) throw new ArgumentNullException(nameof(ship));
 
-            return _attachment.Start(new Func<IDisposable>[] { () => _target.Track(ship.Pose, _motion, _protection) });
+            return _attachment.Start(new Func<IDisposable>[] { () => _tracker.Track(ship.Pose, _motion, _protection) });
         }
     }
 }

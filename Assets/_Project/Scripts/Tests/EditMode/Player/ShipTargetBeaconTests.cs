@@ -6,6 +6,10 @@ using UnityEngine;
 
 namespace Asteroids.Player.Tests
 {
+    /// <summary>
+    /// <see cref="ShipTargetBeacon"/>: while attached, the ship is tracked by <see cref="ShipTracker"/>, so it is the
+    /// enemies' target (unless protected) and the HUD's telemetry source. Detaching ends both.
+    /// </summary>
     [TestFixture]
     public sealed class ShipTargetBeaconTests
     {
@@ -15,6 +19,7 @@ namespace Asteroids.Player.Tests
             public float LinearDamping => 0f;
         }
 
+        private ShipTracker _tracker;
         private ShipTarget _target;
         private InertialMotion _motion;
         private Entity _ship;
@@ -24,19 +29,20 @@ namespace Asteroids.Player.Tests
         [SetUp]
         public void SetUp()
         {
-            _target = new ShipTarget();
+            _tracker = new ShipTracker();
+            _target = new ShipTarget(_tracker);
             _motion = new InertialMotion(new TestConfig());
             _ship = new Entity(new BodyPose { Position = new Vector2(2f, 3f) });
             _protection = new FakeProtectionState();
-            _beacon = new ShipTargetBeacon(_target, _motion, _protection);
+            _beacon = new ShipTargetBeacon(_tracker, _motion, _protection);
         }
 
         [Test]
         public void Constructor_NullArguments_Throw()
         {
             Assert.Throws<ArgumentNullException>(() => new ShipTargetBeacon(null, _motion, _protection));
-            Assert.Throws<ArgumentNullException>(() => new ShipTargetBeacon(_target, null, _protection));
-            Assert.Throws<ArgumentNullException>(() => new ShipTargetBeacon(_target, _motion, null));
+            Assert.Throws<ArgumentNullException>(() => new ShipTargetBeacon(_tracker, null, _protection));
+            Assert.Throws<ArgumentNullException>(() => new ShipTargetBeacon(_tracker, _motion, null));
         }
 
         [Test]
@@ -49,6 +55,17 @@ namespace Asteroids.Player.Tests
             Assert.That(_target.HasTarget, Is.True);
             Assert.That(_target.Position, Is.EqualTo(new Vector2(2f, 3f)));
             Assert.That(_target.Velocity, Is.EqualTo(new Vector2(1f, 0f)));
+        }
+
+        [Test]
+        public void Attach_TracksTheShipWithItsMotionAndProtection()
+        {
+            _beacon.Attach(_ship);
+
+            Assert.That(_tracker.TryGetShip(out var ship), Is.True);
+            Assert.That(ship.Pose, Is.SameAs(_ship.Pose));
+            Assert.That(ship.Motion, Is.SameAs(_motion));
+            Assert.That(ship.Protection, Is.SameAs(_protection));
         }
 
         [Test]
@@ -82,6 +99,7 @@ namespace Asteroids.Player.Tests
 
             handle.Dispose();
 
+            Assert.That(_tracker.TryGetShip(out _), Is.False);
             Assert.That(_target.HasTarget, Is.False);
         }
     }

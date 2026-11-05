@@ -1,14 +1,19 @@
 using System;
+using Asteroids.Core.IConfigs;
 using Asteroids.Physics;
 using NUnit.Framework;
 using UnityEngine;
 
 namespace Asteroids.Player.Tests
 {
+    /// <summary>
+    /// <see cref="ShipTarget"/>: the tracked ship as enemies see it. No ship and a protected ship both read as
+    /// no target, with zero position and velocity.
+    /// </summary>
     [TestFixture]
     public sealed class ShipTargetTests
     {
-        private sealed class TestConfig : Asteroids.Core.IConfigs.IMotionConfig
+        private sealed class TestConfig : IMotionConfig
         {
             public float MaxSpeed => 100f;
             public float LinearDamping => 0f;
@@ -22,9 +27,13 @@ namespace Asteroids.Player.Tests
         }
 
         [Test]
-        public void New_HasNoTarget()
+        public void Constructor_Null_Throws() =>
+            Assert.Throws<ArgumentNullException>(() => new ShipTarget(null));
+
+        [Test]
+        public void NoShip_HasNoTarget()
         {
-            var target = new ShipTarget();
+            var target = new ShipTarget(new ShipTracker());
 
             Assert.That(target.HasTarget, Is.False);
             Assert.That(target.Position, Is.EqualTo(Vector2.zero));
@@ -32,13 +41,13 @@ namespace Asteroids.Player.Tests
         }
 
         [Test]
-        public void Track_FollowsThePoseAndTheMotion()
+        public void TrackedShip_FollowsThePoseAndTheMotion()
         {
-            var target = new ShipTarget();
+            var tracker = new ShipTracker();
+            var target = new ShipTarget(tracker);
             var pose = new BodyPose { Position = new Vector2(1f, 2f) };
-            var motion = MovingAt(new Vector2(3f, 4f));
+            tracker.Track(pose, MovingAt(new Vector2(3f, 4f)), new FakeProtectionState());
 
-            target.Track(pose, motion, new FakeProtectionState());
             pose.Position = new Vector2(5f, 6f);
 
             Assert.That(target.HasTarget, Is.True);
@@ -47,12 +56,12 @@ namespace Asteroids.Player.Tests
         }
 
         [Test]
-        public void Track_WhileTheShipIsProtected_HasNoTargetUntilProtectionEnds()
+        public void ProtectedShip_HasNoTargetUntilProtectionEnds()
         {
-            var target = new ShipTarget();
+            var tracker = new ShipTracker();
+            var target = new ShipTarget(tracker);
             var protection = new FakeProtectionState { IsProtected = true };
-            target.Track(
-                new BodyPose { Position = new Vector2(1f, 2f) }, MovingAt(new Vector2(3f, 4f)), protection);
+            tracker.Track(new BodyPose { Position = new Vector2(1f, 2f) }, MovingAt(new Vector2(3f, 4f)), protection);
 
             Assert.That(target.HasTarget, Is.False);
             Assert.That(target.Position, Is.EqualTo(Vector2.zero));
@@ -65,52 +74,17 @@ namespace Asteroids.Player.Tests
         }
 
         [Test]
-        public void Track_NullArguments_Throw()
+        public void TrackingEnds_HasNoTarget()
         {
-            var target = new ShipTarget();
-
-            var protection = new FakeProtectionState();
-
-            Assert.Throws<ArgumentNullException>(() => target.Track(null, MovingAt(Vector2.zero), protection));
-            Assert.Throws<ArgumentNullException>(() => target.Track(new BodyPose(), null, protection));
-            Assert.Throws<ArgumentNullException>(() => target.Track(new BodyPose(), MovingAt(Vector2.zero), null));
-        }
-
-        [Test]
-        public void Track_WhileTracking_Throws()
-        {
-            var target = new ShipTarget();
-            target.Track(new BodyPose(), MovingAt(Vector2.zero), new FakeProtectionState());
-
-            Assert.Throws<InvalidOperationException>(
-                () => target.Track(new BodyPose(), MovingAt(Vector2.zero), new FakeProtectionState()));
-        }
-
-        [Test]
-        public void Dispose_ClearsTheTargetAndAllowsANewOne()
-        {
-            var target = new ShipTarget();
-            var handle = target.Track(
+            var tracker = new ShipTracker();
+            var target = new ShipTarget(tracker);
+            var handle = tracker.Track(
                 new BodyPose { Position = Vector2.one }, MovingAt(Vector2.one), new FakeProtectionState());
 
             handle.Dispose();
 
             Assert.That(target.HasTarget, Is.False);
             Assert.That(target.Position, Is.EqualTo(Vector2.zero));
-            Assert.DoesNotThrow(() => target.Track(new BodyPose(), MovingAt(Vector2.zero), new FakeProtectionState()));
-        }
-
-        [Test]
-        public void Dispose_StaleHandle_DoesNotClearTheNewerTarget()
-        {
-            var target = new ShipTarget();
-            var stale = target.Track(new BodyPose(), MovingAt(Vector2.zero), new FakeProtectionState());
-            stale.Dispose();
-            target.Track(new BodyPose(), MovingAt(Vector2.zero), new FakeProtectionState());
-
-            stale.Dispose();
-
-            Assert.That(target.HasTarget, Is.True);
         }
     }
 }

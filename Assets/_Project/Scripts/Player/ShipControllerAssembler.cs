@@ -12,7 +12,7 @@ namespace Asteroids.Player
         private readonly ShipDefense.Factory _defense;
         private readonly ShipRam.Factory _ram;
         private readonly ShipArmament.Factory _armament;
-        private readonly ShipTarget _target;
+        private readonly ShipTracker _tracker;
         private readonly IPlayerHealth _health;
         private readonly IShipEventSink _events;
 
@@ -23,7 +23,7 @@ namespace Asteroids.Player
             ShipDefense.Factory defense,
             ShipRam.Factory ram,
             ShipArmament.Factory armament,
-            ShipTarget target,
+            ShipTracker tracker,
             IPlayerHealth health,
             IShipEventSink events)
         {
@@ -32,7 +32,7 @@ namespace Asteroids.Player
             _defense = defense ?? throw new ArgumentNullException(nameof(defense));
             _ram = ram ?? throw new ArgumentNullException(nameof(ram));
             _armament = armament ?? throw new ArgumentNullException(nameof(armament));
-            _target = target ?? throw new ArgumentNullException(nameof(target));
+            _tracker = tracker ?? throw new ArgumentNullException(nameof(tracker));
             _health = health ?? throw new ArgumentNullException(nameof(health));
             _events = events ?? throw new ArgumentNullException(nameof(events));
         }
@@ -48,7 +48,7 @@ namespace Asteroids.Player
                 defense,
                 _ram.Create(),
                 _armament.Create(),
-                new ShipTargetBeacon(_target, movement.Motion, defense)
+                new ShipTargetBeacon(_tracker, movement.Motion, defense)
             };
 
             return new ShipController(entity, parts, _health, _events);

@@ -1,6 +1,7 @@
 using System;
 using Asteroids.Common;
 using Asteroids.Core;
+using UnityEngine;
 
 namespace Asteroids.UI.Tests
 {
@@ -48,5 +49,16 @@ namespace Asteroids.UI.Tests
 
         public IObservableValue<float> Energy => EnergyValue;
         public IObservableValue<float> SecondsToFull => SecondsValue;
+    }
+
+    internal sealed class FakeShipTelemetry : IShipTelemetry
+    {
+        public bool HasShip { get; set; }
+        public Vector2 Position { get; set; }
+        public float Angle { get; set; }
+        public float Speed { get; set; }
+
+        public static FakeShipTelemetry At(Vector2 position, float angle = 0f, float speed = 0f) =>
+            new() { HasShip = true, Position = position, Angle = angle, Speed = speed };
     }
 }
