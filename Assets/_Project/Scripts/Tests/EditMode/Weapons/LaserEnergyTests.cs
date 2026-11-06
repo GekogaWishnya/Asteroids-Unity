@@ -199,5 +199,33 @@ namespace Asteroids.Weapons.Tests
         [Test]
         public void Construct_NullConfig_Throws() =>
             Assert.Throws<ArgumentNullException>(() => new LaserEnergy(null));
+
+        [Test]
+        public void Reset_EmptiesTheTankAndStopsTheBeam()
+        {
+            RefillFor(5f);
+            _energy.Tick(0.1f, true);
+            Assert.That(_energy.IsFiring, Is.True);
+
+            _energy.Reset();
+
+            Assert.That(_energy.Current, Is.EqualTo(0f));
+            Assert.That(_energy.IsFiring, Is.False);
+            Assert.That(_energy.Energy.Value, Is.EqualTo(0f));
+            Assert.That(_energy.SecondsToFull.Value, Is.EqualTo(10f).Within(Tolerance));
+        }
+
+        [Test]
+        public void Reset_RefillStartsRightAway()
+        {
+            RefillFor(5f);
+            _energy.Tick(0.1f, true);
+            _energy.Tick(0.1f, false);
+
+            _energy.Reset();
+            RefillFor(1f);
+
+            Assert.That(_energy.Current, Is.EqualTo(10f).Within(Tolerance));
+        }
     }
 }

@@ -322,5 +322,29 @@ namespace Asteroids.Weapons.Tests
             Assert.Throws<ArgumentNullException>(() => new LaserWeapon(_config, _loop, _beam, null, _damage));
             Assert.Throws<ArgumentNullException>(() => new LaserWeapon(_config, _loop, _beam, _beams, null));
         }
+
+        [Test]
+        public void Reset_EmptiesTheTank()
+        {
+            var weapon = Create();
+            var attachment = weapon.Attach(_carrier, _trigger);
+            _loop.Tick(5f);
+            attachment.Dispose();
+            Assert.That(weapon.Energy.Value, Is.GreaterThan(0f));
+
+            weapon.Reset();
+
+            Assert.That(weapon.Energy.Value, Is.EqualTo(0f));
+            Assert.That(weapon.IsBeamOn, Is.False);
+        }
+
+        [Test]
+        public void Reset_WhileAttached_Throws()
+        {
+            var weapon = Create();
+            weapon.Attach(_carrier, _trigger);
+
+            Assert.Throws<InvalidOperationException>(() => weapon.Reset());
+        }
     }
 }

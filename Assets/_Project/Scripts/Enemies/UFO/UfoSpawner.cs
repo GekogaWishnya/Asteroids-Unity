@@ -1,6 +1,7 @@
 using System;
 using Asteroids.Core;
 using Asteroids.Core.IConfigs;
+using Asteroids.Pooling;
 using UnityEngine;
 
 namespace Asteroids.Enemies
@@ -13,7 +14,7 @@ namespace Asteroids.Enemies
         private readonly PerimeterSpawnPoints _perimeter;
         private readonly IPlayerTarget _target;
         private readonly OffscreenEntry _entry;
-        private readonly EnemyPool<UfoController> _pool;
+        private readonly TrackedPool<UfoController> _pool;
 
         /// <param name="createController">Creates one idle UFO, object included.</param>
         /// <exception cref="ArgumentNullException">Any argument is null.</exception>
@@ -31,12 +32,12 @@ namespace Asteroids.Enemies
             _target = target ?? throw new ArgumentNullException(nameof(target));
             _entry = entry ?? throw new ArgumentNullException(nameof(entry));
 
-            _pool = new EnemyPool<UfoController>(createController, config.PoolMaxIdle);
+            _pool = new TrackedPool<UfoController>(createController, config.PoolMaxIdle);
         }
 
         public EnemyTypeId Type => _config.Type;
 
-        public int AliveCount => _pool.AliveCount;
+        public int AliveCount => _pool.InPlayCount;
 
         public void Prewarm() => _pool.Prewarm(_config.PoolPrewarm);
 
@@ -45,7 +46,7 @@ namespace Asteroids.Enemies
             var point = _perimeter.Pick();
             var direction = AimFrom(point);
             var start = _entry.StartFor(point, direction);
-            _pool.Launch(controller => controller.Launch(start, direction));
+            _pool.Spawn((start, direction), static (controller, s) => controller.Launch(s.start, s.direction));
         }
 
         public void DespawnAll() => _pool.DespawnAll();

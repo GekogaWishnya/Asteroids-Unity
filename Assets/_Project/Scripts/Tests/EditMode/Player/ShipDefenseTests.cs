@@ -317,5 +317,17 @@ namespace Asteroids.Player.Tests
             Assert.Throws<ArgumentNullException>(() =>
                 new ShipDefense(_health, _combat, _targets, _waveProtection, _loop, null));
         }
+
+        [Test]
+        public void Reset_EndsTheProtection()
+        {
+            var defense = Create();
+            defense.Attach(_ship);
+            RegisteredShip.TakeDamage(1);
+
+            defense.Reset();
+
+            Assert.That(defense.IsProtected, Is.False);
+        }
     }
 }

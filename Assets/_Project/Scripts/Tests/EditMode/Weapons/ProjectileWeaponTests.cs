@@ -187,5 +187,33 @@ namespace Asteroids.Weapons.Tests
             Assert.Throws<ArgumentNullException>(() => new ProjectileWeapon(_config, null, _pool));
             Assert.Throws<ArgumentNullException>(() => new ProjectileWeapon(_config, _loop, null));
         }
+
+        [Test]
+        public void Reset_TakesWhatItFiredOutOfPlayAndEndsTheCooldown()
+        {
+            var weapon = Create();
+            var attachment = weapon.Attach(_carrier, _trigger);
+            _trigger.IsFiring = true;
+            _loop.Tick(0.01f);
+            attachment.Dispose();
+            Assert.That(_pool.InPlayCount, Is.EqualTo(1));
+
+            weapon.Reset();
+            Assert.That(_pool.InPlayCount, Is.Zero);
+
+            weapon.Attach(_carrier, _trigger);
+            _loop.Tick(0.01f);
+
+            Assert.That(_pool.InPlayCount, Is.EqualTo(1), "The cooldown ended, so it fires at once");
+        }
+
+        [Test]
+        public void Reset_WhileAttached_Throws()
+        {
+            var weapon = Create();
+            weapon.Attach(_carrier, _trigger);
+
+            Assert.Throws<InvalidOperationException>(() => weapon.Reset());
+        }
     }
 }

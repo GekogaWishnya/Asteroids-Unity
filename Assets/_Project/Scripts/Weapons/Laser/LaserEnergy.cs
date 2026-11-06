@@ -30,7 +30,7 @@ namespace Asteroids.Weapons.Laser
             _config = config ?? throw new ArgumentNullException(nameof(config));
             Publish();
         }
-        
+
         public float Current { get; private set; }
 
         public bool IsFiring { get; private set; }
@@ -63,6 +63,16 @@ namespace Asteroids.Weapons.Laser
 
             Publish();
             return IsFiring;
+        }
+
+        /// <summary>Empties the tank and forgets the trigger.</summary>
+        public void Reset()
+        {
+            Current = 0f;
+            IsFiring = false;
+            _refillWait = 0f;
+            _wasHeld = false;
+            Publish();
         }
 
         /// <summary>Stops the beam without a release.</summary>

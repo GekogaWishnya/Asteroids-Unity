@@ -99,5 +99,18 @@ namespace Asteroids.Weapons.Tests
 
             Assert.Throws<ArgumentOutOfRangeException>(() => cooldown.Tick(0.1f, true, interval));
         }
+
+        [Test]
+        public void Reset_EndsTheWait()
+        {
+            var cooldown = new FireCooldown();
+            cooldown.Tick(0.01f, true, Interval);
+            Assert.That(cooldown.IsReady, Is.False);
+
+            cooldown.Reset();
+
+            Assert.That(cooldown.IsReady, Is.True);
+            Assert.That(cooldown.Tick(0.01f, true, Interval), Is.True);
+        }
     }
 }

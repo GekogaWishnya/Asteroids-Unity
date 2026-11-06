@@ -85,5 +85,20 @@ namespace Asteroids.Scoring.Tests
 
             Assert.That(reader.Value.Value, Is.EqualTo(42));
         }
+
+        [Test]
+        public void Restart_GoesBackToZeroAndNotifies()
+        {
+            var score = new ScoreModel();
+            score.Add(100);
+            var seen = new List<int>();
+            score.Value.Subscribe(seen.Add);
+
+            score.Restart();
+
+            Assert.That(score.Value.Value, Is.EqualTo(0));
+            Assert.That(seen, Is.EqualTo(new[] { 100, 0 }));
+            Assert.That(score.Order, Is.EqualTo(RestartOrder.Score));
+        }
     }
 }

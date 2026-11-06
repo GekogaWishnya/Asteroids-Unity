@@ -23,6 +23,15 @@ namespace Asteroids.Player.Tests
             }
         }
 
+        public int ResetCount { get; private set; }
+        public bool FailOnReset { get; set; }
+
+        public void Reset()
+        {
+            ResetCount++;
+            if (FailOnReset) throw new InvalidOperationException("reset failed");
+        }
+
         public IDisposable Attach(IEntity carrier, IFireInput trigger)
         {
             var attachment = new Attachment(carrier, trigger);

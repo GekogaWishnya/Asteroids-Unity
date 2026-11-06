@@ -12,7 +12,7 @@ namespace Asteroids.Weapons.Projectiles
     /// lifetime in <see cref="SimulationPhase.Logic"/>, the projectile as a damage source and the projectile
     /// itself in the <see cref="IProjectileRegistry"/> so hits can find it.
     /// </summary>
-    public sealed class Projectile : ISingleUseDamageSource, IProjectileImpact, IDisposable
+    public sealed class Projectile : ISingleUseDamageSource, IProjectileImpact, IPooledObject<Projectile>
     {
         private readonly IProjectileWeaponConfig _config;
         private readonly InertialMotion _motion;
@@ -75,6 +75,9 @@ namespace Asteroids.Weapons.Projectiles
             _life.Enter(launch.Position, launch.Angle,
                 () => _motion.AddVelocity(launch.Velocity - _motion.Velocity));
         }
+
+        /// <summary>Takes the projectile out of play without a hit.</summary>
+        public void Despawn() => _life.Retire();
 
         public void Impact()
         {

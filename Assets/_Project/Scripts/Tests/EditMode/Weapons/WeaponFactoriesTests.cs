@@ -19,6 +19,8 @@ namespace Asteroids.Weapons.Tests
         private sealed class StubWeapon : IWeapon
         {
             public IDisposable Attach(IEntity carrier, IFireInput trigger) => throw new NotSupportedException();
+
+            public void Reset() => throw new NotSupportedException();
         }
 
         private sealed class Factory<T> : WeaponFactory<T> where T : class, IWeaponDefinition
@@ -101,6 +103,8 @@ namespace Asteroids.Weapons.Tests
         private sealed class StatusWeapon : IWeapon, IStatusA
         {
             public IDisposable Attach(IEntity carrier, IFireInput trigger) => throw new NotSupportedException();
+
+            public void Reset() => throw new NotSupportedException();
         }
 
         private sealed class FakeLoadout : IShipLoadout

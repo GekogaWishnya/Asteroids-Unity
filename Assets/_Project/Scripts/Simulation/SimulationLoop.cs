@@ -8,7 +8,7 @@ namespace Asteroids.Simulation
     /// <summary>
     /// Runs one simulation tick per rendered frame with a single clamped delta time, shared by every step.
     /// </summary>
-    public sealed class SimulationLoop : ISimulationLoop, ITickable
+    public sealed class SimulationLoop : ISimulationLoop, ISimulationControl, ITickable
     {
         /// <summary>Longest time a single tick may simulate in seconds.</summary>
         private const float MaxDeltaTime = 1f / 20f;
@@ -18,7 +18,7 @@ namespace Asteroids.Simulation
         /// counted, so a step that fails on every tick does not flood the log.
         /// </summary>
         public const float FailureReportInterval = 1f;
-        
+
         private readonly ISimulationTime _time;
         private readonly IErrorLog _errors;
         private readonly DeferredList<Registration>[] _phases;

@@ -11,12 +11,19 @@ namespace Asteroids.Physics
 
         public InertialMotion(IMotionConfig config) =>
             _config = config ?? throw new ArgumentNullException(nameof(config));
-        
+
         public Vector2 Velocity { get; private set; }
         public float Speed => Velocity.magnitude;
 
         public void Accelerate(Vector2 acceleration) => _pendingAcceleration += acceleration;
         public void AddVelocity(Vector2 delta) => Velocity += delta;
+
+        /// <summary>Brings the motion to rest and drops the acceleration not applied yet.</summary>
+        public void Stop()
+        {
+            Velocity = Vector2.zero;
+            _pendingAcceleration = Vector2.zero;
+        }
 
         /// <summary>Advances the simulation.</summary>
         /// <returns>Positional displacement of the object for this step.</returns>

@@ -5,7 +5,7 @@ namespace Asteroids.Player
 {
     /// <summary>
     /// One behavior of a ship (moving, being protected, ramming, firing). A part is made for one ship and
-    /// holds that ship's state for its whole life. <see cref="ShipController"/> attaches it while the ship is enabled.
+    /// holds that ship's state for its whole life or until it's <see cref="Reset"/>.
     /// </summary>
     public interface IShipPart
     {
@@ -13,5 +13,8 @@ namespace Asteroids.Player
         /// <exception cref="ArgumentNullException"><paramref name="ship"/> is null.</exception>
         /// <exception cref="InvalidOperationException">The part is already attached.</exception>
         IDisposable Attach(IEntity ship);
+
+        /// <summary>Puts the part's state back to how it was made.</summary>
+        void Reset();
     }
 }

@@ -3,6 +3,7 @@ using Asteroids.Core;
 using Asteroids.Core.IConfigs;
 using Asteroids.Health;
 using Asteroids.Physics;
+using Asteroids.Pooling;
 using UnityEngine;
 
 namespace Asteroids.Enemies
@@ -10,7 +11,7 @@ namespace Asteroids.Enemies
     /// <summary>
     /// Lifecycle of one UFO object, reused for many lives. <see cref="Launch"/> starts a life.
     /// </summary>
-    internal sealed class UfoController : IDamageSource, IPooledEnemy<UfoController>
+    internal sealed class UfoController : IDamageSource, IPooledObject<UfoController>
     {
         private readonly IUfoTypeConfig _config;
         private readonly InertialMotion _motion;

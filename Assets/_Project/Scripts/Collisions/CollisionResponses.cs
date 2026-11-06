@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using Asteroids.Common;
 
 namespace Asteroids.Collisions
 {
@@ -15,22 +15,7 @@ namespace Asteroids.Collisions
         {
             if (responses == null) throw new ArgumentNullException(nameof(responses));
 
-            var ordered = responses.ToArray();
-            if (Array.IndexOf(ordered, null) >= 0)
-                throw new ArgumentException("Responses must not contain null.", nameof(responses));
-
-            Array.Sort(ordered, (left, right) => left.Order.CompareTo(right.Order));
-            for (var i = 1; i < ordered.Length; i++)
-            {
-                if (ordered[i].Order != ordered[i - 1].Order) continue;
-
-                throw new ArgumentException(
-                    $"{ordered[i - 1].GetType().Name} and {ordered[i].GetType().Name} share the order " +
-                    $"{ordered[i].Order}. Each response needs its own {nameof(CollisionResponseOrder)} value.",
-                    nameof(responses));
-            }
-
-            return ordered;
+            return UniqueOrder.Sort(responses, response => response.Order, "response");
         }
     }
 }

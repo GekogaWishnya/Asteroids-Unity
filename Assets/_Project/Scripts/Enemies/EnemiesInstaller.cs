@@ -28,10 +28,9 @@ namespace Asteroids.Enemies
                 .FromMethodMultiple(context => context.Container.Resolve<UfoSpawnerBuilder>().Spawners)
                 .AsCached();
 
-            // Zenject injects List<T>, not IEnumerable<T>, so the list is resolved explicitly.
-            Container.Bind<IEnemyData>()
-                .FromMethod(context => new EnemyData(context.Container.ResolveAll<IEnemySpawner>()))
-                .AsSingle();
+            Container.Bind<IEnemyData>().To<EnemyData>().AsSingle();
+
+            Container.Bind<IRestartable>().To<DespawnEnemiesOnRestart>().AsSingle();
         }
     }
 }

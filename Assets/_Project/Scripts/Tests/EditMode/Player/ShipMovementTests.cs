@@ -245,5 +245,21 @@ namespace Asteroids.Player.Tests
             Assert.Throws<ArgumentNullException>(() => new ShipMovement(_input, _lock, _config, _loop, null, _bodies));
             Assert.Throws<ArgumentNullException>(() => new ShipMovement(_input, _lock, _config, _loop, _wrap, null));
         }
+
+        [Test]
+        public void Reset_BringsTheShipToRest()
+        {
+            var movement = Create();
+            var attachment = movement.Attach(_ship);
+            _bodies.Registrations[0].Body.AddVelocity(new Vector2(2f, 1f));
+            attachment.Dispose();
+
+            movement.Reset();
+            movement.Attach(_ship);
+            _loop.Tick(Dt);
+
+            Assert.That(movement.Motion.Velocity, Is.EqualTo(Vector2.zero));
+            Assert.That(_pose.Position, Is.EqualTo(Vector2.zero));
+        }
     }
 }

@@ -109,5 +109,23 @@ namespace Asteroids.Enemies.Tests
 
             Assert.That(other.AliveCount, Is.Zero);
         }
+
+        [Test]
+        public void DespawnEnemiesOnRestart_DespawnsEveryEnemyFirst()
+        {
+            var asteroids = new FakeSpawner("Asteroid", alive: 2);
+            var ufos = new FakeSpawner("Ufo", alive: 1);
+            var restart = new DespawnEnemiesOnRestart(new EnemyData(new IEnemySpawner[] { asteroids, ufos }));
+
+            restart.Restart();
+
+            Assert.That(asteroids.DespawnAllCount, Is.EqualTo(1));
+            Assert.That(ufos.DespawnAllCount, Is.EqualTo(1));
+            Assert.That(restart.Order, Is.EqualTo(Asteroids.Core.RestartOrder.Enemies));
+        }
+
+        [Test]
+        public void DespawnEnemiesOnRestart_Null_Throws() =>
+            Assert.Throws<ArgumentNullException>(() => new DespawnEnemiesOnRestart(null));
     }
 }

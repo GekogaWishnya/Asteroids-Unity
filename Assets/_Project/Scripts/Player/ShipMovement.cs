@@ -63,6 +63,8 @@ namespace Asteroids.Player
             });
         }
 
+        public void Reset() => _motion.Stop();
+
         public sealed class Factory : PlaceholderFactory<ShipMovement> { }
     }
 }

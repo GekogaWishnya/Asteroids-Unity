@@ -4,7 +4,7 @@ using Asteroids.Core;
 
 namespace Asteroids.Player.Tests
 {
-    /// <summary>Writes "+name" on attach and "-name" on detach into a shared log.</summary>
+    /// <summary>Writes "+name" on attach, "-name" on detach and "~name" on reset into a shared log.</summary>
     internal sealed class FakeShipPart : IShipPart
     {
         private readonly string _name;
@@ -19,6 +19,11 @@ namespace Asteroids.Player.Tests
         public List<IEntity> Ships { get; } = new();
         public int LiveCount { get; private set; }
         public bool FailOnAttach { get; set; }
+        public bool FailOnReset { get; set; }
+
+        /// <summary>How often <see cref="Reset"/> was called, and how many attachments were live at the time.</summary>
+        public int ResetCount { get; private set; }
+        public int LiveCountAtReset { get; private set; }
 
         public IDisposable Attach(IEntity ship)
         {
@@ -28,6 +33,14 @@ namespace Asteroids.Player.Tests
             LiveCount++;
             _log.Add("+" + _name);
             return new Detach(this);
+        }
+
+        public void Reset()
+        {
+            ResetCount++;
+            LiveCountAtReset = LiveCount;
+            _log.Add("~" + _name);
+            if (FailOnReset) throw new InvalidOperationException("reset failed");
         }
 
         private sealed class Detach : IDisposable

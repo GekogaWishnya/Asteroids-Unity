@@ -17,7 +17,7 @@ namespace Asteroids.Waves
     /// The level is checked against the spawners in the constructor, so a bad level fails when the game starts.
     /// </para>
     /// </summary>
-    public sealed class WaveDirector : ISimulationStep
+    public sealed class WaveDirector : ISimulationStep, IRestartable
     {
         private readonly Wave[] _waves;
         private readonly IEnemyData _data;
@@ -46,6 +46,17 @@ namespace Asteroids.Waves
 
         /// <summary>Starts at 1 - the wave in progress or about to start.</summary>
         public int WaveNumber => Math.Min(_index + 1, _waves.Length);
+
+        public RestartOrder Order => RestartOrder.Waves;
+
+        public void Restart()
+        {
+            _index = 0;
+            _delayTimer = 0f;
+            _waveTime = 0f;
+            _spawned = Array.Empty<int>();
+            Stage = WaveStage.Waiting;
+        }
 
         public void Tick(float deltaTime)
         {

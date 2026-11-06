@@ -156,5 +156,25 @@ namespace Asteroids.Player.Tests
             Assert.Throws<ArgumentNullException>(() => new ShipArmament(_loadout, null, _lock));
             Assert.Throws<ArgumentNullException>(() => new ShipArmament(_loadout, _input, null));
         }
+
+        [Test]
+        public void Reset_ResetsEveryWeapon()
+        {
+            Create().Reset();
+
+            Assert.That(_primary.ResetCount, Is.EqualTo(1));
+            Assert.That(_alternate.ResetCount, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void Reset_AWeaponFails_ResetsTheOthersAndRethrows()
+        {
+            var armament = Create();
+            _primary.FailOnReset = true;
+
+            Assert.Throws<InvalidOperationException>(() => armament.Reset());
+
+            Assert.That(_alternate.ResetCount, Is.EqualTo(1));
+        }
     }
 }

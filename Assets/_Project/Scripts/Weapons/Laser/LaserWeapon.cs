@@ -65,6 +65,16 @@ namespace Asteroids.Weapons.Laser
             return _attachment = attachment;
         }
 
+        /// <summary>Empties the tank, as when the laser was made. The beam is already off while detached.</summary>
+        /// <exception cref="InvalidOperationException">The weapon is attached.</exception>
+        public void Reset()
+        {
+            if (_attachment != null) throw new InvalidOperationException("Detach the weapon before resetting it.");
+
+            _hits.Clear();
+            _energy.Reset();
+        }
+
         private void UpdateTrigger(IPose pose, float deltaTime, bool triggerHeld)
         {
             var on = _energy.Tick(deltaTime, triggerHeld);

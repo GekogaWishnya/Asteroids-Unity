@@ -134,5 +134,17 @@ namespace Asteroids.Player.Tests
             Assert.Throws<ArgumentNullException>(() => new ShipControlLoss(null));
             Assert.Throws<ArgumentNullException>(() => _loss.Attach(null));
         }
+
+        [Test]
+        public void Reset_GivesControlBack()
+        {
+            _loss.Attach(_ship);
+            _loss.Lose(3f);
+
+            _loss.Reset();
+
+            Assert.That(_loss.IsLocked, Is.False);
+            Assert.That(_loss.Remaining, Is.Zero);
+        }
     }
 }

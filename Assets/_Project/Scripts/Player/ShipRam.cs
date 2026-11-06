@@ -26,6 +26,8 @@ namespace Asteroids.Player
             return _attachment.Start(new Func<IDisposable>[] { () => _damageRegistry.RegisterSource(ship, _source) });
         }
 
+        public void Reset() { }
+
         public sealed class Factory : PlaceholderFactory<ShipRam> { }
     }
 }

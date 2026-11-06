@@ -114,6 +114,19 @@ namespace Asteroids.Simulation.Tests
         }
 
         [Test]
+        public void Tick_PausedThenResumed_RunsAgain()
+        {
+            _loop.Register(SimulationPhase.Logic, new Step("a", _log));
+
+            _loop.IsPaused = true;
+            _loop.Tick();
+            _loop.IsPaused = false;
+            _loop.Tick();
+
+            Assert.That(_log, Has.Count.EqualTo(1));
+        }
+
+        [Test]
         public void Tick_AStepThrows_LaterStepsAndPhasesStillRunAndTheFailureIsReported()
         {
             var failure = new InvalidOperationException("boom");
@@ -126,7 +139,8 @@ namespace Asteroids.Simulation.Tests
             Assert.That(_log, Is.EqualTo(new[] { "broken", "motion", "logic" }));
             Assert.That(_errors.Reports.Count, Is.EqualTo(1));
             Assert.That(_errors.Reports[0].Failure, Is.SameAs(failure));
-            Assert.That(_errors.Reports[0].Context, Does.Contain(nameof(Step)).And.Contain(nameof(SimulationPhase.Motion)));
+            Assert.That(_errors.Reports[0].Context,
+                Does.Contain(nameof(Step)).And.Contain(nameof(SimulationPhase.Motion)));
         }
 
         [Test]
@@ -205,7 +219,14 @@ namespace Asteroids.Simulation.Tests
         public void Tick_CalledFromAStep_IsReportedAndDoesNotNest()
         {
             var nested = 0;
-            _loop.Register(SimulationPhase.Logic, new Step("a", _log) { OnTick = () => { nested++; _loop.Tick(); } });
+            _loop.Register(SimulationPhase.Logic, new Step("a", _log)
+            {
+                OnTick = () =>
+                {
+                    nested++;
+                    _loop.Tick();
+                }
+            });
 
             _loop.Tick();
 

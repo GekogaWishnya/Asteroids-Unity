@@ -7,5 +7,8 @@ namespace Asteroids.Player
     {
         void Enable();
         void Disable();
+
+        /// <summary>Puts the ship back to how the game started.</summary>
+        void Restart();
     }
 }

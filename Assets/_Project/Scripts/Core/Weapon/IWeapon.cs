@@ -16,5 +16,9 @@ namespace Asteroids.Core
         /// <exception cref="ArgumentNullException">An argument is null.</exception>
         /// <exception cref="InvalidOperationException">The weapon is already attached.</exception>
         IDisposable Attach(IEntity carrier, IFireInput trigger);
+
+        /// <summary>Resets weapons values to initial once.</summary>
+        /// <exception cref="InvalidOperationException">The weapon is attached.</exception>
+        void Reset();
     }
 }

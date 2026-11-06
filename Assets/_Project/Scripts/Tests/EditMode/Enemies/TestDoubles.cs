@@ -171,8 +171,6 @@ namespace Asteroids.Enemies.Tests
     {
         private readonly List<Entry> _entries = new();
 
-        public bool IsPaused { get; set; }
-
         public int LiveCount(SimulationPhase phase)
         {
             var count = 0;

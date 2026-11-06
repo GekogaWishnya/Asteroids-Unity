@@ -1,7 +1,7 @@
 using System;
-using Asteroids.Common;
 using Asteroids.Core;
 using Asteroids.Core.IConfigs;
+using Asteroids.Pooling;
 
 namespace Asteroids.Weapons.Projectiles
 {
@@ -13,7 +13,7 @@ namespace Asteroids.Weapons.Projectiles
         private readonly IWrapRegistry _wrap;
         private readonly IDamageRegistry _damageRegistry;
         private readonly IProjectileRegistry _projectiles;
-        private readonly ObjectPool<Projectile> _pool;
+        private readonly TrackedPool<Projectile> _pool;
 
         /// <exception cref="ArgumentNullException">Any argument is null.</exception>
         /// <exception cref="ArgumentOutOfRangeException">The config's pool max idle is negative.</exception>
@@ -32,41 +32,20 @@ namespace Asteroids.Weapons.Projectiles
             _damageRegistry = damageRegistry ?? throw new ArgumentNullException(nameof(damageRegistry));
             _projectiles = projectiles ?? throw new ArgumentNullException(nameof(projectiles));
 
-            _pool = new ObjectPool<Projectile>(CreateInstance, onDestroy: DestroyInstance, maxIdle: config.PoolMaxIdle);
+            _pool = new TrackedPool<Projectile>(CreateInstance, config.PoolMaxIdle);
         }
-        
-        public int InPlayCount => _pool.CountActive;
-        
+
+        public int InPlayCount => _pool.InPlayCount;
+
         public void Prewarm() => _pool.Prewarm(_config.PoolPrewarm);
 
-        public void Launch(ProjectileLaunch launch)
-        {
-            var projectile = _pool.Get();
+        public void Launch(ProjectileLaunch launch) =>
+            _pool.Spawn(launch, static (projectile, l) => projectile.Launch(l));
 
-            try
-            {
-                projectile.Launch(launch);
-            }
-            catch
-            {
-                _pool.Release(projectile);
-                throw;
-            }
-        }
+        /// <inheritdoc cref="TrackedPool{T}.DespawnAll"/>
+        public void DespawnAll() => _pool.DespawnAll();
 
-        private Projectile CreateInstance()
-        {
-            var projectile = new Projectile(_views.Create(), _config, _loop, _wrap, _damageRegistry, _projectiles);
-            projectile.Finished += OnFinished;
-            return projectile;
-        }
-
-        private void DestroyInstance(Projectile projectile)
-        {
-            projectile.Finished -= OnFinished;
-            projectile.Dispose();
-        }
-
-        private void OnFinished(Projectile projectile) => _pool.Release(projectile);
+        private Projectile CreateInstance() =>
+            new(_views.Create(), _config, _loop, _wrap, _damageRegistry, _projectiles);
     }
 }

@@ -248,6 +248,62 @@ namespace Asteroids.Waves.Tests
             Assert.That(_data.Spawned, Has.Count.EqualTo(1));
         }
 
+        [Test]
+        public void Restart_MidLevel_WaitsForTheFirstWaveWithItsWholeDelay()
+        {
+            var director = Director(Level(Wave(1f, Entry()), Wave(1f, Entry())));
+            director.Tick(1f);
+            _data.KillAll();
+            director.Tick(0.1f);
+            Assert.That(director.WaveNumber, Is.EqualTo(2));
+            _events.Log.Clear();
+
+            director.Restart();
+            director.Tick(0.5f);
+
+            Assert.That(director.Stage, Is.EqualTo(WaveStage.Waiting));
+            Assert.That(director.WaveNumber, Is.EqualTo(1));
+            Assert.That(_events.Log, Is.Empty, "Restart raises no events");
+
+            director.Tick(0.5f);
+
+            Assert.That(_events.Log, Is.EqualTo(new[] { "started 1/2" }));
+        }
+
+        [Test]
+        public void Restart_WhileSpawning_StartsTheScheduleOver()
+        {
+            var director = Director(Level(Wave(0f, Entry("A", count: 3, interval: 1f))));
+            director.Tick(1.5f);
+            Assert.That(_data.Spawned, Has.Count.EqualTo(2));
+
+            director.Restart();
+            director.Tick(0.01f);
+
+            Assert.That(_data.Spawned, Has.Count.EqualTo(3));
+            Assert.That(director.Stage, Is.EqualTo(WaveStage.Spawning));
+        }
+
+        [Test]
+        public void Restart_AfterTheLevelCompleted_RunsItAgain()
+        {
+            var director = Director(Level(Wave(0f, Entry())));
+            director.Tick(0.1f);
+            _data.KillAll();
+            director.Tick(0.1f);
+            Assert.That(director.Stage, Is.EqualTo(WaveStage.Completed));
+
+            director.Restart();
+            director.Tick(0.1f);
+
+            Assert.That(director.Stage, Is.EqualTo(WaveStage.Clearing));
+            Assert.That(_events.Log, Is.EqualTo(new[] { "started 1/1", "cleared 1", "completed 1", "started 1/1" }));
+        }
+
+        [Test]
+        public void Order_IsTheWaves() =>
+            Assert.That(Director(Level(Wave(0f, Entry()))).Order, Is.EqualTo(Asteroids.Core.RestartOrder.Waves));
+
         private static void Tick(WaveDirector director, float delta, int times)
         {
             for (var i = 0; i < times; i++) director.Tick(delta);

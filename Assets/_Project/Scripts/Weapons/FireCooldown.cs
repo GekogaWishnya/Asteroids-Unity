@@ -11,6 +11,9 @@ namespace Asteroids.Weapons
         private float _remaining;
         public bool IsReady => _remaining <= 0f;
 
+        /// <summary>Ends the wait, so the next held trigger shoots at once.</summary>
+        public void Reset() => _remaining = 0f;
+
         /// <summary>Advances the wait by <paramref name="deltaTime"/>.</summary>
         /// <param name="interval">Seconds between two shots. Read on every tick, so it may change at runtime.</param>
         /// <returns>True when a shot is due on this tick.</returns>

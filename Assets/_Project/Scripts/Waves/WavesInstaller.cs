@@ -8,6 +8,7 @@ namespace Asteroids.Waves
     /// <see cref="IEnemyData"/> and <see cref="ISimulationLoop"/> to be bound, and <see cref="SignalBus"/>
     /// to be installed. Declares <see cref="WaveStarted"/>, <see cref="WaveCleared"/> and
     /// <see cref="LevelCompleted"/>, which live in <c>Core</c> so other features can react to them.
+    /// Binds <see cref="WaveDirector"/> as an <see cref="IRestartable"/>.
     /// </summary>
     public sealed class WavesInstaller : Installer<WavesInstaller>
     {
@@ -19,6 +20,7 @@ namespace Asteroids.Waves
 
             Container.Bind<IWaveEventSink>().To<SignalBusWaveEventSink>().AsSingle();
             Container.Bind<WaveDirector>().AsSingle();
+            Container.Bind<IRestartable>().To<WaveDirector>().FromResolve();
             Container.BindInterfacesTo<WaveDirectorRegistration>().AsSingle();
         }
     }

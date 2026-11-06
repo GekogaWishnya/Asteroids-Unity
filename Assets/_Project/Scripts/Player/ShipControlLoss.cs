@@ -49,6 +49,9 @@ namespace Asteroids.Player
             });
         }
 
+        /// <summary>Gives control back.</summary>
+        public void Reset() => _countdown.Remaining = 0f;
+
         private IDisposable Track()
         {
             _isAttached = true;

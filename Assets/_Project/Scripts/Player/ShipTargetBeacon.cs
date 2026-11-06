@@ -30,5 +30,7 @@ namespace Asteroids.Player
 
             return _attachment.Start(new Func<IDisposable>[] { () => _tracker.Track(ship.Pose, _motion, _protection) });
         }
+
+        public void Reset() { }
     }
 }

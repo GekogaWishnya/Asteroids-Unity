@@ -35,6 +35,16 @@ namespace Asteroids.Weapons
             return _attachment = new Attachment(this, _loop.Register(SimulationPhase.Logic, step));
         }
 
+        /// <summary>Takes every projectile this weapon fired out of play and ends the cooldown.</summary>
+        /// <exception cref="InvalidOperationException">The weapon is attached.</exception>
+        public void Reset()
+        {
+            if (_attachment != null) throw new InvalidOperationException("Detach the weapon before resetting it.");
+
+            _cooldown.Reset();
+            _pool.DespawnAll();
+        }
+
         private void Fire(IPose pose)
         {
             var direction = pose.Up;

@@ -11,21 +11,25 @@ namespace Asteroids.Physics.Components
     [AddComponentMenu("Asteroids/Physics/Entity")]
     public sealed class EntityComponent : MonoBehaviour, IEntityProvider
     {
-        private readonly Entity _entity = new(new BodyPose());
+        private Entity _entity;
 
-        public IEntity Entity => _entity;
+        public IEntity Entity => _entity ??= CreateEntity();
 
-        private void Awake()
+        private void Awake() => _entity ??= CreateEntity();
+
+        private Entity CreateEntity()
         {
-            var pose = _entity.Pose;
+            var entity = new Entity(new BodyPose());
+            var pose = entity.Pose;
             pose.Position = transform.position;
             pose.Angle = transform.eulerAngles.z;
+            return entity;
         }
 
         // LateUpdate always runs after the simulation loop has ticked.
         private void LateUpdate()
         {
-            var pose = _entity.Pose;
+            var pose = Entity.Pose;
             var current = transform;
             var position = pose.Position;
 

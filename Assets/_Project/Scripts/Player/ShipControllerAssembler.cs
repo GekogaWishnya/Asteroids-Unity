@@ -13,8 +13,9 @@ namespace Asteroids.Player
         private readonly ShipRam.Factory _ram;
         private readonly ShipArmament.Factory _armament;
         private readonly ShipTracker _tracker;
-        private readonly IPlayerHealth _health;
+        private readonly PlayerHealth _health;
         private readonly IShipEventSink _events;
+        private readonly ShipRoster _roster;
 
         /// <exception cref="ArgumentNullException">Any argument is null.</exception>
         public ShipControllerAssembler(
@@ -24,8 +25,9 @@ namespace Asteroids.Player
             ShipRam.Factory ram,
             ShipArmament.Factory armament,
             ShipTracker tracker,
-            IPlayerHealth health,
-            IShipEventSink events)
+            PlayerHealth health,
+            IShipEventSink events,
+            ShipRoster roster)
         {
             _movement = movement ?? throw new ArgumentNullException(nameof(movement));
             _controlLoss = controlLoss ?? throw new ArgumentNullException(nameof(controlLoss));
@@ -35,6 +37,7 @@ namespace Asteroids.Player
             _tracker = tracker ?? throw new ArgumentNullException(nameof(tracker));
             _health = health ?? throw new ArgumentNullException(nameof(health));
             _events = events ?? throw new ArgumentNullException(nameof(events));
+            _roster = roster ?? throw new ArgumentNullException(nameof(roster));
         }
 
         public IShipController Create(IEntity entity, IProtectionTargets targets)
@@ -51,7 +54,9 @@ namespace Asteroids.Player
                 new ShipTargetBeacon(_tracker, movement.Motion, defense)
             };
 
-            return new ShipController(entity, parts, _health, _events);
+            var controller = new ShipController(entity, parts, _health, _events);
+            _roster.Add(controller);
+            return controller;
         }
     }
 }

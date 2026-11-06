@@ -2,9 +2,7 @@ using Asteroids.Core.IConfigs;
 
 namespace Asteroids.Core
 {
-    /// <summary>
-    /// Everything the rest of the game needs to know about enemies - what can be spawned and how many are alive.
-    /// </summary>
+    /// <summary>Everything the rest of the game needs to know about enemies.</summary>
     public interface IEnemyData
     {
         /// <summary>
@@ -18,7 +16,7 @@ namespace Asteroids.Core
         /// <exception cref="System.InvalidOperationException">No spawner is registered for <paramref name="type"/>.</exception>
         void Spawn(EnemyTypeId type);
 
-        /// <summary>Takes every enemy out of play without a triggering death events.</summary>
+        /// <summary>Takes every enemy out of play without triggering death events.</summary>
         void DespawnAll();
     }
 }

@@ -3,6 +3,7 @@ using Asteroids.Core;
 using Asteroids.Core.IConfigs;
 using Asteroids.Health;
 using Asteroids.Physics;
+using Asteroids.Pooling;
 
 namespace Asteroids.Enemies
 {
@@ -20,7 +21,7 @@ namespace Asteroids.Enemies
     /// throws. What death results in (points, fragments) is the handler's business, not the controller's.
     /// </para>
     /// </summary>
-    internal sealed class AsteroidController : IDamageSource, IPooledEnemy<AsteroidController>
+    internal sealed class AsteroidController : IDamageSource, IPooledObject<AsteroidController>
     {
         private readonly IAsteroidTypeConfig _config;
         private readonly InertialMotion _motion;

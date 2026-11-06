@@ -95,5 +95,43 @@ namespace Asteroids.Weapons.Tests
             Assert.Throws<InvalidOperationException>(() => pool.Launch(AnyLaunch));
             Assert.That(pool.InPlayCount, Is.EqualTo(0));
         }
+
+        [Test]
+        public void DespawnAll_TakesEveryProjectileOutOfPlayWithoutAHit()
+        {
+            var pool = Create();
+            pool.Launch(AnyLaunch);
+            pool.Launch(AnyLaunch);
+
+            pool.DespawnAll();
+
+            Assert.That(pool.InPlayCount, Is.Zero);
+            Assert.That(_views.ShownCount, Is.Zero);
+            Assert.That(_wrap.Poses, Is.Empty);
+        }
+
+        [Test]
+        public void DespawnAll_ThenLaunch_ReusesTheProjectiles()
+        {
+            var pool = Create();
+            pool.Launch(AnyLaunch);
+            pool.DespawnAll();
+
+            pool.Launch(AnyLaunch);
+
+            Assert.That(_views.Views.Count, Is.EqualTo(1));
+            Assert.That(pool.InPlayCount, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void DespawnAll_AfterTheyExpired_DoesNothing()
+        {
+            var pool = Create();
+            pool.Launch(AnyLaunch);
+            _loop.Tick(_config.ProjectileLifetime + 0.1f);
+
+            Assert.DoesNotThrow(() => pool.DespawnAll());
+            Assert.That(pool.InPlayCount, Is.Zero);
+        }
     }
 }

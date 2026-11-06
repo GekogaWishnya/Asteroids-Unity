@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Asteroids.Physics;
 using NUnit.Framework;
+using UnityEngine;
 
 namespace Asteroids.Player.Tests
 {
@@ -210,6 +211,106 @@ namespace Asteroids.Player.Tests
         {
             Assert.Throws<ArgumentException>(() =>
                 new ShipController(_entity, new IShipPart[] { _first, null }, _health, _events));
+        }
+
+        [Test]
+        public void Restart_Enabled_DetachesResetsEveryPartAndAttachesAgain()
+        {
+            var controller = CreateController();
+            controller.Enable();
+            _log.Clear();
+
+            controller.Restart();
+
+            Assert.That(_log, Is.EqualTo(new[] { "-second", "-first", "~first", "~second", "+first", "+second" }));
+            Assert.That(_first.LiveCountAtReset, Is.Zero, "Parts are reset while detached");
+        }
+
+        [Test]
+        public void Restart_PutsTheShipBackAtTheStartPoseWithFullHealth()
+        {
+            _entity.Pose.Position = new Vector2(1f, 2f);
+            _entity.Pose.Angle = 30f;
+            var controller = CreateController();
+            controller.Enable();
+            _entity.Pose.Position = new Vector2(-5f, 4f);
+            _entity.Pose.Angle = 200f;
+            _health.TakeDamage(2);
+
+            controller.Restart();
+
+            Assert.That(_entity.Pose.Position, Is.EqualTo(new Vector2(1f, 2f)));
+            Assert.That(_entity.Pose.Angle, Is.EqualTo(30f));
+            Assert.That(_health.Current.Value, Is.EqualTo(3));
+        }
+
+        [Test]
+        public void Restart_AfterDeath_BringsTheShipBack()
+        {
+            var controller = CreateController();
+            controller.Enable();
+            _health.TakeDamage(3);
+
+            controller.Restart();
+
+            Assert.That(_health.IsDead, Is.False);
+            Assert.That(_first.LiveCount, Is.EqualTo(1));
+            Assert.That(_second.LiveCount, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void Restart_AfterDeath_WatchesHealthAgain()
+        {
+            var controller = CreateController();
+            controller.Enable();
+            _health.TakeDamage(3);
+            controller.Restart();
+
+            _health.TakeDamage(3);
+
+            Assert.That(_events.DestroyedEntities, Is.EqualTo(new[] { _entity, _entity }));
+            Assert.That(_first.LiveCount, Is.Zero);
+        }
+
+        [Test]
+        public void Restart_DisabledByTheOwner_ResetsButStaysDisabled()
+        {
+            var controller = CreateController();
+            controller.Enable();
+            controller.Disable();
+            _health.TakeDamage(3);
+
+            controller.Restart();
+
+            Assert.That(_first.ResetCount, Is.EqualTo(1));
+            Assert.That(_first.LiveCount, Is.Zero);
+            Assert.That(_health.IsDead, Is.False);
+        }
+
+        [Test]
+        public void Restart_NeverEnabled_StaysDisabled()
+        {
+            var controller = CreateController();
+
+            controller.Restart();
+
+            Assert.That(_log, Is.EqualTo(new[] { "~first", "~second" }));
+        }
+
+        [Test]
+        public void Restart_APartFailsToReset_ResetsTheOthersEnablesAndRethrows()
+        {
+            var controller = CreateController();
+            controller.Enable();
+            _first.FailOnReset = true;
+            _entity.Pose.Position = new Vector2(3f, 3f);
+
+            Assert.Throws<InvalidOperationException>(() => controller.Restart());
+
+            Assert.That(_second.ResetCount, Is.EqualTo(1));
+            Assert.That(_entity.Pose.Position, Is.EqualTo(Vector2.zero));
+            Assert.That(_first.LiveCount, Is.EqualTo(1));
+            Assert.That(_second.LiveCount, Is.EqualTo(1));
         }
     }
 }

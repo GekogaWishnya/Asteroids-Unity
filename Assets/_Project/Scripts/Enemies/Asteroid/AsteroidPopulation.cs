@@ -1,6 +1,7 @@
 using System;
 using Asteroids.Common;
 using Asteroids.Core.IConfigs;
+using Asteroids.Pooling;
 using UnityEngine;
 
 namespace Asteroids.Enemies
@@ -15,7 +16,7 @@ namespace Asteroids.Enemies
     {
         private readonly IAsteroidTypeConfig _config;
         private readonly IRandom _random;
-        private readonly EnemyPool<AsteroidController> _pool;
+        private readonly TrackedPool<AsteroidController> _pool;
 
         /// <param name="createController">Creates one idle asteroid, object included.</param>
         /// <exception cref="ArgumentNullException">Any argument is null.</exception>
@@ -26,13 +27,13 @@ namespace Asteroids.Enemies
             if (createController == null) throw new ArgumentNullException(nameof(createController));
             _random = random ?? throw new ArgumentNullException(nameof(random));
 
-            _pool = new EnemyPool<AsteroidController>(createController, config.PoolMaxIdle);
+            _pool = new TrackedPool<AsteroidController>(createController, config.PoolMaxIdle);
         }
 
         public EnemyTypeId Type => _config.Type;
 
         /// <summary>Asteroids launched and not finished yet.</summary>
-        public int AliveCount => _pool.AliveCount;
+        public int AliveCount => _pool.InPlayCount;
 
         /// <summary>Creates the idle asteroids the config asks for.</summary>
         public void Prewarm() => _pool.Prewarm(_config.PoolPrewarm);
@@ -49,10 +50,10 @@ namespace Asteroids.Enemies
         public void Launch(Vector2 position, float headingDegrees)
         {
             var launch = Roll(position, headingDegrees);
-            _pool.Launch(controller => controller.Launch(launch));
+            _pool.Spawn(launch, static (controller, l) => controller.Launch(l));
         }
 
-        /// <inheritdoc cref="EnemyPool{T}.DespawnAll"/>
+        /// <inheritdoc cref="TrackedPool{T}.DespawnAll"/>
         public void DespawnAll() => _pool.DespawnAll();
 
         private AsteroidLaunch Roll(Vector2 position, float headingDegrees)

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Asteroids.Common;
 using Asteroids.Core;
 using Zenject;
 
@@ -42,6 +43,24 @@ namespace Asteroids.Player
             }
 
             return _attachment.Start(registrations);
+        }
+
+        public void Reset()
+        {
+            var failures = new FailureCollector();
+            foreach (var mount in _mounts)
+            {
+                try
+                {
+                    mount.Weapon.Reset();
+                }
+                catch (Exception e)
+                {
+                    failures.Record(e);
+                }
+            }
+
+            failures.ThrowIfFailed();
         }
 
         private readonly struct Mount

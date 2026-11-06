@@ -11,6 +11,7 @@ using Asteroids.Enemies;
 using Asteroids.Enemies.Components;
 using Asteroids.Player;
 using Asteroids.Scoring;
+using Asteroids.Session;
 using Asteroids.Simulation;
 using Asteroids.UI;
 using Asteroids.Waves;
@@ -51,6 +52,7 @@ namespace Asteroids.Installers
             EnemiesInstaller.Install(Container);
             WavesInstaller.Install(Container);
             WeaponsInstaller.Install(Container);
+            SessionInstaller.Install(Container);
 
             Container.Bind<ISimulationTime>().To<UnityTimeSource>().AsSingle();
             Container.BindInterfacesTo<ShipInput>().AsSingle();

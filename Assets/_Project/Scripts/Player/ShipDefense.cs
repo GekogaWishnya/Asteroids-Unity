@@ -35,7 +35,7 @@ namespace Asteroids.Player
             _damageRegistry = damageRegistry ?? throw new ArgumentNullException(nameof(damageRegistry));
             _guard = new InvulnerabilityGuard(health, config, targets);
         }
-        
+
         public bool IsProtected => _guard.IsActive;
 
         public IDisposable Attach(IEntity ship)
@@ -49,7 +49,9 @@ namespace Asteroids.Player
                 () => _damageRegistry.RegisterDamageable(ship, _guard)
             });
         }
-        
+
+        public void Reset() => _guard.Cancel();
+
         public sealed class Factory : PlaceholderFactory<IProtectionTargets, ShipDefense> { }
     }
 }

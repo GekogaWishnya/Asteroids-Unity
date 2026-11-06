@@ -10,8 +10,6 @@ namespace Asteroids.Player.Tests
         private readonly List<Entry> _entries = new();
         public IReadOnlyList<Entry> Entries => _entries;
         
-        public bool IsPaused { get; set; }
-
         public Action<SimulationPhase> OnRegister { get; set; }
 
         public int LiveCount(SimulationPhase phase)
