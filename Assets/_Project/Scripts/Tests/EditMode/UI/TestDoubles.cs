@@ -1,6 +1,7 @@
 using System;
 using Asteroids.Common;
 using Asteroids.Core;
+using Asteroids.Core.IConfigs;
 using UnityEngine;
 
 namespace Asteroids.UI.Tests
@@ -60,5 +61,36 @@ namespace Asteroids.UI.Tests
 
         public static FakeShipTelemetry At(Vector2 position, float angle = 0f, float speed = 0f) =>
             new() { HasShip = true, Position = position, Angle = angle, Speed = speed };
+    }
+
+    /// <summary>
+    /// The HUD config doubles below hold formats that only these tests use. They are deliberately unlike the
+    /// shipped ones in <c>HudConfig</c>, so the HUD wording can change without touching a test.
+    /// </summary>
+    internal sealed class TestScoreHudConfig : IScoreHudConfig
+    {
+        public string ScoreFormat { get; set; } = "{0}";
+    }
+
+    internal sealed class TestHealthHudConfig : IHealthHudConfig
+    {
+        public string HealthFormat { get; set; } = "{0}/{1}";
+    }
+
+    internal sealed class TestLaserHudConfig : ILaserHudConfig
+    {
+        public string EnergyFormat { get; set; } = "{0}";
+        public string RefillFormat { get; set; } = "{0:0.0}";
+        public string FullText { get; set; } = "full";
+    }
+
+    internal sealed class TestTelemetryHudConfig : ITelemetryHudConfig
+    {
+        public string PositionFormat { get; set; } = "{0:0.0}|{1:0.0}";
+        public string AngleFormat { get; set; } = "{0}";
+        public string SpeedFormat { get; set; } = "{0:0.0}";
+        public string NoShipPositionText { get; set; } = "no position";
+        public string NoShipAngleText { get; set; } = "no angle";
+        public string NoShipSpeedText { get; set; } = "no speed";
     }
 }

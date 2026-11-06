@@ -14,3 +14,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   topHeightPixels: 12
   bottomHeightPixels: 24
+  scoreFormat: SCORE {0:D6}
+  healthFormat: HP {0}/{1}
+  energyFormat: LASER {0}%
+  refillFormat: FULL IN {0:0.0}s
+  fullText: FULL
+  positionFormat: X {0:0.0}  Y {1:0.0}
+  angleFormat: "ANG {0}\xB0"
+  speedFormat: SPD {0:0.0}
+  noShipPositionText: X --  Y --
+  noShipAngleText: ANG --
+  noShipSpeedText: SPD --

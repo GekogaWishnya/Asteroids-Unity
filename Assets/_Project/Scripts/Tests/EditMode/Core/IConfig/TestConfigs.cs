@@ -81,4 +81,31 @@ namespace Asteroids.Core.IConfigs.Tests
 
         public IReadOnlyList<IUfoTypeConfig> Types { get; set; }
     }
+
+    internal sealed class TestScoreHudConfig : IScoreHudConfig
+    {
+        public string ScoreFormat { get; set; } = "{0}";
+    }
+
+    internal sealed class TestHealthHudConfig : IHealthHudConfig
+    {
+        public string HealthFormat { get; set; } = "{0}/{1}";
+    }
+
+    internal sealed class TestLaserHudConfig : ILaserHudConfig
+    {
+        public string EnergyFormat { get; set; } = "{0}";
+        public string RefillFormat { get; set; } = "{0:0.0}";
+        public string FullText { get; set; } = "full";
+    }
+
+    internal sealed class TestTelemetryHudConfig : ITelemetryHudConfig
+    {
+        public string PositionFormat { get; set; } = "{0:0.0}|{1:0.0}";
+        public string AngleFormat { get; set; } = "{0}";
+        public string SpeedFormat { get; set; } = "{0:0.0}";
+        public string NoShipPositionText { get; set; } = "no position";
+        public string NoShipAngleText { get; set; } = "no angle";
+        public string NoShipSpeedText { get; set; } = "no speed";
+    }
 }

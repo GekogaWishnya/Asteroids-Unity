@@ -17,14 +17,13 @@ namespace Asteroids.Collisions.Components
     /// </summary>
     public abstract class ColliderComponent : MonoBehaviour, ICollisionIgnore, IManagedCollider
     {
-        [Tooltip("Layers this collider belongs to.")] [SerializeField]
-        private CollisionLayer layer = CollisionLayer.None;
-
+        [Tooltip("Layers this collider belongs to.")]
+        [SerializeField] private CollisionLayer layer = CollisionLayer.None;
         [Tooltip("Layers this collider reacts to. A pair interacts only if both masks accept the other's layer.")]
-        [SerializeField]
-        private CollisionLayer mask = CollisionLayer.All;
+        [SerializeField] private CollisionLayer mask = CollisionLayer.All;
 
-        [Header("Debug")] [SerializeField] private bool drawGizmos = false;
+        [Header("Debug")]
+        [SerializeField] private bool drawGizmos = false;
 
         private ICollisionSystem _system;
         private RegistrationScope _registration;

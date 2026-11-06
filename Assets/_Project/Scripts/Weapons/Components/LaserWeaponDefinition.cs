@@ -22,34 +22,27 @@ namespace Asteroids.Weapons.Components
     {
         [Header("Beam")]
         [Tooltip("What the beam is made of. The root needs an EntityComponent and a collider")]
-        [SerializeField]
-        private GameObject beamPrefab;
+        [SerializeField] private GameObject beamPrefab;
+        [Tooltip("Distance from the carrier's position where the beam starts")]
+        [SerializeField, Min(0f)] private float muzzleOffset = 0.5f;
 
-        [Tooltip("Distance from the carrier's position where the beam starts")] [SerializeField, Min(0f)]
-        private float muzzleOffset = 0.5f;
-
-        [Header("Energy")] [Tooltip("Energy of a full tank. The tank starts empty")] [SerializeField, Min(0.01f)]
-        private float maxEnergy = 100f;
-
-        [Tooltip("Energy the beam uses per second")] [SerializeField, Min(0.01f)]
-        private float drainPerSecond = 50f;
-
+        [Header("Energy")]
+        [Tooltip("Energy of a full tank. The tank starts empty")]
+        [SerializeField, Min(0.01f)] private float maxEnergy = 100f;
+        [Tooltip("Energy the beam uses per second")]
+        [SerializeField, Min(0.01f)] private float drainPerSecond = 50f;
         [Tooltip("Energy regained per second while refilling. The beam never refills while firing")]
-        [SerializeField, Min(0.01f)]
-        private float refillPerSecond = 5f;
+        [SerializeField, Min(0.01f)] private float refillPerSecond = 5f;
+        [Tooltip("Seconds after the beam stops before the tank starts refilling")]
+        [SerializeField, Min(0f)] private float refillDelay = 1f;
+        [Tooltip("Energy a press needs to start the beam")]
+        [SerializeField, Min(0.01f)] private float minEnergyToFire = 20f;
 
-        [Tooltip("Seconds after the beam stops before the tank starts refilling")] [SerializeField, Min(0f)]
-        private float refillDelay = 1f;
-
-        [Tooltip("Energy a press needs to start the beam")] [SerializeField, Min(0.01f)]
-        private float minEnergyToFire = 20f;
-
-        [Header("Damage")] [Tooltip("Damage of one hit")] [SerializeField, Min(1)]
-        private int hitDamage = 1;
-
+        [Header("Damage")]
+        [Tooltip("Damage of one hit")]
+        [SerializeField, Min(1)] private int hitDamage = 1;
         [Tooltip("Seconds between two hits on a target that stays in the beam. The first hit lands on contact")]
-        [SerializeField, Min(0.01f)]
-        private float hitInterval = 0.1f;
+        [SerializeField, Min(0.01f)] private float hitInterval = 0.1f;
 
         public float MaxEnergy => maxEnergy;
         public float DrainPerSecond => drainPerSecond;

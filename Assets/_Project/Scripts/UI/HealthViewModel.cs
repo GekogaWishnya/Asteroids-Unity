@@ -2,6 +2,7 @@ using System;
 using System.Globalization;
 using Asteroids.Common;
 using Asteroids.Core;
+using Asteroids.Core.IConfigs;
 
 namespace Asteroids.UI
 {
@@ -11,8 +12,7 @@ namespace Asteroids.UI
     /// </summary>
     public sealed class HealthViewModel : IDisposable
     {
-        private const string TextFormat = "HP {0}/{1}";
-
+        private readonly IHealthHudConfig _config;
         private readonly ObservableValue<string> _text;
         private readonly IDisposable _currentSubscription;
         private readonly IDisposable _maxSubscription;
@@ -20,9 +20,13 @@ namespace Asteroids.UI
         private int _max;
 
         /// <exception cref="ArgumentNullException"><paramref name="health"/> is null.</exception>
-        public HealthViewModel(IPlayerHealth health)
+        /// <exception cref="ArgumentNullException"><paramref name="config"/> is null.</exception>
+        /// <exception cref="InvalidOperationException">The config is invalid.</exception>
+        public HealthViewModel(IPlayerHealth health, IHealthHudConfig config)
         {
             if (health == null) throw new ArgumentNullException(nameof(health));
+            _config = config ?? throw new ArgumentNullException(nameof(config));
+            ConfigValidation.ThrowIfInvalid("The health HUD config", HealthHudConfigValidator.Validate(config));
 
             Current = health.Current;
             Max = health.Max;
@@ -37,7 +41,7 @@ namespace Asteroids.UI
 
         public IObservableValue<int> Current { get; }
         public IObservableValue<int> Max { get; }
-        
+
         public IObservableValue<string> Text => _text;
 
         public void Dispose()
@@ -58,6 +62,6 @@ namespace Asteroids.UI
             _text.Value = Format();
         }
 
-        private string Format() => string.Format(CultureInfo.InvariantCulture, TextFormat, _current, _max);
+        private string Format() => string.Format(CultureInfo.InvariantCulture, _config.HealthFormat, _current, _max);
     }
 }

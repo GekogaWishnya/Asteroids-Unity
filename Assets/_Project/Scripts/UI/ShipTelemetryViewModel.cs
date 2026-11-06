@@ -2,20 +2,15 @@ using System;
 using System.Globalization;
 using Asteroids.Common;
 using Asteroids.Core;
+using Asteroids.Core.IConfigs;
 
 namespace Asteroids.UI
 {
     /// <summary>What the ship's telemetry looks like on the HUD. Without a ship every text shows dashes.</summary>
     public sealed class ShipTelemetryViewModel : IRefreshable
     {
-        private const string PositionFormat = "X {0:0.0}  Y {1:0.0}";
-        private const string AngleFormat = "ANG {0}°";
-        private const string SpeedFormat = "SPD {0:0.0}";
-        private const string NoPositionText = "X --  Y --";
-        private const string NoAngleText = "ANG --";
-        private const string NoSpeedText = "SPD --";
-
         private readonly IShipTelemetry _telemetry;
+        private readonly ITelemetryHudConfig _config;
         private readonly ObservableValue<string> _positionText;
         private readonly ObservableValue<string> _angleText;
         private readonly ObservableValue<string> _speedText;
@@ -25,10 +20,13 @@ namespace Asteroids.UI
         private int? _shownDegrees;
         private int? _shownSpeed;
 
-        /// <exception cref="ArgumentNullException"><paramref name="telemetry"/> is null.</exception>
-        public ShipTelemetryViewModel(IShipTelemetry telemetry)
+        /// <exception cref="ArgumentNullException">Any argument is null.</exception>
+        /// <exception cref="InvalidOperationException">The config is invalid.</exception>
+        public ShipTelemetryViewModel(IShipTelemetry telemetry, ITelemetryHudConfig config)
         {
             _telemetry = telemetry ?? throw new ArgumentNullException(nameof(telemetry));
+            _config = config ?? throw new ArgumentNullException(nameof(config));
+            ConfigValidation.ThrowIfInvalid("The telemetry HUD config", TelemetryHudConfigValidator.Validate(config));
 
             Read(out _shownX, out _shownY, out _shownDegrees, out _shownSpeed);
             _positionText = new ObservableValue<string>(FormatPosition(_shownX, _shownY));
@@ -36,13 +34,8 @@ namespace Asteroids.UI
             _speedText = new ObservableValue<string>(FormatSpeed(_shownSpeed));
         }
 
-        /// <summary>For example "X 12.3  Y -4.0" or "X --  Y --".</summary>
         public IObservableValue<string> PositionText => _positionText;
-
-        /// <summary>For example "ANG 90°" or "ANG --".</summary>
         public IObservableValue<string> AngleText => _angleText;
-
-        /// <summary>For example "SPD 3.2" or "SPD --".</summary>
         public IObservableValue<string> SpeedText => _speedText;
 
         public void Refresh()
@@ -93,17 +86,19 @@ namespace Asteroids.UI
             return degrees < 0 ? degrees + 360 : degrees;
         }
 
-        private static string FormatPosition(int? x, int? y) =>
+        private string FormatPosition(int? x, int? y) =>
             x.HasValue && y.HasValue
-                ? string.Format(CultureInfo.InvariantCulture, PositionFormat, x.Value / 10.0, y.Value / 10.0)
-                : NoPositionText;
+                ? string.Format(CultureInfo.InvariantCulture, _config.PositionFormat, x.Value / 10.0, y.Value / 10.0)
+                : _config.NoShipPositionText;
 
-        private static string FormatAngle(int? degrees) =>
-            degrees.HasValue ? string.Format(CultureInfo.InvariantCulture, AngleFormat, degrees.Value) : NoAngleText;
+        private string FormatAngle(int? degrees) =>
+            degrees.HasValue
+                ? string.Format(CultureInfo.InvariantCulture, _config.AngleFormat, degrees.Value)
+                : _config.NoShipAngleText;
 
-        private static string FormatSpeed(int? speed) =>
+        private string FormatSpeed(int? speed) =>
             speed.HasValue
-                ? string.Format(CultureInfo.InvariantCulture, SpeedFormat, speed.Value / 10.0)
-                : NoSpeedText;
+                ? string.Format(CultureInfo.InvariantCulture, _config.SpeedFormat, speed.Value / 10.0)
+                : _config.NoShipSpeedText;
     }
 }

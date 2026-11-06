@@ -15,32 +15,27 @@ namespace Asteroids.Weapons.Components
     public sealed class ProjectileWeaponDefinition : WeaponDefinition, IProjectileWeaponConfig
     {
         [Header("Projectile")]
-        [Tooltip(
-            "What a projectile is made of. The root needs an EntityComponent and a collider on the Projectile layer")]
-        [SerializeField]
-        private GameObject projectilePrefab;
+        [Tooltip("What a projectile is made of." +
+                 "The root needs an EntityComponent and a collider on the Projectile layer")]
+        [SerializeField] private GameObject projectilePrefab;
+        [Tooltip("Units per second")]
+        [SerializeField, Min(0.01f)] private float projectileSpeed = 12f;
+        [Tooltip("Seconds a projectile flies before it expires")]
+        [SerializeField, Min(0.01f)] private float projectileLifetime = 1f;
+        [Tooltip("Damage dealt to whatever it hits and may hurt")]
+        [SerializeField, Min(1)] private int projectileDamage = 1;
 
-        [Tooltip("Units per second")] [SerializeField, Min(0.01f)]
-        private float projectileSpeed = 12f;
-
-        [Tooltip("Seconds a projectile flies before it expires")] [SerializeField, Min(0.01f)]
-        private float projectileLifetime = 1f;
-
-        [Tooltip("Damage dealt to whatever it hits and may hurt")] [SerializeField, Min(1)]
-        private int projectileDamage = 1;
-
-        [Header("Firing")] [Tooltip("Seconds between two shots while the trigger is held")] [SerializeField, Min(0.01f)]
-        private float fireInterval = 0.25f;
-
+        [Header("Firing")]
+        [Tooltip("Seconds between two shots while the trigger is held")]
+        [SerializeField, Min(0.01f)] private float fireInterval = 0.25f;
         [Tooltip("Distance from the carrier's position, along its facing, where projectiles appear")]
-        [SerializeField, Min(0f)]
-        private float muzzleOffset = 0.5f;
+        [SerializeField, Min(0f)] private float muzzleOffset = 0.5f;
 
-        [Header("Pool")] [Tooltip("Projectiles created ahead of time")] [SerializeField, Min(0)]
-        private int poolPrewarm = 8;
-
-        [Tooltip("Most released projectiles kept. The pool still grows beyond it on demand")] [SerializeField, Min(0)]
-        private int poolMaxIdle = 16;
+        [Header("Pool")]
+        [Tooltip("Projectiles created ahead of time")]
+        [SerializeField, Min(0)] private int poolPrewarm = 8;
+        [Tooltip("Most released projectiles kept. The pool still grows beyond it on demand")]
+        [SerializeField, Min(0)] private int poolMaxIdle = 16;
 
         public GameObject ProjectilePrefab => projectilePrefab;
 

@@ -2,6 +2,7 @@ using System;
 using System.Globalization;
 using Asteroids.Common;
 using Asteroids.Core;
+using Asteroids.Core.IConfigs;
 
 namespace Asteroids.UI
 {
@@ -11,30 +12,29 @@ namespace Asteroids.UI
     /// </summary>
     public sealed class ScoreViewModel : IDisposable
     {
-        /// <summary>Digits the score is padded to. A longer score is shown in full.</summary>
-        public const int Digits = 6;
-
-        private const string Label = "SCORE ";
-        private static readonly string NumberFormat = "D" + Digits.ToString(CultureInfo.InvariantCulture);
-
+        private readonly IScoreHudConfig _config;
         private readonly ObservableValue<string> _text;
         private readonly IDisposable _subscription;
 
         /// <exception cref="ArgumentNullException"><paramref name="score"/> is null.</exception>
-        public ScoreViewModel(IScore score)
+        /// <exception cref="ArgumentNullException"><paramref name="config"/> is null.</exception>
+        /// <exception cref="InvalidOperationException">The config is invalid.</exception>
+        public ScoreViewModel(IScore score, IScoreHudConfig config)
         {
             if (score == null) throw new ArgumentNullException(nameof(score));
+            _config = config ?? throw new ArgumentNullException(nameof(config));
+            ConfigValidation.ThrowIfInvalid("The score HUD config", ScoreHudConfigValidator.Validate(config));
 
             _text = new ObservableValue<string>(Format(score.Value.Value));
             _subscription = score.Value.Subscribe(OnScoreChanged);
         }
-        
+
         public IObservableValue<string> Text => _text;
 
         public void Dispose() => _subscription.Dispose();
 
         private void OnScoreChanged(int value) => _text.Value = Format(value);
 
-        private static string Format(int value) => Label + value.ToString(NumberFormat, CultureInfo.InvariantCulture);
+        private string Format(int value) => string.Format(CultureInfo.InvariantCulture, _config.ScoreFormat, value);
     }
 }

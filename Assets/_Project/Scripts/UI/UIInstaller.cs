@@ -4,7 +4,8 @@ using Zenject;
 namespace Asteroids.UI
 {
     /// <summary>
-    /// Requires <see cref="IPlayerHealth"/>, <see cref="IScore"/> and <see cref="IShipTelemetry"/> to be bound.
+    /// Requires <see cref="IPlayerHealth"/>, <see cref="IScore"/>, <see cref="IShipTelemetry"/> and
+    /// HUD config contracts to be bound.
     /// <see cref="ILaserStatus"/> is optional.
     /// View models are created when the first view asks for them and are disposed together with the container.
     /// <see cref="ShipTelemetryViewModel"/> is created at startup.

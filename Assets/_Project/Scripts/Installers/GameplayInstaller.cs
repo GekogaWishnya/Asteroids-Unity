@@ -64,6 +64,10 @@ namespace Asteroids.Installers
             Container.Bind<IWorldAppearance>().FromInstance(worldConfig);
             Container.Bind<ISpawnEntryConfig>().FromInstance(worldConfig);
             Container.Bind<IHudLayout>().FromInstance(hudConfig);
+            Container.Bind<IScoreHudConfig>().FromInstance(hudConfig);
+            Container.Bind<IHealthHudConfig>().FromInstance(hudConfig);
+            Container.Bind<ILaserHudConfig>().FromInstance(hudConfig);
+            Container.Bind<ITelemetryHudConfig>().FromInstance(hudConfig);
             Container.Bind<IAsteroidConfig>().FromInstance(asteroidConfig);
             Container.Bind<IUfoConfig>().FromInstance(ufoConfig);
             Container.Bind<ILevelConfig>().FromInstance(levelConfig);
