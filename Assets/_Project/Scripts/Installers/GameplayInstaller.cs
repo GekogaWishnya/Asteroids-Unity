@@ -55,6 +55,7 @@ namespace Asteroids.Installers
             SessionInstaller.Install(Container);
 
             Container.Bind<ISimulationTime>().To<UnityTimeSource>().AsSingle();
+            Container.Bind<IAxisReader>().To<UnityAxisReader>().AsSingle();
             Container.BindInterfacesTo<ShipInput>().AsSingle();
             Container.Bind<IShipMovementConfig>().FromInstance(shipMovement);
             Container.Bind<IShipHealthConfig>().FromInstance(shipHealth);
