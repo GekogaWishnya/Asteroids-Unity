@@ -1,6 +1,4 @@
-using Asteroids.Core;
-
-namespace Asteroids.Player
+namespace Asteroids.Core
 {
     /// <summary>Fired once when the ship runs out of health.</summary>
     public readonly struct ShipDestroyed

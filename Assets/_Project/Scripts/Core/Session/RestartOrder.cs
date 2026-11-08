@@ -6,6 +6,7 @@ namespace Asteroids.Core
         Enemies = 0,
         Ship = 100,
         Waves = 200,
-        Score = 300
+        Score = 300,
+        Run = 400
     }
 }

@@ -35,6 +35,14 @@ namespace Asteroids.Waves.Tests
         }
 
         [Test]
+        public void Resolve_WaveProgress_IsTheDirector()
+        {
+            var rig = new Rig(Level(Wave(0f, Entry("A"))));
+
+            Assert.That(rig.Container.Resolve<IWaveProgress>(), Is.SameAs(rig.Container.Resolve<WaveDirector>()));
+        }
+
+        [Test]
         public void Tick_FiresTheWaveSignals()
         {
             var rig = new Rig(Level(Wave(0f, Entry("A"))));

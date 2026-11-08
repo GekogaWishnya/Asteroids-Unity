@@ -17,13 +17,12 @@ namespace Asteroids.Waves
     /// The level is checked against the spawners in the constructor, so a bad level fails when the game starts.
     /// </para>
     /// </summary>
-    public sealed class WaveDirector : ISimulationStep, IRestartable
+    public sealed class WaveDirector : ISimulationStep, IRestartable, IWaveProgress
     {
         private readonly Wave[] _waves;
         private readonly IEnemyData _data;
         private readonly IWaveEventSink _events;
 
-        private int _index;
         private float _delayTimer;
         private float _waveTime;
         private int[] _spawned = Array.Empty<int>();
@@ -44,14 +43,19 @@ namespace Asteroids.Waves
 
         public int WaveCount => _waves.Length;
 
+        /// <summary>Waves cleared so far.</summary>
+        public int Cleared { get; private set; }
+
+        int IWaveProgress.Total => WaveCount;
+
         /// <summary>Starts at 1 - the wave in progress or about to start.</summary>
-        public int WaveNumber => Math.Min(_index + 1, _waves.Length);
+        public int WaveNumber => Math.Min(Cleared + 1, _waves.Length);
 
         public RestartOrder Order => RestartOrder.Waves;
 
         public void Restart()
         {
-            _index = 0;
+            Cleared = 0;
             _delayTimer = 0f;
             _waveTime = 0f;
             _spawned = Array.Empty<int>();
@@ -67,7 +71,7 @@ namespace Asteroids.Waves
             if (Stage == WaveStage.Waiting)
             {
                 _delayTimer += deltaTime;
-                var delay = _waves[_index].DelayBeforeStart;
+                var delay = _waves[Cleared].DelayBeforeStart;
                 if (_delayTimer < delay) return;
 
                 elapsed = _delayTimer - delay;
@@ -87,14 +91,14 @@ namespace Asteroids.Waves
         {
             Stage = WaveStage.Spawning;
             _waveTime = 0f;
-            _spawned = new int[_waves[_index].Entries.Length];
+            _spawned = new int[_waves[Cleared].Entries.Length];
 
-            _events.Started(_index + 1, _waves.Length);
+            _events.Started(Cleared + 1, _waves.Length);
         }
 
         private void SpawnDueEnemies()
         {
-            var entries = _waves[_index].Entries;
+            var entries = _waves[Cleared].Entries;
             var allSpawned = true;
 
             for (var i = 0; i < entries.Length; i++)
@@ -115,10 +119,10 @@ namespace Asteroids.Waves
 
         private void FinishWave()
         {
-            var number = _index + 1;
-            _index++;
+            var number = Cleared + 1;
+            Cleared++;
 
-            var completed = _index >= _waves.Length;
+            var completed = Cleared >= _waves.Length;
             Stage = completed ? WaveStage.Completed : WaveStage.Waiting;
             _delayTimer = 0f;
 

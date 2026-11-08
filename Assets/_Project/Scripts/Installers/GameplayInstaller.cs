@@ -33,6 +33,7 @@ namespace Asteroids.Installers
         [SerializeField] private UfoConfig ufoConfig;
         [SerializeField] private LevelConfig levelConfig;
         [SerializeField] private ShipLoadoutDefinition shipLoadout;
+        [SerializeField] private RunEndConfig runEndConfig;
 
         public override void InstallBindings()
         {
@@ -41,6 +42,7 @@ namespace Asteroids.Installers
             Require(worldConfig, nameof(worldConfig));
             Require(hudConfig, nameof(hudConfig));
             Require(levelConfig, nameof(levelConfig));
+            Require(runEndConfig, nameof(runEndConfig));
 
             SimulationInstaller.Install(Container);
             CollisionInstaller.Install(Container);
@@ -74,6 +76,7 @@ namespace Asteroids.Installers
             Container.Bind<IAsteroidConfig>().FromInstance(asteroidConfig);
             Container.Bind<IUfoConfig>().FromInstance(ufoConfig);
             Container.Bind<ILevelConfig>().FromInstance(levelConfig);
+            Container.Bind<IRunEndConfig>().FromInstance(runEndConfig);
 
             Container.Bind<IRandom>().FromInstance(new SystemRandom());
             Container.Bind<EnemyPrefabCatalog>().FromInstance(CreatePrefabCatalog());

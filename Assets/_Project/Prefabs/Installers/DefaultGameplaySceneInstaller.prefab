@@ -51,12 +51,8 @@ MonoBehaviour:
   asteroidConfig: {fileID: 11400000, guid: ac1dcddcd8ffd684c8b43cbb5c5c49ad, type: 2}
   ufoConfig: {fileID: 11400000, guid: 1b6c28696f2f7364b910494be217578e, type: 2}
   levelConfig: {fileID: 11400000, guid: a8f55eae134d16f4484494e34c510015, type: 2}
-  enemyTypes:
-  - {fileID: 11400000, guid: 28c88a06058617c498a63e3e157cf9d3, type: 2}
-  - {fileID: 11400000, guid: d76536cfcf48f22448cbac8454dc1345, type: 2}
-  - {fileID: 11400000, guid: 2c4808783e7e1db4e95bdafb877c3387, type: 2}
-  - {fileID: 11400000, guid: 0835ede0be533ae49993c1427587c6e7, type: 2}
   shipLoadout: {fileID: 11400000, guid: f975168299093f54f9db366ad10eeb39, type: 2}
+  runEndConfig: {fileID: 11400000, guid: 66b29cc8d55da9a44a7935abe9c8a1fe, type: 2}
 --- !u!1 &8898346544178330596
 GameObject:
   m_ObjectHideFlags: 0
