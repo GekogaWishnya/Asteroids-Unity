@@ -1,11 +1,12 @@
 using Asteroids.Core;
+using Asteroids.Core.IConfigs;
 using Zenject;
 
 namespace Asteroids.UI
 {
     /// <summary>
-    /// Requires <see cref="IPlayerHealth"/>, <see cref="IScore"/>, <see cref="IShipTelemetry"/> and
-    /// HUD config contracts to be bound.
+    /// Requires <see cref="IPlayerHealth"/>, <see cref="IScore"/>, <see cref="IShipTelemetry"/>,
+    /// <see cref="IGameSession"/> and <see cref="IRunEndScreenConfig"/> to be bound.
     /// <see cref="ILaserStatus"/> is optional.
     /// View models are created when the first view asks for them and are disposed together with the container.
     /// <see cref="ShipTelemetryViewModel"/> is created at startup.
@@ -14,6 +15,8 @@ namespace Asteroids.UI
     {
         public override void InstallBindings()
         {
+            Container.BindInterfacesAndSelfTo<RunEndViewModel>().AsSingle();
+
             Container.BindInterfacesAndSelfTo<HealthViewModel>().AsSingle();
             Container.BindInterfacesAndSelfTo<ScoreViewModel>().AsSingle();
 

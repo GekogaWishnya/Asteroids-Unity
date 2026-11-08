@@ -18,10 +18,10 @@ namespace Asteroids.Session
         private readonly IRestartable[] _restartables;
         private readonly IDisposable _stateSubscription;
 
-        /// <param name="restartables">Must include <c>lifecycle</c> or a restart would not end the run.</param>
+        /// <param name="restartables">Must include <paramref name="lifecycle"/> or a restart would not end the run.</param>
         /// <exception cref="ArgumentNullException">Any argument is null.</exception>
         /// <exception cref="ArgumentException">
-        /// <c>restartables</c> contains null, two of them share an order, or it does not contain
+        /// <paramref name="restartables"/> contains null, two of them share an order, or it does not contain
         /// <paramref name="lifecycle"/>.
         /// </exception>
         public GameSession(ISimulationControl simulation, RunLifecycle lifecycle, IRunEventSink events,

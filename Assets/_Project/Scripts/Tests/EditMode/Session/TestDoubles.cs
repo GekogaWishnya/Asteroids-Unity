@@ -63,4 +63,18 @@ namespace Asteroids.Session.Tests
 
         void IRunEventSink.Ended(RunResult result) => Ended.Add(result);
     }
+
+    internal sealed class FakeInputSchemes : IInputSchemes
+    {
+        private readonly ObservableValue<InputScheme> _active = new(InputScheme.None);
+
+        public IObservableValue<InputScheme> Active => _active;
+        public List<InputScheme> Activated { get; } = new();
+
+        public void Activate(InputScheme scheme)
+        {
+            Activated.Add(scheme);
+            _active.Value = scheme;
+        }
+    }
 }

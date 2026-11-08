@@ -45,6 +45,7 @@ namespace Asteroids.Installers
             Require(runEndConfig, nameof(runEndConfig));
 
             SimulationInstaller.Install(Container);
+            ControlsInstaller.Install(Container);
             CollisionInstaller.Install(Container);
             DamageInstaller.Install(Container);
             WorldInstaller.Install(Container);
@@ -57,8 +58,6 @@ namespace Asteroids.Installers
             SessionInstaller.Install(Container);
 
             Container.Bind<ISimulationTime>().To<UnityTimeSource>().AsSingle();
-            Container.Bind<IAxisReader>().To<UnityAxisReader>().AsSingle();
-            Container.BindInterfacesTo<ShipInput>().AsSingle();
             Container.Bind<IShipMovementConfig>().FromInstance(shipMovement);
             Container.Bind<IShipHealthConfig>().FromInstance(shipHealth);
             Container.Bind<IShipRamConfig>().FromInstance(shipHealth);
@@ -77,6 +76,7 @@ namespace Asteroids.Installers
             Container.Bind<IUfoConfig>().FromInstance(ufoConfig);
             Container.Bind<ILevelConfig>().FromInstance(levelConfig);
             Container.Bind<IRunEndConfig>().FromInstance(runEndConfig);
+            Container.Bind<IRunEndScreenConfig>().FromInstance(runEndConfig);
 
             Container.Bind<IRandom>().FromInstance(new SystemRandom());
             Container.Bind<EnemyPrefabCatalog>().FromInstance(CreatePrefabCatalog());

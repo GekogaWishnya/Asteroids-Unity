@@ -28,8 +28,8 @@ namespace Asteroids.Pooling
 
         public void Prewarm(int count) => _pool.Prewarm(count);
 
-        /// <summary>Takes an idle object and lets <c>enter</c> put it in play.
-        /// If <c>enter</c> throws, the object goes back to the pool and the failure is rethrown.
+        /// <summary>Takes an idle object and lets <paramref name="enter"/> put it in play.
+        /// If <paramref name="enter"/> throws, the object goes back to the pool and the failure is rethrown.
         /// </summary>
         /// <exception cref="ArgumentNullException"><paramref name="enter"/> is null.</exception>
         public void Spawn(Action<T> enter)

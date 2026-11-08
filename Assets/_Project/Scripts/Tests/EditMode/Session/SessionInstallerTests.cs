@@ -44,6 +44,7 @@ namespace Asteroids.Session.Tests
             container.Bind<IRunEndConfig>().FromInstance(config);
             container.Bind<IScore>().FromInstance(new FakeScore());
             container.Bind<IWaveProgress>().FromInstance(new FakeWaveProgress());
+            container.Bind<IInputSchemes>().To<FakeInputSchemes>().AsSingle();
             SimulationInstaller.Install(container);
             foreach (var restartable in restartables) container.Bind<IRestartable>().FromInstance(restartable);
             SessionInstaller.Install(container);
@@ -154,6 +155,20 @@ namespace Asteroids.Session.Tests
             Assert.That(ended.HasValue, Is.True);
             Assert.That(ended.Value.Result.Outcome, Is.EqualTo(RunOutcome.Defeat));
             Assert.That(loop.IsPaused, Is.True);
+        }
+
+        [Test]
+        public void InputScheme_FollowsTheRunFromStartup()
+        {
+            var container = Started(Install(new FakeRunEndConfig { DefeatDelay = 0f }));
+            var schemes = container.Resolve<IInputSchemes>();
+            Assert.That(schemes.Active.Value, Is.EqualTo(InputScheme.Gameplay));
+
+            container.Resolve<SignalBus>().Fire(new ShipDestroyed(null));
+            Assert.That(schemes.Active.Value, Is.EqualTo(InputScheme.UI));
+
+            container.Resolve<IGameSession>().Restart();
+            Assert.That(schemes.Active.Value, Is.EqualTo(InputScheme.Gameplay));
         }
 
         [Test]
