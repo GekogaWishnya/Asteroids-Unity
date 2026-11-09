@@ -24,7 +24,8 @@ namespace Asteroids.Enemies.Tests
                 Population = new AsteroidPopulation(
                     Config,
                     () => new AsteroidController(
-                        Views.Create(Config.Type), Config, Loop, Wrap, Damage, Bodies, new RecordingDeathHandler()),
+                        Views.Create(Config.Type), Config, Loop, Wrap, Damage, Bodies,
+                        new RecordingDamageHandler(), new RecordingDeathHandler()),
                     random ?? new SystemRandom(11));
             }
         }

@@ -10,12 +10,17 @@ namespace Asteroids.Enemies
     /// <see cref="IEnemyViewFactory"/>, <see cref="Asteroids.Common.IRandom"/>,
     /// <see cref="ISimulationLoop"/>, <see cref="IDamageRegistry"/>, <see cref="IScoreSink"/>,
     /// <see cref="Asteroids.Physics.IWorldBounds"/> and <see cref="IKineticBodyRegistry"/> to be bound
-    /// by the simulation, collision, damage, scoring, player and world installers.
+    /// by the simulation, collision, damage, scoring, player and world installers and <see cref="SignalBus"/>
+    /// to be installed. Declares <see cref="EnemyDamaged"/> and <see cref="EnemyDied"/>.
     /// </summary>
     public sealed class EnemiesInstaller : Installer<EnemiesInstaller>
     {
         public override void InstallBindings()
         {
+            Container.DeclareSignal<EnemyDamaged>().OptionalSubscriber();
+            Container.DeclareSignal<EnemyDied>().OptionalSubscriber();
+            Container.Bind<IEnemyEventSink>().To<SignalBusEnemyEventSink>().AsSingle();
+
             Container.Bind<AsteroidSpawnerBuilder>().AsSingle();
 
             Container.Bind<UfoSpawnerBuilder>().AsSingle();

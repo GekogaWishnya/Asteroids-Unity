@@ -179,10 +179,10 @@ Camera:
   m_LensShift: {x: 0, y: 0}
   m_NormalizedViewPortRect:
     serializedVersion: 2
-    x: 0
+    x: 0.21863799
     y: 0
-    width: 0
-    height: 0
+    width: 0.562724
+    height: 1
   near clip plane: 0.3
   far clip plane: 1000
   field of view: 60
@@ -674,6 +674,22 @@ PrefabInstance:
     - target: {fileID: 3794068281004572323, guid: 9823e28dab95d51478ac39f2febb6c25, type: 3}
       propertyPath: m_Name
       value: RunEndCanvas
+      objectReference: {fileID: 0}
+    - target: {fileID: 6961414272295821213, guid: 9823e28dab95d51478ac39f2febb6c25, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6961414272295821213, guid: 9823e28dab95d51478ac39f2febb6c25, type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6961414272295821213, guid: 9823e28dab95d51478ac39f2febb6c25, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6961414272295821213, guid: 9823e28dab95d51478ac39f2febb6c25, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7457347175110508461, guid: 9823e28dab95d51478ac39f2febb6c25, type: 3}
       propertyPath: m_Pivot.x

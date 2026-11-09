@@ -2,9 +2,11 @@ using Asteroids.Core;
 
 namespace Asteroids.Player
 {
-    /// <summary>Where the ship fires its events. Keeps <see cref="ShipController"/> free of the signal bus.</summary>
     public interface IShipEventSink
     {
+        /// <param name="isFatal">Whether the hit took the last of its health.</param>
+        void Damaged(IEntity ship, bool isFatal);
+
         void Destroyed(IEntity entity);
     }
 }

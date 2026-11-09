@@ -8,6 +8,8 @@ namespace Asteroids.Core.IConfigs
     {
         public static bool IsNonNegative(float value) => float.IsFinite(value) && value >= 0f;
 
+        public static bool IsPositive(float value) => float.IsFinite(value) && value > 0f;
+
         public static string Format(float value) => value.ToString(CultureInfo.InvariantCulture);
 
         public static void CheckFormat(List<string> problems, string name, string format, params object[] sample)

@@ -18,6 +18,7 @@ namespace Asteroids.Enemies.Tests
             public readonly FakeDamageRegistry Damage = new();
             public readonly FakeKineticBodyRegistry Bodies = new();
             public readonly FakeScoreSink Score = new();
+            public readonly RecordingEnemyEvents Events = new();
             public readonly TestWorldBounds Bounds = new(new Rect(-8f, -8f, 16f, 16f));
             public readonly SystemRandom Random = new(5);
             public readonly TestSpawnEntryConfig Entry = new() { SpawnMargin = 1f };
@@ -25,7 +26,7 @@ namespace Asteroids.Enemies.Tests
 
             public Rig(TestUfoConfig config) =>
                 Builder = new UfoSpawnerBuilder(
-                    config, Views, Target, Loop, Wrap, Damage, Bodies, Score, Bounds, Random, Entry);
+                    config, Views, Target, Loop, Wrap, Damage, Bodies, Score, Events, Bounds, Random, Entry);
         }
 
         [Test]
@@ -35,27 +36,29 @@ namespace Asteroids.Enemies.Tests
             var config = new TestUfoConfig(new TestUfoType());
 
             Assert.Throws<ArgumentNullException>(() => new UfoSpawnerBuilder(
-                null, rig.Views, rig.Target, rig.Loop, rig.Wrap, rig.Damage, rig.Bodies, rig.Score, rig.Bounds, rig.Random, rig.Entry));
+                null, rig.Views, rig.Target, rig.Loop, rig.Wrap, rig.Damage, rig.Bodies, rig.Score, rig.Events, rig.Bounds, rig.Random, rig.Entry));
             Assert.Throws<ArgumentNullException>(() => new UfoSpawnerBuilder(
-                config, null, rig.Target, rig.Loop, rig.Wrap, rig.Damage, rig.Bodies, rig.Score, rig.Bounds, rig.Random, rig.Entry));
+                config, null, rig.Target, rig.Loop, rig.Wrap, rig.Damage, rig.Bodies, rig.Score, rig.Events, rig.Bounds, rig.Random, rig.Entry));
             Assert.Throws<ArgumentNullException>(() => new UfoSpawnerBuilder(
-                config, rig.Views, null, rig.Loop, rig.Wrap, rig.Damage, rig.Bodies, rig.Score, rig.Bounds, rig.Random, rig.Entry));
+                config, rig.Views, null, rig.Loop, rig.Wrap, rig.Damage, rig.Bodies, rig.Score, rig.Events, rig.Bounds, rig.Random, rig.Entry));
             Assert.Throws<ArgumentNullException>(() => new UfoSpawnerBuilder(
-                config, rig.Views, rig.Target, null, rig.Wrap, rig.Damage, rig.Bodies, rig.Score, rig.Bounds, rig.Random, rig.Entry));
+                config, rig.Views, rig.Target, null, rig.Wrap, rig.Damage, rig.Bodies, rig.Score, rig.Events, rig.Bounds, rig.Random, rig.Entry));
             Assert.Throws<ArgumentNullException>(() => new UfoSpawnerBuilder(
-                config, rig.Views, rig.Target, rig.Loop, null, rig.Damage, rig.Bodies, rig.Score, rig.Bounds, rig.Random, rig.Entry));
+                config, rig.Views, rig.Target, rig.Loop, null, rig.Damage, rig.Bodies, rig.Score, rig.Events, rig.Bounds, rig.Random, rig.Entry));
             Assert.Throws<ArgumentNullException>(() => new UfoSpawnerBuilder(
-                config, rig.Views, rig.Target, rig.Loop, rig.Wrap, null, rig.Bodies, rig.Score, rig.Bounds, rig.Random, rig.Entry));
+                config, rig.Views, rig.Target, rig.Loop, rig.Wrap, null, rig.Bodies, rig.Score, rig.Events, rig.Bounds, rig.Random, rig.Entry));
             Assert.Throws<ArgumentNullException>(() => new UfoSpawnerBuilder(
-                config, rig.Views, rig.Target, rig.Loop, rig.Wrap, rig.Damage, null, rig.Score, rig.Bounds, rig.Random, rig.Entry));
+                config, rig.Views, rig.Target, rig.Loop, rig.Wrap, rig.Damage, null, rig.Score, rig.Events, rig.Bounds, rig.Random, rig.Entry));
             Assert.Throws<ArgumentNullException>(() => new UfoSpawnerBuilder(
-                config, rig.Views, rig.Target, rig.Loop, rig.Wrap, rig.Damage, rig.Bodies, null, rig.Bounds, rig.Random, rig.Entry));
+                config, rig.Views, rig.Target, rig.Loop, rig.Wrap, rig.Damage, rig.Bodies, null, rig.Events, rig.Bounds, rig.Random, rig.Entry));
             Assert.Throws<ArgumentNullException>(() => new UfoSpawnerBuilder(
-                config, rig.Views, rig.Target, rig.Loop, rig.Wrap, rig.Damage, rig.Bodies, rig.Score, null, rig.Random, rig.Entry));
+                config, rig.Views, rig.Target, rig.Loop, rig.Wrap, rig.Damage, rig.Bodies, rig.Score, null, rig.Bounds, rig.Random, rig.Entry));
             Assert.Throws<ArgumentNullException>(() => new UfoSpawnerBuilder(
-                config, rig.Views, rig.Target, rig.Loop, rig.Wrap, rig.Damage, rig.Bodies, rig.Score, rig.Bounds, null, rig.Entry));
+                config, rig.Views, rig.Target, rig.Loop, rig.Wrap, rig.Damage, rig.Bodies, rig.Score, rig.Events, null, rig.Random, rig.Entry));
             Assert.Throws<ArgumentNullException>(() => new UfoSpawnerBuilder(
-                config, rig.Views, rig.Target, rig.Loop, rig.Wrap, rig.Damage, rig.Bodies, rig.Score, rig.Bounds, rig.Random, null));
+                config, rig.Views, rig.Target, rig.Loop, rig.Wrap, rig.Damage, rig.Bodies, rig.Score, rig.Events, rig.Bounds, null, rig.Entry));
+            Assert.Throws<ArgumentNullException>(() => new UfoSpawnerBuilder(
+                config, rig.Views, rig.Target, rig.Loop, rig.Wrap, rig.Damage, rig.Bodies, rig.Score, rig.Events, rig.Bounds, rig.Random, null));
         }
 
         [Test]

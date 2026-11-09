@@ -51,7 +51,8 @@ namespace Asteroids.Player
                 defense,
                 _ram.Create(),
                 _armament.Create(),
-                new ShipTargetBeacon(_tracker, movement.Motion, defense)
+                new ShipTargetBeacon(_tracker, movement.Motion, defense),
+                new ShipDamageReport(_health, _events)
             };
 
             var controller = new ShipController(entity, parts, _health, _events);

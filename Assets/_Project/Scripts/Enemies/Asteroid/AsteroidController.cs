@@ -16,6 +16,7 @@ namespace Asteroids.Enemies
     /// The spin and the motion are independent, so spinning never changes the direction of travel.
     /// </para>
     /// <para>
+    /// Every loss of health is told to its <see cref="IEnemyDamageHandler"/>.
     /// When the health runs out, the asteroid tells its <see cref="IEnemyDeathHandler"/> where it died,
     /// takes itself out of play and then raises <see cref="Finished"/>. It leaves play even if the handler
     /// throws. What death results in (points, fragments) is the handler's business, not the controller's.
@@ -36,10 +37,12 @@ namespace Asteroids.Enemies
             IWrapRegistry wrap,
             IDamageRegistry damageRegistry,
             IKineticBodyRegistry bodyRegistry,
+            IEnemyDamageHandler damage,
             IEnemyDeathHandler death)
         {
             if (view == null) throw new ArgumentNullException(nameof(view));
             _config = config ?? throw new ArgumentNullException(nameof(config));
+            if (damage == null) throw new ArgumentNullException(nameof(damage));
             if (death == null) throw new ArgumentNullException(nameof(death));
             if (loop == null) throw new ArgumentNullException(nameof(loop));
             if (wrap == null) throw new ArgumentNullException(nameof(wrap));
@@ -55,7 +58,7 @@ namespace Asteroids.Enemies
             var spinStep = new SpinStep(entity.Pose, _spin);
             var body = new KineticBody(_motion, DriftConfig.NoKnockback);
 
-            _life = new EnemyLife("asteroid", view, health, death, new Func<IDisposable>[]
+            _life = new EnemyLife("asteroid", view, health, damage, death, new Func<IDisposable>[]
             {
                 () => loop.Register(SimulationPhase.Motion, motionStep),
                 () => wrap.RegisterEntering(entity.Pose),

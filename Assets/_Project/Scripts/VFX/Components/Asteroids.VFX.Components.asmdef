@@ -1,0 +1,18 @@
+{
+    "name": "Asteroids.VFX.Components",
+    "rootNamespace": "Asteroids.VFX.Components",
+    "references": [
+        "GUID:768296fdb644a3e409d4503ea9d2f0c0",
+        "GUID:59e492911dd02fe46a0ad550a64fbbdc",
+        "GUID:c7a9a74e50cfb9943950f484566316d1"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

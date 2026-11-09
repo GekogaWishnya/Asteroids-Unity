@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6ff00a3eb349bde4482d2c633a9a1b0f, type: 3}
+  m_Name: ExplosionEffect
+  m_EditorClassIdentifier: 
+  scale: 1
+  poolPrewarm: 4
+  poolMaxIdle: 8
+  maxActive: 16
+  prefab: {fileID: 5946481098624194210, guid: 536a18d275023b445b600448b6c1dd4d, type: 3}

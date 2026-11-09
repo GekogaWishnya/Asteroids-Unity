@@ -17,6 +17,7 @@ namespace Asteroids.Enemies.Tests
             public readonly FakeWrapRegistry Wrap = new();
             public readonly FakeDamageRegistry Damage = new();
             public readonly FakeKineticBodyRegistry Bodies = new();
+            public readonly RecordingDamageHandler Hits = new();
             public readonly RecordingDeathHandler Death = new();
             public readonly FakePlayerTarget Target = FakePlayerTarget.At(0f, 100f);
             public readonly FakeEnemyView View = new(new Entity(new BodyPose()));
@@ -27,7 +28,7 @@ namespace Asteroids.Enemies.Tests
             public Rig(TestUfoType config = null)
             {
                 Config = config ?? new TestUfoType();
-                Controller = new UfoController(View, Config, Target, Loop, Wrap, Damage, Bodies, Death);
+                Controller = new UfoController(View, Config, Target, Loop, Wrap, Damage, Bodies, Hits, Death);
                 Controller.Finished += _ => FinishedCount++;
             }
 
@@ -49,21 +50,23 @@ namespace Asteroids.Enemies.Tests
             FakeEnemyView View() => new(new Entity(new BodyPose()));
 
             Assert.Throws<ArgumentNullException>(() => new UfoController(
-                null, rig.Config, rig.Target, rig.Loop, rig.Wrap, rig.Damage, rig.Bodies, rig.Death));
+                null, rig.Config, rig.Target, rig.Loop, rig.Wrap, rig.Damage, rig.Bodies, rig.Hits, rig.Death));
             Assert.Throws<ArgumentNullException>(() => new UfoController(
-                View(), null, rig.Target, rig.Loop, rig.Wrap, rig.Damage, rig.Bodies, rig.Death));
+                View(), null, rig.Target, rig.Loop, rig.Wrap, rig.Damage, rig.Bodies, rig.Hits, rig.Death));
             Assert.Throws<ArgumentNullException>(() => new UfoController(
-                View(), rig.Config, null, rig.Loop, rig.Wrap, rig.Damage, rig.Bodies, rig.Death));
+                View(), rig.Config, null, rig.Loop, rig.Wrap, rig.Damage, rig.Bodies, rig.Hits, rig.Death));
             Assert.Throws<ArgumentNullException>(() => new UfoController(
-                View(), rig.Config, rig.Target, null, rig.Wrap, rig.Damage, rig.Bodies, rig.Death));
+                View(), rig.Config, rig.Target, null, rig.Wrap, rig.Damage, rig.Bodies, rig.Hits, rig.Death));
             Assert.Throws<ArgumentNullException>(() => new UfoController(
-                View(), rig.Config, rig.Target, rig.Loop, null, rig.Damage, rig.Bodies, rig.Death));
+                View(), rig.Config, rig.Target, rig.Loop, null, rig.Damage, rig.Bodies, rig.Hits, rig.Death));
             Assert.Throws<ArgumentNullException>(() => new UfoController(
-                View(), rig.Config, rig.Target, rig.Loop, rig.Wrap, null, rig.Bodies, rig.Death));
+                View(), rig.Config, rig.Target, rig.Loop, rig.Wrap, null, rig.Bodies, rig.Hits, rig.Death));
             Assert.Throws<ArgumentNullException>(() => new UfoController(
-                View(), rig.Config, rig.Target, rig.Loop, rig.Wrap, rig.Damage, null, rig.Death));
+                View(), rig.Config, rig.Target, rig.Loop, rig.Wrap, rig.Damage, null, rig.Hits, rig.Death));
             Assert.Throws<ArgumentNullException>(() => new UfoController(
-                View(), rig.Config, rig.Target, rig.Loop, rig.Wrap, rig.Damage, rig.Bodies, null));
+                View(), rig.Config, rig.Target, rig.Loop, rig.Wrap, rig.Damage, rig.Bodies, null, rig.Death));
+            Assert.Throws<ArgumentNullException>(() => new UfoController(
+                View(), rig.Config, rig.Target, rig.Loop, rig.Wrap, rig.Damage, rig.Bodies, rig.Hits, null));
         }
 
         [Test]

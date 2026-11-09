@@ -12,13 +12,14 @@ namespace Asteroids.Player
     /// <see cref="Asteroids.Core.ISimulationLoop"/>, <see cref="Asteroids.Core.IDamageRegistry"/> and
     /// <see cref="Asteroids.Core.IKineticBodyRegistry"/> to be bound by the host installer, and
     /// <see cref="SignalBus"/> to be installed. Subscribes to <see cref="WaveStarted"/>, which another installer declares.
-    /// Declares <see cref="ShipDestroyed"/>, binds <see cref="IPlayerTarget"/> and <see cref="IShipTelemetry"/>, and
-    /// binds <see cref="ShipRoster"/> as an <see cref="IRestartable"/>.
+    /// Declares <see cref="ShipDamaged"/> and <see cref="ShipDestroyed"/>, binds <see cref="IPlayerTarget"/> and
+    /// <see cref="IShipTelemetry"/>, and binds <see cref="ShipRoster"/> as an <see cref="IRestartable"/>.
     /// </summary>
     public sealed class PlayerInstaller : Installer<PlayerInstaller>
     {
         public override void InstallBindings()
         {
+            Container.DeclareSignal<ShipDamaged>().OptionalSubscriber();
             Container.DeclareSignal<ShipDestroyed>().OptionalSubscriber();
 
             Container.Bind<PlayerHealth>().AsSingle();

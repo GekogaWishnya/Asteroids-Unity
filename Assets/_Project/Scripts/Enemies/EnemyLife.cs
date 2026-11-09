@@ -16,6 +16,7 @@ namespace Asteroids.Enemies
         private readonly string _name;
         private readonly IPooledView _view;
         private readonly HealthModel _health;
+        private readonly IEnemyDamageHandler _damage;
         private readonly IEnemyDeathHandler _death;
         private readonly PooledLife _life;
 
@@ -26,18 +27,19 @@ namespace Asteroids.Enemies
             string name,
             IPooledView view,
             HealthModel health,
+            IEnemyDamageHandler damage,
             IEnemyDeathHandler death,
             IEnumerable<Func<IDisposable>> registrations)
         {
             _name = name ?? throw new ArgumentNullException(nameof(name));
             _view = view ?? throw new ArgumentNullException(nameof(view));
             _health = health ?? throw new ArgumentNullException(nameof(health));
+            _damage = damage ?? throw new ArgumentNullException(nameof(damage));
             _death = death ?? throw new ArgumentNullException(nameof(death));
             if (registrations == null) throw new ArgumentNullException(nameof(registrations));
             if (view.Entity == null) throw new ArgumentNullException(nameof(view), "The view has no entity.");
 
-            // Last, so it is the first to go when the enemy leaves play.
-            var all = new List<Func<IDisposable>>(registrations) { ListenForDepletion };
+            var all = new List<Func<IDisposable>>(registrations) { ListenForDrops, ListenForDepletion };
             _life = new PooledLife(name, view, all);
             _life.Finished += () => Finished?.Invoke();
         }
@@ -71,6 +73,10 @@ namespace Asteroids.Enemies
             Finished = null;
             _life.Dispose();
         }
+
+        private IDisposable ListenForDrops() => _health.SubscribeDropped(OnDropped);
+
+        private void OnDropped(bool isFatal) => _damage.Damaged(_view.Entity.Pose.Position, isFatal);
 
         private IDisposable ListenForDepletion() => _health.SubscribeDepleted(OnDepleted);
 

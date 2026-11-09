@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Asteroids.Collisions;
 using Asteroids.Common;
 using Asteroids.Controls;
@@ -7,6 +8,8 @@ using Asteroids.Core;
 using Asteroids.Core.IConfigs;
 using Asteroids.Damage;
 using Asteroids.Data;
+using Asteroids.VFX;
+using Asteroids.VFX.Components;
 using Asteroids.Enemies;
 using Asteroids.Enemies.Components;
 using Asteroids.Player;
@@ -56,6 +59,7 @@ namespace Asteroids.Installers
             WavesInstaller.Install(Container);
             WeaponsInstaller.Install(Container);
             SessionInstaller.Install(Container);
+            EffectsInstaller.Install(Container);
 
             Container.Bind<ISimulationTime>().To<UnityTimeSource>().AsSingle();
             Container.Bind<IShipMovementConfig>().FromInstance(shipMovement);
@@ -79,19 +83,24 @@ namespace Asteroids.Installers
             Container.Bind<IRunEndScreenConfig>().FromInstance(runEndConfig);
 
             Container.Bind<IRandom>().FromInstance(new SystemRandom());
-            Container.Bind<EnemyPrefabCatalog>().FromInstance(CreatePrefabCatalog());
+            ShipLoadoutInstaller.Install(Container, shipLoadout);
+
+            var enemyTypes = EnemyTypes.Collect(EnemyTypeSources());
+            var enemyPrefabs = enemyTypes.Select(type =>
+                new KeyValuePair<EnemyTypeId, GameObject>(type.Id, type.Prefab));
+            Container.Bind<EnemyPrefabCatalog>().FromInstance(new EnemyPrefabCatalog(enemyPrefabs));
             Container.Bind<IEnemyViewFactory>().To<PrefabEnemyViewFactory>().AsSingle();
 
-            ShipLoadoutInstaller.Install(Container, shipLoadout);
+            Container.Bind<IEffectsConfig>().FromInstance(new EffectsConfig(shipHealth.Effects, enemyTypes));
+            Container.Bind<IEffectFactory>().To<PrefabEffectFactory>().AsSingle();
         }
 
-        private EnemyPrefabCatalog CreatePrefabCatalog()
+        private List<IEnemyTypeSource> EnemyTypeSources()
         {
             var sources = new List<IEnemyTypeSource>();
             if (asteroidConfig) sources.Add(asteroidConfig);
             if (ufoConfig) sources.Add(ufoConfig);
-
-            return new EnemyPrefabCatalog(EnemyPrefabs.Collect(sources));
+            return sources;
         }
 
         /// <exception cref="InvalidOperationException">The field is not assigned.</exception>

@@ -125,6 +125,32 @@ namespace Asteroids.Enemies.Tests
         public void Launch(EnemyTypeId type, Vector2 position) => Launches.Add((type, position));
     }
 
+    internal sealed class RecordingDamageHandler : IEnemyDamageHandler
+    {
+        private readonly List<string> _log;
+
+        public RecordingDamageHandler(List<string> log = null) => _log = log;
+
+        public List<(Vector2 Position, bool IsFatal)> Hits { get; } = new();
+
+        public void Damaged(Vector2 position, bool isFatal)
+        {
+            _log?.Add(isFatal ? "damaged fatally" : "damaged");
+            Hits.Add((position, isFatal));
+        }
+    }
+
+    internal sealed class RecordingEnemyEvents : IEnemyEventSink
+    {
+        public List<(EnemyTypeId Type, Vector2 Position, bool IsFatal)> Damaged { get; } = new();
+        public List<(EnemyTypeId Type, Vector2 Position)> Died { get; } = new();
+
+        void IEnemyEventSink.Damaged(EnemyTypeId type, Vector2 position, bool isFatal) =>
+            Damaged.Add((type, position, isFatal));
+
+        void IEnemyEventSink.Died(EnemyTypeId type, Vector2 position) => Died.Add((type, position));
+    }
+
     internal sealed class RecordingDeathHandler : IEnemyDeathHandler
     {
         private readonly List<string> _log;

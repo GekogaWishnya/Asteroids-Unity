@@ -35,7 +35,7 @@ namespace Asteroids.Enemies.Tests
                     config,
                     () => new AsteroidController(
                         Views.Create(config.Type), config, Loop, Wrap, damage, new FakeKineticBodyRegistry(),
-                        new RecordingDeathHandler()),
+                        new RecordingDamageHandler(), new RecordingDeathHandler()),
                     random);
                 Spawner = new AsteroidSpawner(Population, new TestWorldBounds(Area), random, entry ?? OnTheEdge);
             }

@@ -28,10 +28,12 @@ namespace Asteroids.Enemies
             IWrapRegistry wrap,
             IDamageRegistry damageRegistry,
             IKineticBodyRegistry bodyRegistry,
+            IEnemyDamageHandler damage,
             IEnemyDeathHandler death)
         {
             if (view == null) throw new ArgumentNullException(nameof(view));
             _config = config ?? throw new ArgumentNullException(nameof(config));
+            if (damage == null) throw new ArgumentNullException(nameof(damage));
             if (death == null) throw new ArgumentNullException(nameof(death));
             if (target == null) throw new ArgumentNullException(nameof(target));
             if (loop == null) throw new ArgumentNullException(nameof(loop));
@@ -48,7 +50,7 @@ namespace Asteroids.Enemies
             var motionStep = new MotionStep(entity.Pose, _motion);
             var body = new StunOnKnockback(new KineticBody(_motion, config), _steering, config.StunSeconds);
 
-            _life = new EnemyLife("UFO", view, health, death, new Func<IDisposable>[]
+            _life = new EnemyLife("UFO", view, health, damage, death, new Func<IDisposable>[]
             {
                 () => loop.Register(SimulationPhase.Input, _steering),
                 () => loop.Register(SimulationPhase.Motion, motionStep),

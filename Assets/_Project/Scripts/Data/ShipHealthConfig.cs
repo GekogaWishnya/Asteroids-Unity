@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Asteroids.Core.IConfigs;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -18,7 +19,8 @@ namespace Asteroids.Data
         [Tooltip("Seconds after a hit during which the ship takes no further damage. 0 effectively turns it off")]
         [SerializeField, Min(0f)] private float invulnerabilitySeconds = 3f;
 
-        [Tooltip("Seconds after a hit during which the ship cannot be steered, thrust or fired. 0 effectively turns it off")]
+        [Tooltip(
+            "Seconds after a hit during which the ship cannot be steered, thrust or fired. 0 effectively turns it off")]
         [SerializeField, Min(0f)] private float controlLossSeconds = 3f;
 
         [Tooltip("The only layers the ship's colliders still react to while protected. Everything else is ignored")]
@@ -27,12 +29,17 @@ namespace Asteroids.Data
         [Tooltip("Seconds the ship is protected when a wave starts. 0 turns it off")]
         [SerializeField, Min(0f)] private float waveStartProtectionSeconds = 2f;
 
+        [Tooltip("Effects played when the ship is hit and destroyed")]
+        [SerializeField] private FeedbackData effects = new();
+
         public int MaxHealth => maxHealth;
         public int RamDamage => ramDamage;
         public float InvulnerabilitySeconds => invulnerabilitySeconds;
         public float ControlLossSeconds => controlLossSeconds;
         public CollisionLayer KeptLayers => keptLayers;
         public float WaveStartProtectionSeconds => waveStartProtectionSeconds;
+
+        public IFeedbackConfig Effects => effects;
 
         private void OnValidate()
         {
@@ -41,6 +48,11 @@ namespace Asteroids.Data
                     $"{nameof(ShipHealthConfig)} '{name}': control loss ({controlLossSeconds} s) outlasts " +
                     $"invulnerability ({invulnerabilitySeconds} s), so the ship can be hit again while the " +
                     "pilot cannot steer away.", this);
+
+            var problems = new List<string>();
+            EffectsConfigValidator.ValidateFeedback("Effects", effects, problems);
+            foreach (var problem in problems)
+                Debug.LogWarning($"{nameof(ShipHealthConfig)} '{name}': {problem}", this);
         }
     }
 }

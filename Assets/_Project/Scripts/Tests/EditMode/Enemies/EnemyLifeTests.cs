@@ -14,14 +14,16 @@ namespace Asteroids.Enemies.Tests
             public readonly List<string> Log = new();
             public readonly FakeEnemyView View = new();
             public readonly HealthModel Health = new(2);
+            public readonly RecordingDamageHandler Hits;
             public readonly RecordingDeathHandler Death;
             public readonly EnemyLife Life;
             public int FinishedCount;
 
             public Rig()
             {
+                Hits = new RecordingDamageHandler(Log);
                 Death = new RecordingDeathHandler(Log);
-                Life = new EnemyLife("thing", View, Health, Death, new Func<IDisposable>[]
+                Life = new EnemyLife("thing", View, Health, Hits, Death, new Func<IDisposable>[]
                 {
                     () => new Registration(Log, "a"),
                     () => new Registration(Log, "b")
@@ -54,14 +56,16 @@ namespace Asteroids.Enemies.Tests
         {
             var view = new FakeEnemyView();
             var health = new HealthModel(1);
+            var hits = new RecordingDamageHandler();
             var death = new RecordingDeathHandler();
             var none = Array.Empty<Func<IDisposable>>();
 
-            Assert.Throws<ArgumentNullException>(() => new EnemyLife(null, view, health, death, none));
-            Assert.Throws<ArgumentNullException>(() => new EnemyLife("x", null, health, death, none));
-            Assert.Throws<ArgumentNullException>(() => new EnemyLife("x", view, null, death, none));
-            Assert.Throws<ArgumentNullException>(() => new EnemyLife("x", view, health, null, none));
-            Assert.Throws<ArgumentNullException>(() => new EnemyLife("x", view, health, death, null));
+            Assert.Throws<ArgumentNullException>(() => new EnemyLife(null, view, health, hits, death, none));
+            Assert.Throws<ArgumentNullException>(() => new EnemyLife("x", null, health, hits, death, none));
+            Assert.Throws<ArgumentNullException>(() => new EnemyLife("x", view, null, hits, death, none));
+            Assert.Throws<ArgumentNullException>(() => new EnemyLife("x", view, health, null, death, none));
+            Assert.Throws<ArgumentNullException>(() => new EnemyLife("x", view, health, hits, null, none));
+            Assert.Throws<ArgumentNullException>(() => new EnemyLife("x", view, health, hits, death, null));
         }
 
         [Test]
@@ -121,7 +125,7 @@ namespace Asteroids.Enemies.Tests
 
             rig.Health.TakeDamage(2);
 
-            Assert.That(rig.Log, Is.EqualTo(new[] { "+a", "+b", "died", "-b", "-a", "finished" }));
+            Assert.That(rig.Log, Is.EqualTo(new[] { "+a", "+b", "damaged fatally", "died", "-b", "-a", "finished" }));
             Assert.That(rig.Death.Deaths, Is.EqualTo(new[] { new Vector2(3f, 4f) }));
             Assert.That(rig.View.IsShown, Is.False);
         }
@@ -138,6 +142,55 @@ namespace Asteroids.Enemies.Tests
 
             Assert.That(rig.Death.Deaths, Has.Count.EqualTo(1));
             Assert.That(rig.FinishedCount, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void Damage_InPlay_ReportsEachLossWithThePosition()
+        {
+            var rig = new Rig();
+            rig.Life.Enter(new Vector2(3f, 4f), 0f);
+
+            rig.Health.TakeDamage(1);
+
+            Assert.That(rig.Hits.Hits, Is.EqualTo(new[] { (new Vector2(3f, 4f), false) }));
+            Assert.That(rig.Death.Deaths, Is.Empty);
+        }
+
+        [Test]
+        public void Damage_Fatal_IsReportedBeforeTheDeathWhileStillInPlay()
+        {
+            var rig = new Rig();
+            rig.Life.Enter(Vector2.zero, 0f);
+            rig.Health.TakeDamage(1);
+
+            rig.Log.Clear();
+            rig.Health.TakeDamage(1);
+
+            Assert.That(rig.Log, Is.EqualTo(new[] { "damaged fatally", "died", "-b", "-a", "finished" }));
+            Assert.That(rig.Hits.Hits[^1].IsFatal, Is.True);
+        }
+
+        [Test]
+        public void Damage_OutOfPlay_IsNotReported()
+        {
+            var rig = new Rig();
+
+            rig.Health.TakeDamage(1);
+
+            Assert.That(rig.Hits.Hits, Is.Empty);
+        }
+
+        [Test]
+        public void Enter_RefillingTheHealth_IsNotReported()
+        {
+            var rig = new Rig();
+            rig.Life.Enter(Vector2.zero, 0f);
+            rig.Health.TakeDamage(2);
+
+            rig.Life.Enter(Vector2.zero, 0f);
+            rig.Health.TakeDamage(1);
+
+            Assert.That(rig.Hits.Hits, Is.EqualTo(new[] { (Vector2.zero, true), (Vector2.zero, false) }));
         }
 
         [Test]
@@ -212,7 +265,7 @@ namespace Asteroids.Enemies.Tests
             var health = new HealthModel(1);
             EnemyLife life = null;
             var death = new CallbackDeathHandler(() => life.Despawn());
-            life = new EnemyLife("thing", view, health, death, Array.Empty<Func<IDisposable>>());
+            life = new EnemyLife("thing", view, health, new RecordingDamageHandler(), death, Array.Empty<Func<IDisposable>>());
             var finished = 0;
             life.Finished += () => finished++;
             life.Enter(Vector2.zero, 0f);

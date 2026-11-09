@@ -34,7 +34,8 @@ namespace Asteroids.Enemies.Tests
             }
 
             public UfoController CreateController() =>
-                new(Views.Create(Config.Type), Config, Target, Loop, Wrap, Damage, Bodies, new RecordingDeathHandler());
+                new(Views.Create(Config.Type), Config, Target, Loop, Wrap, Damage, Bodies,
+                    new RecordingDamageHandler(), new RecordingDeathHandler());
 
             public Vector2 LatestPosition => Views.Views[Views.Views.Count - 1].Entity.Pose.Position;
             public Vector2 LatestVelocity => Bodies.Registrations[Bodies.Registrations.Count - 1].Body.Velocity;

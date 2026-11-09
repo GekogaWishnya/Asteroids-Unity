@@ -18,6 +18,7 @@ namespace Asteroids.Enemies.Tests
             public readonly FakeWrapRegistry Wrap = new();
             public readonly FakeDamageRegistry Damage = new();
             public readonly FakeKineticBodyRegistry Bodies = new();
+            public readonly RecordingDamageHandler Hits = new();
             public readonly RecordingDeathHandler Death;
             public readonly FakeEnemyView View = new();
             public readonly TestAsteroidType Config;
@@ -28,7 +29,7 @@ namespace Asteroids.Enemies.Tests
             {
                 Config = config ?? new TestAsteroidType("AsteroidBig");
                 Death = new RecordingDeathHandler(Log);
-                Controller = new AsteroidController(View, Config, Loop, Wrap, Damage, Bodies, Death);
+                Controller = new AsteroidController(View, Config, Loop, Wrap, Damage, Bodies, Hits, Death);
                 Controller.Finished += _ =>
                 {
                     FinishedCount++;
@@ -55,19 +56,21 @@ namespace Asteroids.Enemies.Tests
             var rig = new Rig();
 
             Assert.Throws<ArgumentNullException>(() => new AsteroidController(
-                null, rig.Config, rig.Loop, rig.Wrap, rig.Damage, rig.Bodies, rig.Death));
+                null, rig.Config, rig.Loop, rig.Wrap, rig.Damage, rig.Bodies, rig.Hits, rig.Death));
             Assert.Throws<ArgumentNullException>(() => new AsteroidController(
-                new FakeEnemyView(), null, rig.Loop, rig.Wrap, rig.Damage, rig.Bodies, rig.Death));
+                new FakeEnemyView(), null, rig.Loop, rig.Wrap, rig.Damage, rig.Bodies, rig.Hits, rig.Death));
             Assert.Throws<ArgumentNullException>(() => new AsteroidController(
-                new FakeEnemyView(), rig.Config, null, rig.Wrap, rig.Damage, rig.Bodies, rig.Death));
+                new FakeEnemyView(), rig.Config, null, rig.Wrap, rig.Damage, rig.Bodies, rig.Hits, rig.Death));
             Assert.Throws<ArgumentNullException>(() => new AsteroidController(
-                new FakeEnemyView(), rig.Config, rig.Loop, null, rig.Damage, rig.Bodies, rig.Death));
+                new FakeEnemyView(), rig.Config, rig.Loop, null, rig.Damage, rig.Bodies, rig.Hits, rig.Death));
             Assert.Throws<ArgumentNullException>(() => new AsteroidController(
-                new FakeEnemyView(), rig.Config, rig.Loop, rig.Wrap, null, rig.Bodies, rig.Death));
+                new FakeEnemyView(), rig.Config, rig.Loop, rig.Wrap, null, rig.Bodies, rig.Hits, rig.Death));
             Assert.Throws<ArgumentNullException>(() => new AsteroidController(
-                new FakeEnemyView(), rig.Config, rig.Loop, rig.Wrap, rig.Damage, null, rig.Death));
+                new FakeEnemyView(), rig.Config, rig.Loop, rig.Wrap, rig.Damage, null, rig.Hits, rig.Death));
             Assert.Throws<ArgumentNullException>(() => new AsteroidController(
-                new FakeEnemyView(), rig.Config, rig.Loop, rig.Wrap, rig.Damage, rig.Bodies, null));
+                new FakeEnemyView(), rig.Config, rig.Loop, rig.Wrap, rig.Damage, rig.Bodies, null, rig.Death));
+            Assert.Throws<ArgumentNullException>(() => new AsteroidController(
+                new FakeEnemyView(), rig.Config, rig.Loop, rig.Wrap, rig.Damage, rig.Bodies, rig.Hits, null));
         }
 
         [Test]
