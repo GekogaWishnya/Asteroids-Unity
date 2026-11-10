@@ -4,7 +4,7 @@ namespace Asteroids.Data
 {
     public interface IEnemyTypeSource
     {
-        /// <summary>Every enemy type the config refers to. Empty entries are skipped, repeats are allowed.</summary>
+        /// <summary>Every enemy type the config refers to directly.</summary>
         IEnumerable<EnemyTypeDefinition> ReferencedTypes { get; }
     }
 }

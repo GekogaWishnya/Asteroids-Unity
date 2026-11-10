@@ -31,10 +31,29 @@ namespace Asteroids.Core.IConfigs.Tests
         }
 
         [Test]
-        public void Validate_NoTypes_Reports()
+        public void Validate_NoTypes_IsFine_ButNoListIsReported()
         {
-            Assert.That(Validate(), Has.Count.EqualTo(1));
+            // The config is now gathered from the level, and a level without UFOs gives an empty list.
+            Assert.That(Validate(), Is.Empty);
             Assert.That(UfoConfigValidator.Validate(new TestUfoConfig { Types = null }), Has.Count.EqualTo(1));
+        }
+
+        [Test]
+        public void ValidateType_UsesTheGivenLabel()
+        {
+            var problems = new List<string>();
+
+            UfoConfigValidator.ValidateType("UFO settings", new TestUfoType { MaxHealth = 0 }, problems);
+
+            Assert.That(problems, Has.Count.EqualTo(1));
+            StringAssert.StartsWith("UFO settings: max health", problems[0]);
+        }
+
+        [Test]
+        public void ValidateType_NullArguments_Throw()
+        {
+            Assert.Throws<ArgumentNullException>(() => UfoConfigValidator.ValidateType("U", null, new List<string>()));
+            Assert.Throws<ArgumentNullException>(() => UfoConfigValidator.ValidateType("U", new TestUfoType(), null));
         }
 
         [Test]

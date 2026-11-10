@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Asteroids.Core.IConfigs;
 using UnityEngine;
@@ -8,9 +9,9 @@ namespace Asteroids.Data
     /// One kind of enemy as a designer picks it.
     /// The game identifies the type by the asset's name, so names must be unique.
     /// </summary>
-    [CreateAssetMenu(fileName = "EnemyType", menuName = "Asteroids/Enemies/Enemy Type")]
-    public sealed class EnemyTypeDefinition : ScriptableObject, IEnemyFeedbackConfig
+    public abstract class EnemyTypeDefinition : ScriptableObject, IEnemyFeedbackConfig
     {
+        [Header("Identity")]
         [Tooltip("What the enemy is made of. The root needs an EntityComponent")]
         [SerializeField] private GameObject prefab;
 
@@ -22,13 +23,18 @@ namespace Asteroids.Data
 
         public GameObject Prefab => prefab;
 
+        /// <summary>Other types this one references (asteroids splitting).</summary>
+        public virtual IEnumerable<EnemyTypeDefinition> LinkedTypes => Array.Empty<EnemyTypeDefinition>();
+
         EnemyTypeId IEnemyFeedbackConfig.Type => Id;
         IEffectConfig IFeedbackConfig.Hit => effects.Hit;
         bool IFeedbackConfig.PlayHitOnFatal => effects.PlayHitOnFatal;
         IEffectConfig IFeedbackConfig.Death => effects.Death;
 
+        protected abstract void FindKindProblems(List<string> problems);
+
 #if UNITY_EDITOR
-        private void OnValidate()
+        protected virtual void OnValidate()
         {
             UnityEditor.EditorApplication.delayCall -= ValidateWhenSettled;
             UnityEditor.EditorApplication.delayCall += ValidateWhenSettled;
@@ -47,6 +53,7 @@ namespace Asteroids.Data
             var problems = new List<string>();
             if (!prefab) problems.Add("has no prefab.");
             EffectsConfigValidator.ValidateFeedback("Effects", effects, problems);
+            FindKindProblems(problems);
 
             foreach (var problem in problems)
                 Debug.LogWarning($"Enemy type '{name}': {problem}", this);

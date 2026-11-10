@@ -19,7 +19,30 @@ namespace Asteroids.Data.Tests
     {
         private readonly List<Object> _created = new();
 
-        public EnemyTypeDefinition EnemyType(string name) => Create<EnemyTypeDefinition>(name);
+        /// <summary>Any enemy type; an asteroid type is the simplest concrete one.</summary>
+        public EnemyTypeDefinition EnemyType(string name) => Asteroid(name);
+
+        public AsteroidTypeDefinition Asteroid(string name, AsteroidTypeDefinition child = null, int childCount = 0)
+        {
+            var asteroid = Create<AsteroidTypeDefinition>(name);
+            if (!child) return asteroid;
+
+            var serialized = new SerializedObject(asteroid);
+            serialized.FindProperty("childType").objectReferenceValue = child;
+            serialized.FindProperty("childCount").intValue = childCount;
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+            return asteroid;
+        }
+
+        public UfoTypeDefinition Ufo(string name) => Create<UfoTypeDefinition>(name);
+
+        public T Create<T>(string name) where T : ScriptableObject
+        {
+            var asset = ScriptableObject.CreateInstance<T>();
+            asset.name = name;
+            _created.Add(asset);
+            return asset;
+        }
 
         public TestEffectDefinition Effect(string name) => Create<TestEffectDefinition>(name);
 
@@ -37,14 +60,6 @@ namespace Asteroids.Data.Tests
             foreach (var asset in _created)
                 if (asset) Object.DestroyImmediate(asset);
             _created.Clear();
-        }
-
-        private T Create<T>(string name) where T : ScriptableObject
-        {
-            var asset = ScriptableObject.CreateInstance<T>();
-            asset.name = name;
-            _created.Add(asset);
-            return asset;
         }
     }
 }

@@ -6,11 +6,26 @@ using UnityEngine;
 namespace Asteroids.Data
 {
     [CreateAssetMenu(fileName = "Level", menuName = "Asteroids/Configs/Level")]
-    public sealed class LevelConfig : ScriptableObject, ILevelConfig
+    public sealed class LevelConfig : ScriptableObject, ILevelConfig, IEnemyTypeSource
     {
         [SerializeField] private List<WaveData> waves = new();
 
         public IReadOnlyList<IWaveConfig> Waves => waves;
+
+        public IEnumerable<EnemyTypeDefinition> ReferencedTypes
+        {
+            get
+            {
+                foreach (var wave in waves)
+                {
+                    if (wave == null) continue;
+
+                    foreach (var entry in wave.EntryList)
+                        if (entry != null)
+                            yield return entry.TypeDefinition;
+                }
+            }
+        }
 
         private void OnValidate()
         {
@@ -28,6 +43,7 @@ namespace Asteroids.Data
 
             public float DelayBeforeStart => delayBeforeStart;
             public IReadOnlyList<IWaveEntryConfig> Entries => entries;
+            public IEnumerable<EntryData> EntryList => entries;
         }
 
         [Serializable]
@@ -40,6 +56,7 @@ namespace Asteroids.Data
             [Tooltip("Seconds between two enemies of this entry. 0 spawns them all at once")]
             [SerializeField, Min(0f)] private float interval;
 
+            public EnemyTypeDefinition TypeDefinition => type;
             public EnemyTypeId Type => type ? type.Id : default;
             public int Count => count;
             public float StartDelay => startDelay;

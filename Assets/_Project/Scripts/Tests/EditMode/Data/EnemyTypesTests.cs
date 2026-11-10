@@ -40,6 +40,36 @@ namespace Asteroids.Data.Tests
         }
 
         [Test]
+        public void Collect_FollowsSplitChains_PuttingEachChildRightAfterItsParent()
+        {
+            // The level only names the big asteroid and the UFO; medium and small come in through the splits.
+            var small = _assets.Asteroid("Small");
+            var medium = _assets.Asteroid("Medium", small, 2);
+            var big = _assets.Asteroid("Big", medium, 2);
+            var ufo = _assets.Ufo("Ufo");
+
+            var types = EnemyTypes.Collect(new IEnemyTypeSource[] { new TestTypeSource(big, ufo) });
+
+            Assert.That(types, Is.EqualTo(new EnemyTypeDefinition[] { big, medium, small, ufo }));
+        }
+
+        [Test]
+        public void Collect_ASplitLoop_DoesNotHang()
+        {
+            // A loop is a config error the asteroid validator reports; collecting must still terminate.
+            var a = _assets.Asteroid("A");
+            var b = _assets.Asteroid("B", a, 1);
+            var serialized = new UnityEditor.SerializedObject(a);
+            serialized.FindProperty("childType").objectReferenceValue = b;
+            serialized.FindProperty("childCount").intValue = 1;
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+
+            var types = EnemyTypes.Collect(new IEnemyTypeSource[] { new TestTypeSource(a) });
+
+            Assert.That(types, Is.EqualTo(new EnemyTypeDefinition[] { a, b }));
+        }
+
+        [Test]
         public void Collect_TwoTypesWithOneName_Throws()
         {
             var first = _assets.EnemyType("Rock");

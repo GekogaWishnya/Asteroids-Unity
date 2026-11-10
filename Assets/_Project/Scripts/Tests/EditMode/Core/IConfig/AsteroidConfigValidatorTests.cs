@@ -30,10 +30,34 @@ namespace Asteroids.Core.IConfigs.Tests
         }
 
         [Test]
-        public void Validate_NoTypes_Reports()
+        public void Validate_NoTypes_IsFine_ButNoListIsReported()
         {
-            Assert.That(Validate(), Has.Count.EqualTo(1));
+            // The config is now gathered from the level, and a level without asteroids gives an empty list.
+            Assert.That(Validate(), Is.Empty);
             Assert.That(AsteroidConfigValidator.Validate(new TestAsteroidConfig { Types = null }), Has.Count.EqualTo(1));
+        }
+
+        [Test]
+        public void ValidateType_ChecksOneTypeOnItsOwn_WithTheGivenLabel()
+        {
+            // The asset inspector uses this: it cannot see the other types, so a child type that is not in
+            // any config is not its business, but a bad count is.
+            var problems = new List<string>();
+
+            AsteroidConfigValidator.ValidateType(
+                "Asteroid settings", new TestAsteroidType("A").SplitsInto("Ghost", 0), problems);
+
+            Assert.That(problems, Has.Count.EqualTo(1));
+            StringAssert.StartsWith("Asteroid settings: child type 'Ghost' is set but the child count is 0", problems[0]);
+        }
+
+        [Test]
+        public void ValidateType_NullArguments_Throw()
+        {
+            Assert.Throws<ArgumentNullException>(() =>
+                AsteroidConfigValidator.ValidateType("A", null, new List<string>()));
+            Assert.Throws<ArgumentNullException>(() =>
+                AsteroidConfigValidator.ValidateType("A", new TestAsteroidType("A"), null));
         }
 
         [Test]

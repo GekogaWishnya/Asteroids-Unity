@@ -14,9 +14,9 @@ namespace Asteroids.Core.IConfigs
 
             var problems = new List<string>();
             var types = config.Types;
-            if (types == null || types.Count == 0)
+            if (types == null)
             {
-                problems.Add("The asteroid config has no types.");
+                problems.Add("The asteroid config has no type list.");
                 return problems;
             }
 
@@ -40,17 +40,27 @@ namespace Asteroids.Core.IConfigs
                     problems.Add($"Asteroid type '{type.Type}' is defined more than once.");
             }
 
-            foreach (var index in indexById.Values) ValidateType(types[index], indexById, problems);
+            foreach (var index in indexById.Values)
+            {
+                var type = types[index];
+                ValidateType($"Asteroid type '{type.Type}'", type, problems);
+
+                if (type.ChildType.IsValid && !indexById.ContainsKey(type.ChildType))
+                    problems.Add($"Asteroid type '{type.Type}': child type '{type.ChildType}' " +
+                                 "is not defined in this asteroid config.");
+            }
 
             ReportSplitCycles(types, indexById, problems);
 
             return problems;
         }
 
-        private static void ValidateType(
-            IAsteroidTypeConfig type, Dictionary<EnemyTypeId, int> indexById, List<string> problems)
+        /// <param name="label">Names the type at the start of each message.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="type"/> or <paramref name="problems"/> is null.</exception>
+        public static void ValidateType(string label, IAsteroidTypeConfig type, List<string> problems)
         {
-            var label = $"Asteroid type '{type.Type}'";
+            if (type == null) throw new ArgumentNullException(nameof(type));
+            if (problems == null) throw new ArgumentNullException(nameof(problems));
 
             if (type.MaxHealth < 1)
                 problems.Add($"{label}: max health must be at least 1 (is {type.MaxHealth}).");
@@ -63,7 +73,7 @@ namespace Asteroids.Core.IConfigs
 
             ValidateRange(label, "speed", type.MinSpeed, type.MaxSpeed, problems);
             ValidateRange(label, "spin speed", type.MinSpinSpeed, type.MaxSpinSpeed, problems);
-            ValidateChildren(label, type, indexById, problems);
+            ValidateChildren(label, type, problems);
             PoolConfigRules.Validate(label, type.PoolPrewarm, type.PoolMaxIdle, problems);
         }
 
@@ -88,8 +98,7 @@ namespace Asteroids.Core.IConfigs
                     $"{ConfigChecks.Format(min)}.");
         }
 
-        private static void ValidateChildren(
-            string label, IAsteroidTypeConfig type, Dictionary<EnemyTypeId, int> indexById, List<string> problems)
+        private static void ValidateChildren(string label, IAsteroidTypeConfig type, List<string> problems)
         {
             var hasChildType = type.ChildType.IsValid;
 
@@ -99,9 +108,6 @@ namespace Asteroids.Core.IConfigs
                 problems.Add($"{label}: child type '{type.ChildType}' is set but the child count is 0.");
             else if (!hasChildType && type.ChildCount > 0)
                 problems.Add($"{label}: child count is {type.ChildCount} but no child type is set.");
-
-            if (hasChildType && !indexById.ContainsKey(type.ChildType))
-                problems.Add($"{label}: child type '{type.ChildType}' is not defined in this asteroid config.");
         }
 
         /// <summary>
@@ -150,7 +156,8 @@ namespace Asteroids.Core.IConfigs
         private static bool IsFirstInConfig(HashSet<int> members, int candidate)
         {
             foreach (var member in members)
-                if (member < candidate) return false;
+                if (member < candidate)
+                    return false;
 
             return true;
         }

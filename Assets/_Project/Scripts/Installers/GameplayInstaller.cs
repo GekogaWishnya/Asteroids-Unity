@@ -32,8 +32,6 @@ namespace Asteroids.Installers
         [SerializeField] private ShipHealthConfig shipHealth;
         [SerializeField] private WorldConfig worldConfig;
         [SerializeField] private HudConfig hudConfig;
-        [SerializeField] private AsteroidConfig asteroidConfig;
-        [SerializeField] private UfoConfig ufoConfig;
         [SerializeField] private LevelConfig levelConfig;
         [SerializeField] private ShipLoadoutDefinition shipLoadout;
         [SerializeField] private RunEndConfig runEndConfig;
@@ -76,8 +74,6 @@ namespace Asteroids.Installers
             Container.Bind<IHealthHudConfig>().FromInstance(hudConfig);
             Container.Bind<ILaserHudConfig>().FromInstance(hudConfig);
             Container.Bind<ITelemetryHudConfig>().FromInstance(hudConfig);
-            Container.Bind<IAsteroidConfig>().FromInstance(asteroidConfig);
-            Container.Bind<IUfoConfig>().FromInstance(ufoConfig);
             Container.Bind<ILevelConfig>().FromInstance(levelConfig);
             Container.Bind<IRunEndConfig>().FromInstance(runEndConfig);
             Container.Bind<IRunEndScreenConfig>().FromInstance(runEndConfig);
@@ -85,7 +81,11 @@ namespace Asteroids.Installers
             Container.Bind<IRandom>().FromInstance(new SystemRandom());
             ShipLoadoutInstaller.Install(Container, shipLoadout);
 
-            var enemyTypes = EnemyTypes.Collect(EnemyTypeSources());
+            var enemyTypes = EnemyTypes.Collect(new IEnemyTypeSource[] { levelConfig });
+            Container.Bind<IAsteroidConfig>()
+                .FromInstance(new AsteroidConfig(enemyTypes.OfType<IAsteroidTypeConfig>()));
+            Container.Bind<IUfoConfig>().FromInstance(new UfoConfig(enemyTypes.OfType<IUfoTypeConfig>()));
+
             var enemyPrefabs = enemyTypes.Select(type =>
                 new KeyValuePair<EnemyTypeId, GameObject>(type.Id, type.Prefab));
             Container.Bind<EnemyPrefabCatalog>().FromInstance(new EnemyPrefabCatalog(enemyPrefabs));
@@ -93,14 +93,6 @@ namespace Asteroids.Installers
 
             Container.Bind<IEffectsConfig>().FromInstance(new EffectsConfig(shipHealth.Effects, enemyTypes));
             Container.Bind<IEffectFactory>().To<PrefabEffectFactory>().AsSingle();
-        }
-
-        private List<IEnemyTypeSource> EnemyTypeSources()
-        {
-            var sources = new List<IEnemyTypeSource>();
-            if (asteroidConfig) sources.Add(asteroidConfig);
-            if (ufoConfig) sources.Add(ufoConfig);
-            return sources;
         }
 
         /// <exception cref="InvalidOperationException">The field is not assigned.</exception>

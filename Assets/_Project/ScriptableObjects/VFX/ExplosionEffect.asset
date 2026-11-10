@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: ExplosionEffect
   m_EditorClassIdentifier: 
   scale: 1
-  poolPrewarm: 4
-  poolMaxIdle: 8
-  maxActive: 16
+  poolPrewarm: 1
+  poolMaxIdle: 1
+  maxActive: 1
   prefab: {fileID: 5946481098624194210, guid: 536a18d275023b445b600448b6c1dd4d, type: 3}

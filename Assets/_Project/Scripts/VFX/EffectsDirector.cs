@@ -97,7 +97,8 @@ namespace Asteroids.VFX
             if (_enemies.TryGetValue(type, out var feedback)) return feedback;
 
             if (_reportedUnknown.Add(type))
-                Debug.LogWarning($"Enemy type '{type}' is not in the effects config, so it shows no effects.");
+                throw new InvalidOperationException(
+                    $"Enemy type '{type}' has no effects entry, although every spawnable type should have one.");
             return null;
         }
 

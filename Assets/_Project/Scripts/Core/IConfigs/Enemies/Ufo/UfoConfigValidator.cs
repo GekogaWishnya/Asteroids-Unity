@@ -13,9 +13,9 @@ namespace Asteroids.Core.IConfigs
 
             var problems = new List<string>();
             var types = config.Types;
-            if (types == null || types.Count == 0)
+            if (types == null)
             {
-                problems.Add("The UFO config has no types.");
+                problems.Add("The UFO config has no type list.");
                 return problems;
             }
 
@@ -41,15 +41,18 @@ namespace Asteroids.Core.IConfigs
                     continue;
                 }
 
-                ValidateType(type, problems);
+                ValidateType($"UFO type '{type.Type}'", type, problems);
             }
 
             return problems;
         }
 
-        private static void ValidateType(IUfoTypeConfig type, List<string> problems)
+        /// <param name="label">Names the type at the start of each message.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="type"/> or <paramref name="problems"/> is null.</exception>
+        public static void ValidateType(string label, IUfoTypeConfig type, List<string> problems)
         {
-            var label = $"UFO type '{type.Type}'";
+            if (type == null) throw new ArgumentNullException(nameof(type));
+            if (problems == null) throw new ArgumentNullException(nameof(problems));
 
             if (type.MaxHealth < 1)
                 problems.Add($"{label}: max health must be at least 1 (is {type.MaxHealth}).");

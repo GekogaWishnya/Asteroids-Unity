@@ -13,4 +13,8 @@ MonoBehaviour:
   m_Name: DefaultRunEnd
   m_EditorClassIdentifier: 
   defeatDelay: 2
-  victoryDelay: 2
+  victoryDelay: 0.25
+  defeatTitle: GAME OVER
+  victoryTitle: STAGE COMPLETE
+  scoreFormat: SCORE {0:D6}
+  wavesFormat: WAVES {0}/{1}

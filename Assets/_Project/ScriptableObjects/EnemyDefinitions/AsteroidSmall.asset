@@ -17,3 +17,14 @@ MonoBehaviour:
     hit: {fileID: 0}
     playHitOnFatal: 0
     death: {fileID: 0}
+  maxHealth: 1
+  contactDamage: 1
+  scorePoints: 100
+  minSpeed: 2.4
+  maxSpeed: 4
+  minSpinSpeed: 40
+  maxSpinSpeed: 110
+  childType: {fileID: 0}
+  childCount: 0
+  poolPrewarm: 16
+  poolMaxIdle: 48

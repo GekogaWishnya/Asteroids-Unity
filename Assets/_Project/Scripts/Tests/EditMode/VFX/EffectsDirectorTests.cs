@@ -1,10 +1,8 @@
 using System;
-using System.Text.RegularExpressions;
 using Asteroids.Core;
 using Asteroids.Core.IConfigs;
 using NUnit.Framework;
 using UnityEngine;
-using UnityEngine.TestTools;
 
 namespace Asteroids.VFX.Tests
 {
@@ -136,17 +134,20 @@ namespace Asteroids.VFX.Tests
         }
 
         [Test]
-        public void UnknownEnemyType_WarnsOnceAndPlaysNothing()
+        public void UnknownEnemyType_IsReportedOnceAsAWiringBugAndPlaysNothing()
         {
+            // Only a wiring bug gets here: the effects config and the prefab catalog share one type list.
+            // The director must not throw into gameplay, so the bug goes to the error log once per type.
             var director = CreateDirector();
-            var unknown = new EnemyTypeId("Comet");
-            LogAssert.Expect(LogType.Warning, new Regex("Comet"));
+            var unknown = new EnemyTypeId("NotInTheConfig");
 
             director.OnEnemyDied(new EnemyDied(unknown, Vector2.zero));
-            director.OnEnemyDied(new EnemyDied(unknown, Vector2.zero));
+            director.OnEnemyDamaged(new EnemyDamaged(unknown, Vector2.zero, false));
 
             Assert.That(_factory.Created, Is.Empty);
-            LogAssert.NoUnexpectedReceived();
+            Assert.That(_errors.Reports, Has.Count.EqualTo(1));
+            Assert.That(_errors.Reports[0].Failure, Is.TypeOf<InvalidOperationException>());
+            Assert.That(_errors.Reports[0].Failure.Message, Does.Contain("NotInTheConfig"));
         }
 
         [Test]

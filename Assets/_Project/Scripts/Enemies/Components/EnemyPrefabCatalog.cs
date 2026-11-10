@@ -34,7 +34,7 @@ namespace Asteroids.Enemies.Components
             if (!type.IsValid || !_prefabs.TryGetValue(type, out var prefab))
                 throw new InvalidOperationException(
                     $"No prefab is known for enemy type '{type}'. " +
-                    "Add the type to the asteroid or UFO config of the gameplay installer.");
+                    "Add the type to a wave of the level, or link it from a type that is in one.");
 
             return prefab;
         }
