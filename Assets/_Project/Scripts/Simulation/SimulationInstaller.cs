@@ -4,6 +4,7 @@ using Zenject;
 
 namespace Asteroids.Simulation
 {
+    /// <summary>Binds the <see cref="SimulationLoop"/>.</summary>
     public sealed class SimulationInstaller : Installer<SimulationInstaller>
     {
         public override void InstallBindings()
@@ -11,7 +12,7 @@ namespace Asteroids.Simulation
             Container.Bind<IErrorLog>().To<UnityErrorLog>().AsSingle();
 
             Container.Bind<SimulationLoop>().AsSingle();
-            Container.Bind(typeof(ISimulationLoop), typeof(ITickable)).To<SimulationLoop>().FromResolve();
+            Container.Bind<ISimulationLoop>().To<SimulationLoop>().FromResolve();
         }
     }
 }

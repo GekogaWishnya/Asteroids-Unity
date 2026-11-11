@@ -6,7 +6,8 @@ namespace Asteroids.Controls
     /// <summary>
     /// Binds the player's input: <see cref="IInputSchemes"/>, <see cref="IMovementInput"/> and
     /// <see cref="IWeaponTriggers"/>, which read as idle unless <see cref="InputScheme.Gameplay"/> is active.
-    /// <see cref="ShipInput"/> checks every axis at startup.
+    /// <see cref="ShipInput"/> checks every axis at startup. <see cref="SchemeGatedShipInput"/> is bound to itself too,
+    /// so the frame schedule can tick it.
     /// </summary>
     public sealed class ControlsInstaller : Installer<ControlsInstaller>
     {
@@ -17,7 +18,7 @@ namespace Asteroids.Controls
             Container.Bind<IAxisReader>().To<UnityAxisReader>().AsSingle();
             Container.Bind<ShipInput>().AsSingle();
             Container.Bind<IInitializable>().To<ShipInput>().FromResolve();
-            Container.BindInterfacesTo<SchemeGatedShipInput>().AsSingle();
+            Container.BindInterfacesAndSelfTo<SchemeGatedShipInput>().AsSingle();
         }
     }
 }

@@ -1,14 +1,11 @@
 using System;
 using System.Collections.Generic;
-using Zenject;
+using Asteroids.Common;
 
 namespace Asteroids.UI
 {
-    /// <summary>
-    /// Refreshes every bound <see cref="IRefreshable"/> in <c>LateUpdate</c>, after the simulation has ticked
-    /// in <c>Update</c>, so the HUD shows the state of the frame being drawn.
-    /// </summary>
-    public sealed class ViewModelRefresher : ILateTickable
+    /// <summary>Refreshes every bound <see cref="IRefreshable"/>, in binding order.</summary>
+    public sealed class ViewModelRefresher : IFrameTick
     {
         private readonly IRefreshable[] _refreshables;
 
@@ -22,7 +19,7 @@ namespace Asteroids.UI
                 throw new ArgumentNullException(nameof(refreshables), "An item is null.");
         }
 
-        public void LateTick()
+        public void Tick()
         {
             foreach (var refreshable in _refreshables) refreshable.Refresh();
         }

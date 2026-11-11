@@ -27,12 +27,25 @@ namespace Asteroids.Controls.Tests
             Assert.That(container.Resolve<IWeaponTriggers>(), Is.SameAs(container.Resolve<IMovementInput>()));
         }
 
+        /// <summary>
+        /// The frame schedule ticks the gated input by its concrete type, so it must resolve to the very instance the
+        /// game reads; a second instance would sample triggers nobody fires with.
+        /// </summary>
         [Test]
-        public void GatedInput_IsTicked()
+        public void GatedInput_ResolvesByItsOwnTypeToTheSameInstance()
         {
             var container = Install();
 
-            Assert.That(container.ResolveAll<ITickable>(), Has.Some.InstanceOf<SchemeGatedShipInput>());
+            Assert.That(container.Resolve<SchemeGatedShipInput>(), Is.SameAs(container.Resolve<IMovementInput>()));
+        }
+
+        /// <summary>Nothing in Controls may tick itself any more; the frame schedule owns every tick.</summary>
+        [Test]
+        public void NothingIsAZenjectTickable()
+        {
+            var container = Install();
+
+            Assert.That(container.ResolveAll<ITickable>(), Is.Empty);
         }
 
         [Test]

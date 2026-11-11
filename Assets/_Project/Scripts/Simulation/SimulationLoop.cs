@@ -1,14 +1,13 @@
 using System;
 using Asteroids.Common;
 using Asteroids.Core;
-using Zenject;
 
 namespace Asteroids.Simulation
 {
     /// <summary>
     /// Runs one simulation tick per rendered frame with a single clamped delta time, shared by every step.
     /// </summary>
-    public sealed class SimulationLoop : ISimulationLoop, ISimulationControl, ITickable
+    public sealed class SimulationLoop : ISimulationLoop, ISimulationControl, IFrameTick
     {
         /// <summary>Longest time a single tick may simulate in seconds.</summary>
         private const float MaxDeltaTime = 1f / 20f;

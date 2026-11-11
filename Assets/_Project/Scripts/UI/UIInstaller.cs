@@ -21,7 +21,7 @@ namespace Asteroids.UI
             Container.BindInterfacesAndSelfTo<ScoreViewModel>().AsSingle();
 
             Container.BindInterfacesAndSelfTo<ShipTelemetryViewModel>().AsSingle();
-            Container.BindInterfacesTo<ViewModelRefresher>().AsSingle();
+            Container.Bind<ViewModelRefresher>().AsSingle();
 
             // Only exists when the loadout carries a laser.
             Container.BindInterfacesAndSelfTo<LaserViewModel>().AsSingle()

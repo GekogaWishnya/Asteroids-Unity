@@ -12,6 +12,7 @@ using Asteroids.VFX;
 using Asteroids.VFX.Components;
 using Asteroids.Enemies;
 using Asteroids.Enemies.Components;
+using Asteroids.Physics;
 using Asteroids.Player;
 using Asteroids.Scoring;
 using Asteroids.Session;
@@ -58,6 +59,9 @@ namespace Asteroids.Installers
             WeaponsInstaller.Install(Container);
             SessionInstaller.Install(Container);
             EffectsInstaller.Install(Container);
+
+            Container.Bind(typeof(IPoseViewRegistry), typeof(PoseViewSync)).To<PoseViewSync>().AsSingle();
+            FrameScheduleInstaller.Install(Container);
 
             Container.Bind<ISimulationTime>().To<UnityTimeSource>().AsSingle();
             Container.Bind<IShipMovementConfig>().FromInstance(shipMovement);

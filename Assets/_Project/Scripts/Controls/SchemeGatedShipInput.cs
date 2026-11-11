@@ -1,6 +1,6 @@
 using System;
+using Asteroids.Common;
 using Asteroids.Core;
-using Zenject;
 
 namespace Asteroids.Controls
 {
@@ -8,7 +8,7 @@ namespace Asteroids.Controls
     /// The ship's controls as <see cref="ShipInput"/>.
     /// Does nothing unless <see cref="InputScheme.Gameplay"/> is active.
     /// </summary>
-    public sealed class SchemeGatedShipInput : IMovementInput, IWeaponTriggers, ITickable, IDisposable
+    public sealed class SchemeGatedShipInput : IMovementInput, IWeaponTriggers, IFrameTick, IDisposable
     {
         private readonly ShipInput _shipInput;
         private readonly IInputSchemes _schemes;
